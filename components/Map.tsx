@@ -52,7 +52,6 @@ const styleFn = (feature: Feature<Geometry, CountyProperties> | undefined) => {
 
 const Map = () => {
   // TODO: take center as props
-  // TODO: take map size as props
   // TODO: enable pinch to zoom
 
   return (
@@ -60,7 +59,8 @@ const Map = () => {
       center={center}
       zoom={4}
       scrollWheelZoom={false}
-      style={{ height: "400px", width: "600px" }}
+      // style={{ height: 800, width: 1200 }}
+      style={{ height: "100%", width: "100%" }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
