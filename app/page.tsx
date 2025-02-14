@@ -15,6 +15,9 @@ export default function Home() {
   // TODO: add hazard tab
   // TODO: add scenario tab
   // TODO: optional data source tab
+  // TODO: add county search bar
+  // TODO: add scenario graph
+  // TODO: add old dataset comparison
 
   return (
     <main>

@@ -7,25 +7,13 @@ import "leaflet/dist/leaflet.css";
 // import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.webpack.css";
 // import "leaflet-defaulticon-compatibility";
 
-import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON, useMapEvents } from "react-leaflet";
 import type { FeatureCollection, Feature, Geometry } from "geojson";
-// "properties":{"geo_point_2d":{"lon":-89.68448923303517,"lat":37.383972850288494},"year":"2023","ste_code":["29"],"ste_name":["Missouri"],"coty_code":["29031"],"coty_name":["Cape Girardeau"],"coty_area_code":"USA","coty_type":"county","coty_name_long":["Cape Girardeau County"],"coty_fp_code":"031","coty_gnis_code":"00758470"}
+import { useState } from "react";
+import { Layer } from "leaflet";
 
-type CountyProperties = {
-  geo_point_2d: {
-    lon: number;
-    lat: number;
-  };
-  year: string;
-  ste_code: string[];
-  ste_name: string[];
-  coty_code: string[];
-  coty_name: string[];
-  coty_area_code: string;
-  coty_name_long: string[];
-  coty_fp_code: string;
-  coty_gnis_code: string;
-};
+import { CountyProperties } from "@/schema/county";
+import CountyInfoModal from "@/components/counties/CountyInfoModal";
 
 // TODO: combine county data with climate data
 const geojson: FeatureCollection<
@@ -36,29 +24,21 @@ const geojson: FeatureCollection<
 // Centered over continental US
 const center = { lat: 39.8283, lng: -98.5795 };
 
-const styleFn = (feature: Feature<Geometry, CountyProperties> | undefined) => {
-  if (!feature) return {};
-
-  return {
-    // TODO: implement getColor depending on chart
-    // fillColor: getColor(feature.properties),
-    weight: 2,
-    opacity: 1,
-    color: "white", // dependent on chart
-    dashArray: "3",
-    fillOpacity: 0.7,
-  };
-};
-
 const Map = () => {
-  // TODO: take center as props
-  // TODO: enable pinch to zoom
+  const [hoveredCounty, setHoveredCounty] = useState<string | undefined>();
+  const [selectedCounty, setSelectedCounty] = useState<
+    CountyProperties | undefined
+  >();
+
+  // TODO: make pinch to zoom smoother
+  // TODO: improve hover styling performance (useMemo, maybe maintain some state of styles)
 
   return (
     <MapContainer
       center={center}
       zoom={4}
-      scrollWheelZoom={false}
+      zoomDelta={0.5}
+      scrollWheelZoom={true}
       // style={{ height: 800, width: 1200 }}
       style={{ height: "100%", width: "100%" }}
     >
@@ -68,7 +48,45 @@ const Map = () => {
         url="https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png"
       />
 
-      <GeoJSON data={geojson} style={styleFn} />
+      <GeoJSON
+        data={geojson}
+        style={(feature: Feature<Geometry, CountyProperties> | undefined) => {
+          if (!feature) return {};
+
+          const isHovered = feature.properties.coty_code[0] === hoveredCounty;
+
+          return {
+            // TODO: implement getColor depending on chart
+            // fillColor: getColor(feature.properties),
+            weight: isHovered ? 5 : 2,
+            opacity: 1,
+            // color: isHovered ? "white" : "black", // dependent on chart
+            dashArray: isHovered ? "3" : "",
+            fillOpacity: isHovered ? 0.7 : 0.3,
+          };
+        }}
+        onEachFeature={(
+          feature: Feature<Geometry, CountyProperties>,
+          layer: Layer
+        ) => {
+          layer.on("mouseover", () => {
+            setHoveredCounty(feature.properties.coty_code[0]);
+          });
+
+          layer.on("mouseout", () => {
+            setHoveredCounty(undefined);
+          });
+
+          layer.on("click", () => {
+            setSelectedCounty(feature.properties);
+          });
+        }}
+      />
+
+      <CountyInfoModal
+        selectedCounty={selectedCounty}
+        onClose={() => setSelectedCounty(undefined)}
+      />
     </MapContainer>
   );
 };
