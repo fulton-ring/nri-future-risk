@@ -35,4 +35,4 @@ combined_geojson = {"type": "FeatureCollection", "features": combined_features}
 
 # Save combined dataset
 with open("./data/combined_nri_counties_borders.json", "w") as f:
-    json.dump(combined_geojson, f, indent=2)
+    json.dump(combined_geojson, f)
