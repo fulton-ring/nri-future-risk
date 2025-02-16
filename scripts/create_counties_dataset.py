@@ -22,7 +22,7 @@ for feature in counties["features"]:
     county_fips = feature["properties"]["coty_code"][0]
 
     # Look up climate data directly from dataframe
-    climate_rows = climate_data_df.filter(pl.col("NRI_ID") == f"C{county_fips}")
+    climate_rows = climate_data_df.filter(pl.col("STCOFIPS") == county_fips)
 
     if len(climate_rows) > 0:
         # Add first matching climate row to county properties
@@ -34,5 +34,5 @@ for feature in counties["features"]:
 combined_geojson = {"type": "FeatureCollection", "features": combined_features}
 
 # Save combined dataset
-with open("./data/combined_nri_counties.json", "w") as f:
+with open("./data/combined_nri_counties_borders.json", "w") as f:
     json.dump(combined_geojson, f, indent=2)
