@@ -1,5 +1,7 @@
 # Climate Informed Risk Index
 
+Restored by [Fulton Ring](https://fultonring.com). Read the [project case study](https://fultonring.com/work/climate-risk-data-restoration/).
+
 [Visit Tool](https://fulton-ring.github.io/nri-future-risk/)
 
 This tool is a replica of the National Risk Index (NRI) Future Risk tool, which
