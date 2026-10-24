@@ -24,6 +24,8 @@ jobs:
     env:
       PROJECT: ${{ vars.FRI_GCP_PROJECT }}
       REGION: ${{ vars.FRI_GCP_REGION }}
+      NETWORK: ${{ vars.FRI_NETWORK }}
+      SUBNETWORK: ${{ vars.FRI_SUBNETWORK }}
       REGISTRY: ${{ vars.FRI_IMAGE_REPOSITORY }}
       WORKER_SA: ${{ vars.FRI_BATCH_SERVICE_ACCOUNT }}
       CANDIDATE_BUCKET: ${{ vars.FRI_CANDIDATE_BUCKET }}
@@ -36,7 +38,7 @@ jobs:
         env:
           PR_TOKEN: ${{ secrets.FRI_PR_TOKEN }}
         run: |
-          for name in PROJECT REGION REGISTRY WORKER_SA CANDIDATE_BUCKET PR_TOKEN; do
+          for name in PROJECT REGION NETWORK SUBNETWORK REGISTRY WORKER_SA CANDIDATE_BUCKET PR_TOKEN; do
             test -n "${!name}" || { echo "Missing configuration: $name"; exit 1; }
           done
       - uses: astral-sh/setup-uv@v5
@@ -60,6 +62,7 @@ jobs:
         run: |
           uv run --directory pipeline --frozen python -m fri_pipeline.cloud \
             --project "$PROJECT" --region "$REGION" --image "$WORKER_IMAGE" \
+            --network "$NETWORK" --subnetwork "$SUBNETWORK" \
             --service-account "$WORKER_SA" --snapshot "$SNAPSHOT_URI" \
             --snapshot-sha256 "$SNAPSHOT_SHA" --output "gs://$CANDIDATE_BUCKET/runs/$RELEASE_ID" \
             --release-id "$RELEASE_ID" --code-revision "$GITHUB_SHA"

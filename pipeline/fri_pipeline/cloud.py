@@ -21,9 +21,15 @@ def job_config(
     output: str,
     release_id: str,
     code_revision: str,
+    network: str,
+    subnetwork: str,
     replay: bool = False,
 ) -> dict:
     validate_id(release_id)
+    if not re.fullmatch(r"projects/[^/]+/global/networks/[^/]+", network) or not re.fullmatch(
+        r"projects/[^/]+/regions/[^/]+/subnetworks/[^/]+", subnetwork
+    ):
+        raise ValueError("Explicit private network and regional subnetwork paths are required")
     if not re.fullmatch(r"[a-z0-9./_-]+@sha256:[a-f0-9]{64}", image):
         raise ValueError("Batch requires an immutable image digest")
     if replay and (snapshot or snapshot_sha):
@@ -64,6 +70,11 @@ def job_config(
             }
         ],
         "allocationPolicy": {
+            "network": {
+                "networkInterfaces": [
+                    {"network": network, "subnetwork": subnetwork, "noExternalIpAddress": True}
+                ]
+            },
             "instances": [
                 {
                     "policy": {
@@ -89,6 +100,8 @@ def main():
         "output",
         "release-id",
         "code-revision",
+        "network",
+        "subnetwork",
     ):
         parser.add_argument(f"--{name}", required=True)
     parser.add_argument("--snapshot", default="")
@@ -103,6 +116,8 @@ def main():
         output=args.output,
         release_id=args.release_id,
         code_revision=args.code_revision,
+        network=args.network,
+        subnetwork=args.subnetwork,
         replay=args.replay,
     )
     base = ["gcloud", "batch", "jobs"]

@@ -2,6 +2,8 @@ output "github_variables" {
   value = {
     FRI_GCP_PROJECT                = var.project
     FRI_GCP_REGION                 = var.region
+    FRI_NETWORK                    = var.network
+    FRI_SUBNETWORK                 = var.subnetwork
     FRI_IMAGE_REPOSITORY           = "${var.region}-docker.pkg.dev/${var.project}/fri/worker"
     FRI_BATCH_SERVICE_ACCOUNT      = google_service_account.fri["worker"].email
     FRI_RUNNER_SERVICE_ACCOUNT     = google_service_account.fri["runner"].email

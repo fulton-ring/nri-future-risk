@@ -159,6 +159,9 @@ image and a four-hour task limit. Submission waits at most five hours. Candidate
 Actions run ID and attempt; output writes are create-only (a retry accepts identical existing bytes).
 Canceling an Actions run may leave its already-submitted Batch task running until its time limit;
 cancel it explicitly with `gcloud batch jobs delete RELEASE_ID --location REGION --project PROJECT`.
+Jobs require an explicit VPC/subnet and always disable external VM IPs. Production uses
+`hifld-prod-vpc` / `hifld-prod-subnet`, with Private Google Access already enabled. The project's
+no-public-VM-IP policy remains in force; no firewall or organization policy exceptions are needed.
 
 ## Submit Batch from your local CLI
 
@@ -174,6 +177,8 @@ FRI_IMAGE_DIGEST=$(python3 -c 'import json; print(json.load(open("/tmp/fri-worke
 FRI_REPLAY_ID="archive-replay-$(date -u +%Y%m%d%H%M%S)"
 uv run --directory pipeline --frozen python -m fri_pipeline.cloud \
   --project hifld-next --region us-central1 \
+  --network projects/hifld-next/global/networks/hifld-prod-vpc \
+  --subnetwork projects/hifld-next/regions/us-central1/subnetworks/hifld-prod-subnet \
   --image "us-central1-docker.pkg.dev/hifld-next/fri/worker@$FRI_IMAGE_DIGEST" \
   --service-account fri-worker@hifld-next.iam.gserviceaccount.com \
   --output "gs://hifld-next-fri-candidates/runs/$FRI_REPLAY_ID" \

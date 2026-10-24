@@ -12,6 +12,8 @@ def test_batch_uses_digest_pin_and_finite_resources():
         output="gs://candidates/runs/fri-test",
         release_id="fri-test",
         code_revision="c" * 40,
+        network="projects/project/global/networks/private",
+        subnetwork="projects/project/regions/us-central1/subnetworks/private",
     )
     task = config["taskGroups"][0]["taskSpec"]
     assert task["maxRetryCount"] == 0
@@ -20,6 +22,9 @@ def test_batch_uses_digest_pin_and_finite_resources():
     command = task["runnables"][0]["container"]["commands"]
     assert "--snapshot-sha256" in command
     assert config["allocationPolicy"]["serviceAccount"]["email"].startswith("worker@")
+    interface = config["allocationPolicy"]["network"]["networkInterfaces"][0]
+    assert interface["noExternalIpAddress"] is True
+    assert interface["subnetwork"].endswith("/subnetworks/private")
 
 
 def test_batch_rejects_mutable_images():
@@ -32,6 +37,8 @@ def test_batch_rejects_mutable_images():
             output="gs://candidates/runs/fri-test",
             release_id="fri-test",
             code_revision="c" * 40,
+            network="projects/project/global/networks/private",
+            subnetwork="projects/project/regions/us-central1/subnetworks/private",
         )
 
 
@@ -45,6 +52,8 @@ def test_batch_replay_needs_no_snapshot_and_remains_an_explicit_mode():
         release_id="replay-test",
         code_revision="c" * 40,
         replay=True,
+        network="projects/project/global/networks/private",
+        subnetwork="projects/project/regions/us-central1/subnetworks/private",
     )
     command = config["taskGroups"][0]["taskSpec"]["runnables"][0]["container"]["commands"]
     assert "--replay" in command

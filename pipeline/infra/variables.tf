@@ -15,3 +15,13 @@ variable "transform_service_account" {
   type        = string
   description = "Existing HIFLD Next transform/publisher service account email."
 }
+
+variable "network" {
+  type        = string
+  description = "Existing VPC resource path for private Batch VMs."
+}
+
+variable "subnetwork" {
+  type        = string
+  description = "Existing regional subnet with Private Google Access enabled."
+}
