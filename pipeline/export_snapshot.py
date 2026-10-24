@@ -15,37 +15,18 @@ import numpy as np
 import requests
 from scipy import sparse
 
+REBUILD_COMMIT = "390f7c072dc23b5c33a7d7a87b99cecd8ef8041c"
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--rebuild", type=Path, required=True)
-    parser.add_argument("--sources", type=Path, required=True)
-    parser.add_argument("--output", type=Path, required=True)
-    args = parser.parse_args()
-    expected = "390f7c072dc23b5c33a7d7a87b99cecd8ef8041c"
-    sha = subprocess.check_output(
-        ["git", "-C", str(args.rebuild), "rev-parse", "HEAD"], text=True
-    ).strip()
-    changes = subprocess.check_output(
-        ["git", "-C", str(args.rebuild), "status", "--porcelain"], text=True
-    ).strip()
-    if sha != expected or changes:
-        raise ValueError("Export requires a clean checkout of the pinned rebuild commit")
-    output = args.output.resolve()
+
+def export_inputs(inputs, output: Path, sources: list[dict]) -> Path:
+    """Export verified prepared arrays; acquisition and network access remain caller-owned."""
+    output = output.resolve()
     output.mkdir(parents=True, exist_ok=True)
     if any(output.iterdir()):
         raise ValueError("Snapshot directory must be empty")
-    sources = json.loads(args.sources.read_text())
     ids = [source["id"] for source in sources]
     if not ids:
-        raise ValueError("Raw climate, weights, and fuel source fingerprints are required")
-    sys.path.insert(0, str(args.rebuild / "fri-agent-rebuild/src"))
-    from fri_rebuild import inputs
-
-    def no_download(*_args, **_kwargs):
-        raise RuntimeError("Snapshot export attempted a network request; prepare the cache first")
-
-    requests.sessions.Session.request = no_download
+        raise ValueError("Raw source fingerprints are required")
     artifacts = {}
 
     def register(name, path):
@@ -98,13 +79,48 @@ def main():
         "schemaVersion": 1,
         "coverage": "CONUS",
         "sources": sources,
-        "rebuildCommit": expected,
+        "rebuildCommit": REBUILD_COMMIT,
         "methodology": "fema-2024-county-area-weighted-v1",
         "artifacts": artifacts,
     }
     path = output / "snapshot.json"
     path.write_text(json.dumps(manifest, indent=2) + "\n")
     print(f"Snapshot manifest SHA-256: {hashlib.sha256(path.read_bytes()).hexdigest()}")
+
+    return path
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--rebuild", type=Path, required=True)
+    parser.add_argument("--sources", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+    expected = REBUILD_COMMIT
+    sha = subprocess.check_output(
+        ["git", "-C", str(args.rebuild), "rev-parse", "HEAD"], text=True
+    ).strip()
+    changes = subprocess.check_output(
+        ["git", "-C", str(args.rebuild), "status", "--porcelain"], text=True
+    ).strip()
+    if sha != expected or changes:
+        raise ValueError("Export requires a clean checkout of the pinned rebuild commit")
+    output = args.output.resolve()
+    output.mkdir(parents=True, exist_ok=True)
+    if any(output.iterdir()):
+        raise ValueError("Snapshot directory must be empty")
+    sources = json.loads(args.sources.read_text())
+    ids = [source["id"] for source in sources]
+    if not ids:
+        raise ValueError("Raw climate, weights, and fuel source fingerprints are required")
+    sys.path.insert(0, str(args.rebuild / "fri-agent-rebuild/src"))
+    from fri_rebuild import inputs
+
+    def no_download(*_args, **_kwargs):
+        raise RuntimeError("Snapshot export attempted a network request; prepare the cache first")
+
+    requests.sessions.Session.request = no_download
+    export_inputs(inputs, output, sources)
 
 
 if __name__ == "__main__":

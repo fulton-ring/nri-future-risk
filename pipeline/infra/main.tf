@@ -19,7 +19,7 @@ resource "google_storage_bucket" "fri" {
 }
 
 resource "google_service_account" "fri" {
-  for_each     = toset(["runner", "worker", "publication"])
+  for_each     = toset(["runner", "worker", "publication", "preparation"])
   account_id   = "fri-${each.value}"
   display_name = "Future Risk Index ${each.value}"
 }
@@ -36,6 +36,8 @@ resource "google_project_iam_member" "runtime" {
     runner_batch = { account = "runner", role = "roles/batch.jobsEditor" }
     worker_batch = { account = "worker", role = "roles/batch.agentReporter" }
     worker_logs  = { account = "worker", role = "roles/logging.logWriter" }
+    prep_batch   = { account = "preparation", role = "roles/batch.agentReporter" }
+    prep_logs    = { account = "preparation", role = "roles/logging.logWriter" }
   }
   project = var.project
   role    = each.value.role
@@ -48,8 +50,14 @@ resource "google_service_account_iam_member" "submit_as_worker" {
   member             = "serviceAccount:${google_service_account.fri["runner"].email}"
 }
 
+resource "google_service_account_iam_member" "submit_as_preparation" {
+  service_account_id = google_service_account.fri["preparation"].name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${google_service_account.fri["runner"].email}"
+}
+
 resource "google_artifact_registry_repository_iam_member" "image" {
-  for_each   = { runner = "roles/artifactregistry.writer", worker = "roles/artifactregistry.reader" }
+  for_each   = { runner = "roles/artifactregistry.writer", worker = "roles/artifactregistry.reader", preparation = "roles/artifactregistry.reader" }
   location   = google_artifact_registry_repository.fri.location
   repository = google_artifact_registry_repository.fri.name
   role       = each.value
@@ -59,6 +67,8 @@ resource "google_artifact_registry_repository_iam_member" "image" {
 resource "google_storage_bucket_iam_member" "access" {
   for_each = {
     worker_inputs      = { account = "worker", bucket = "inputs", role = "roles/storage.objectViewer" }
+    prep_inputs_read   = { account = "preparation", bucket = "inputs", role = "roles/storage.objectViewer" }
+    prep_inputs_create = { account = "preparation", bucket = "inputs", role = "roles/storage.objectCreator" }
     worker_output      = { account = "worker", bucket = "candidates", role = "roles/storage.objectCreator" }
     worker_output_read = { account = "worker", bucket = "candidates", role = "roles/storage.objectViewer" }
     runner_output      = { account = "runner", bucket = "candidates", role = "roles/storage.objectViewer" }

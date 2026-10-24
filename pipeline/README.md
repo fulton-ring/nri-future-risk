@@ -78,6 +78,20 @@ Dollar outputs follow the validated equations; FEMA's archive has no direct publ
 
 ## Prepare an immutable climate snapshot
 
+`fri_pipeline.prepare` provides the real acquisition worker (`Preparation.Dockerfile`). It uses
+hash-checked copies of the pinned spike's data/weighting code in `vendor/fri_rebuild`, downloads
+only NEX monthly tas/pr, MME75/FWI_P95 and LOCA2 tasmin, and records complete raw-file hashes.
+LOCA2 files are downloaded and processed one at a time; the percentile calculation and 0.25°
+county weighting are unchanged. A dedicated `fri-preparation` account can create/read input
+objects but cannot publish datasets or modify candidates. The scoring worker retains read-only
+input access.
+
+Completed caches and source ledgers are checkpointed under `real/acquisitions/RUN_ID`; successful
+exports appear under `real/snapshots/RUN_ID`. A `result.json` marker is written only after the
+snapshot passes all source/coverage checks. Retries can restore a checkpoint with `--resume-uri`
+and its `--resume-sha256`; every restored object is hash verified. NEX file selection remains pinned
+across retries. Acquisition can take hours; it does not call any LLM or agent loop.
+
 Source acquisition is deliberately separate from release calculation. The original spike's downloader
 can use mutable upstream services and newest-file lookups, so Batch never invokes it. Prepare/review
 the climate cache using a clean checkout of `agent-content-demos` at

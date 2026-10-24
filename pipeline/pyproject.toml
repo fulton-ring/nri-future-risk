@@ -16,6 +16,12 @@ dependencies = [
 [dependency-groups]
 dev = ["pytest>=8,<9", "ruff>=0.11,<1"]
 
+[project.optional-dependencies]
+preparation = [
+  "aiohttp>=3.9,<4", "fsspec>=2024.6", "geopandas>=1,<2", "h5py>=3.11,<4",
+  "pyarrow>=17", "rasterio>=1.4,<2",
+]
+
 [tool.uv]
 package = false
 
@@ -25,6 +31,7 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100
+extend-exclude = ["vendor"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
