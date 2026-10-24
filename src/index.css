@@ -164,13 +164,6 @@ summary {
   text-decoration: none;
   min-width: 0;
 }
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  background: var(--accent);
-}
 .brand strong {
   font-size: 19px;
   font-weight: 750;
@@ -1039,10 +1032,6 @@ th small {
   .brand small {
     font-size: 9px;
   }
-  .brand-mark {
-    width: 35px;
-    height: 35px;
-  }
   .site-header nav button {
     padding: 8px;
     font-size: 12px;
@@ -1386,10 +1375,6 @@ th small {
   }
   .brand {
     gap: 8px;
-  }
-  .brand-mark {
-    width: 28px;
-    height: 32px;
   }
   .brand h1 {
     font-size: 16px;

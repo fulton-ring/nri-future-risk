@@ -3,7 +3,6 @@ import {
   ArrowUpRight,
   Check,
   ChevronDown,
-  Layers,
   Map as MapIcon,
   Maximize2,
   Share2,
@@ -102,9 +101,6 @@ export default function App() {
       </a>
       <header className="site-header">
         <a className="brand" href={import.meta.env.BASE_URL}>
-          <span className="brand-mark">
-            <Layers size={23} strokeWidth={1.5} />
-          </span>
           <span>
             <h1>Future Risk Index</h1>
             <small className="archive-label">
