@@ -36,6 +36,17 @@ def read_master() -> pd.DataFrame:
     return master
 
 
+def source_domain(values: np.ndarray) -> np.ndarray:
+    """Only all-time NaN cells are structural masks; mixed gaps and infinities fail."""
+    if values.ndim != 2 or not len(values):
+        raise ValueError("Expected a nonempty time-by-cell array")
+    valid = np.isfinite(values).all(axis=0)
+    masked = np.isnan(values).all(axis=0)
+    if not (valid | masked).all():
+        raise ValueError("Temporal gaps or invalid values in supported climate cells")
+    return valid
+
+
 class Snapshot:
     """A manifest plus local files, all verified before any computation."""
 
@@ -69,6 +80,8 @@ class Snapshot:
         if not self.manifest.get("artifacts"):
             raise ValueError("Snapshot has no artifacts")
         self.files = {}
+        self._domain_masks = {}
+        self.coverage_diagnostics = {}
         for name, spec in self.manifest["artifacts"].items():
             path = Path(spec["path"])
             resolved = (self.root / path).resolve()
@@ -79,6 +92,24 @@ class Snapshot:
             if not resolved.is_file() or sha256(resolved) != spec["sha256"]:
                 raise ValueError(f"Artifact hash mismatch: {name}")
             self.files[name] = resolved
+
+    def record_domain(self, family: str, valid: np.ndarray, weights) -> None:
+        previous = self._domain_masks.get(family)
+        if previous is not None and not np.array_equal(previous, valid):
+            raise ValueError(f"Source domain mask changes across variables/scenarios: {family}")
+        covered = np.asarray(weights @ valid.astype(float)).ravel()
+        if (covered <= 0).any():
+            raise ValueError(f"Missing valid climate coverage for {(covered <= 0).sum()} counties")
+        fraction = covered / np.asarray(weights.sum(axis=1)).ravel()
+        self._domain_masks[family] = valid.copy()
+        self.coverage_diagnostics[family] = {
+            "weightedCells": len(valid),
+            "structuralNoDataCells": int((~valid).sum()),
+            "counties": weights.shape[0],
+            "minimumCountyCoverage": float(fraction.min()),
+            "medianCountyCoverage": float(np.median(fraction)),
+            "countiesWithPartialCoverage": int((fraction < 1 - 1e-10).sum()),
+        }
 
     def file(self, key: str) -> Path:
         if key not in self.files:
@@ -136,16 +167,12 @@ class Snapshot:
         with np.load(self.file(f"monthly_{variable}_{scenario}"), allow_pickle=False) as data:
             values, months = data["values"], pd.DatetimeIndex(data["months"])
         expected = pd.date_range("1950-01-01", "2100-12-01", freq="MS")
-        if (
-            not months.equals(expected)
-            or not np.isfinite(values).all()
-            or values.shape
-            != (
-                len(expected),
-                self.county_weights()[0].shape[1],
-            )
+        if not months.equals(expected) or values.shape != (
+            len(expected),
+            self.county_weights()[0].shape[1],
         ):
             raise ValueError("Monthly inputs must cover 1950–2100 and match NEX weights")
+        self.record_domain("nex-monthly", source_domain(values), self.county_weights()[0])
         return values, months
 
     def fwi(self, scenario: str, period: str, variable: str, ensemble: str):
@@ -154,16 +181,12 @@ class Snapshot:
         with np.load(self.file(f"fwi_{scenario}_{period}"), allow_pickle=False) as data:
             values, years = data["values"], data["years"]
         first, last = SPANS[period]
-        if (
-            not np.array_equal(years, np.arange(first, last + 1))
-            or not np.isfinite(values).all()
-            or values.shape
-            != (
-                len(years),
-                self.county_weights()[0].shape[1],
-            )
+        if not np.array_equal(years, np.arange(first, last + 1)) or values.shape != (
+            len(years),
+            self.county_weights()[0].shape[1],
         ):
             raise ValueError("FWI snapshot has missing years or mismatched cell support")
+        self.record_domain("nex-fwi", source_domain(values), self.county_weights()[0])
         return values
 
     def county_fuel_shares(self) -> pd.DataFrame:
@@ -196,4 +219,7 @@ class Snapshot:
         days = len(pd.date_range(f"{first}-01-01", f"{last}-12-31"))
         if not np.all(counts.sum(axis=0) == days):
             raise ValueError("LOCA2 histogram must account for every day including no-data")
+        if not ((counts[-1] == 0) | (counts[-1] == days)).all():
+            raise ValueError("Missing LOCA2 days within supported cells")
+        self.record_domain("loca2", counts[-1] == 0, self.loca2_county_weights()[0])
         return edges, counts

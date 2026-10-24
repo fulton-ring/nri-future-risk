@@ -1,0 +1,8 @@
+{
+  "url": "https://nex-gddp-cmip6.s3.us-west-2.amazonaws.com/NEX-GDDP-CMIP6/MPI-ESM1-2-HR/historical/r1i1p1f1/tas/tas_day_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_1950_v2.0.nc",
+  "counties": 3108,
+  "weightedCells": 13737,
+  "structuralNoDataCells": 17,
+  "temporalGapCells": 0,
+  "countiesWithoutValidCells": 0
+}

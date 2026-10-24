@@ -58,7 +58,15 @@ docker run --rm --network none fri-worker run --replay --output /tmp/replay \
 - derives multiplier quintiles from all four scenarios pooled separately per variant;
 - preserves exact upper boundaries in their lower band, tied quantiles and special statuses;
 - requires all 3,108 CONUS counties and all four scenarios for each supported variant;
-- rejects missing/non-finite outputs and HMs below 1, including wildfire (no silent clipping).
+- rejects temporal gaps, changing source-domain masks, uncovered counties, non-finite outputs,
+  and HMs below 1, including wildfire (no silent clipping).
+
+Static all-time ocean/no-data masks remain NaN and retain the spike's original normalization over
+valid cell area. They are never filled with zero. Source masks must remain identical across each
+source family's variables/scenarios; every county must retain positive valid coverage. Snapshot
+provenance records masked-cell counts and minimum/median county area coverage. A real 1950 NEX
+probe found 17 structurally masked cells among 13,737 weighted cells, zero temporal gaps and valid
+coverage for all 3,108 CONUS counties.
 
 Non-CONUS multipliers remain archived, but **ranks are recomputed over the whole frozen population**.
 This is an explicitly mixed-vintage reference population. A rank can change outside CONUS without

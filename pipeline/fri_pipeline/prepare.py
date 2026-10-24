@@ -362,6 +362,14 @@ def run(
             verified.fwi(scenario, period, "FWI_P95", "MME75")
             verified.loca2_histogram(scenario, period)
         verified.county_fuel_shares()
+        manifest = json.loads(snapshot.read_text())
+        manifest["coverageDiagnostics"] = verified.coverage_diagnostics
+        manifest["preparation"] = {
+            "codeRevision": os.environ.get("FRI_CODE_REVISION", "local"),
+            "workerImage": os.environ.get("FRI_WORKER_IMAGE", "local"),
+            "referenceHashes": REFERENCE_HASHES,
+        }
+        write_json(snapshot, manifest)
         snapshot_uri = f"{input_uri.rstrip('/')}/snapshots/{run_id}"
         for path in sorted(snapshot.parent.iterdir(), key=lambda p: p.name == "snapshot.json"):
             upload(path, f"{snapshot_uri}/{path.name}")
