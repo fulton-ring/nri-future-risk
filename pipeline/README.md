@@ -8,6 +8,10 @@ The map switches only after the HIFLD Next publisher returns verified hosted ass
 
 **Deployment status:** the FRI infrastructure is provisioned in `hifld-next` (2026-10-24).
 Its isolated remote state is `gs://hifld-next-iac-prod-49775666365/nri-future-risk/prod`.
+The real Batch archive replay `fri-replay-20261024205347` succeeded on a private worker in
+27.9 seconds of execution; all downloaded artifacts passed local verification (310,176 comparisons,
+zero mismatches). [Run evidence](evidence/2026-10-24-cloud-batch-replay.json) records the pinned
+image, source revision, candidate hashes and infrastructure state location.
 No production data has been published. The external
 publisher must register the new collection and consume the handoff/produce the receipt described
 below; this repository does not install code into or mutate that service's catalog.
