@@ -1,0 +1,5 @@
+project                   = "hifld-next"
+region                    = "us-central1"
+github_repository         = "fulton-ring/nri-future-risk"
+github_repository_id      = "931148990"
+transform_service_account = "dagster-runtime@hifld-next.iam.gserviceaccount.com"
