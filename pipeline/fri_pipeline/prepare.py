@@ -218,17 +218,30 @@ def prepare_fwi(data, inputs, workers: int) -> None:
 
 
 def prepare_loca2(data, workers: int) -> None:
+    expected = [
+        ("historical", "historical"),
+        *[(s, p) for s in ("ssp245", "ssp585") for p in ("MID", "LATE")],
+    ]
+    if all(data.loca2_histogram_path(scenario, period).is_file() for scenario, period in expected):
+        print("Using completed, checkpointed LOCA2 histograms", flush=True)
+        return
     spans = [(scenario, span) for scenario, values in data.LOCA2_SPANS.items() for span in values]
     partials = {}
     cells = None
     for scenario, span in spans:
+        pieces = loca_pieces(scenario, span)
+        cached = [data.cache("loca2", "partial", piece["name"]) for piece in pieces]
+        if all(path.is_file() for path in cached):
+            for piece, path in zip(pieces, cached, strict=True):
+                partials.setdefault((scenario, piece["period"]), []).append(path)
+            print(f"Using completed LOCA2 pieces: {scenario}/{span}", flush=True)
+            continue
         url = data.LOCA2.format(run=scenario, span=span)
         raw = data.cache("loca2", "raw", f"{scenario}_{span}.nc")
         print(f"LOCA2 full source {scenario}/{span}", flush=True)
         download_raw(url, raw, 600)
         if cells is None:
             cells, _, _ = data.loca2_cells()
-        pieces = loca_pieces(scenario, span)
         with ProcessPoolExecutor(workers, mp_context=multiprocessing.get_context("fork")) as pool:
             futures = {
                 pool.submit(
