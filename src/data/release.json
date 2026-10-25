@@ -1,0 +1,20 @@
+{
+  "id": "fema-2024-12-05",
+  "title": "FEMA archived release",
+  "date": "2024-12-05",
+  "baseline": "NRI v1.19",
+  "status": "archive",
+  "sourceSha256": "11ce58492bbf9e2fbf3e28dfb2162bd799e777f66d02df3e59b865c8c6f23ecf",
+  "countyCount": 3218,
+  "assets": {
+    "counties.json": {
+      "path": "atlas/counties.json",
+      "sha256": "09442ae7683f4a188887b1054d0ddb9d8e27faf45a43311f94e79d711cb97b20"
+    },
+    "counties.pmtiles": {
+      "path": "atlas/counties.pmtiles",
+      "sha256": "ec6aef4c8cc9bf8a9f1ceb86174f781ae311fec0f8a449d9855ad47c71206117"
+    }
+  },
+  "sourceLayer": "counties"
+}

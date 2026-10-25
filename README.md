@@ -2,7 +2,8 @@
 
 [Visit Tool](https://fulton-ring.github.io/nri-future-risk/)
 
-This tool is a replica of the National Risk Index (NRI) Future Risk tool, which
+Public Environmental Data Partners and Fulton Ring maintain this atlas of FEMA’s
+discontinued National Risk Index (NRI) Future Risk tool, which
 was removed from the public by the US Government in February, 2025. It
 references the following datasets which were downloaded before the tool was
 taken down:
@@ -14,14 +15,18 @@ taken down:
 
 ## Architecture
 
-This tool is built using React and Leaflet. We use Vite
-as the bundler.
+The atlas uses React, TypeScript, MapLibre GL JS and PMTiles, bundled with Vite.
+Fonts are provided by Fontsource, and dropdowns/dialogs use shadcn components.
+The map reads archived scores and ratings directly from PMTiles properties.
+A separate lossless attribute table supports county search, comparisons and
+the accessible national table independently of the visible tiles.
 
 - [Vite](https://vitejs.dev/)
 - [React](https://reactjs.org/)
 - [TypeScript](https://www.typescriptlang.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
-- [Leaflet](https://leafletjs.com/)
+- [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/)
+- [PMTiles](https://docs.protomaps.com/pmtiles/)
 - [Shadcn](https://ui.shadcn.com/)
 
 ## Running Locally
@@ -34,6 +39,42 @@ npm run dev
 ```
 
 This will start the development server and open the tool in your default browser.
+
+## Archived display assets
+
+`public/atlas/counties.pmtiles` contains geometry and all five hazards’ archived
+scores, ratings and multipliers. `public/atlas/counties.json` stores the same
+attributes in columnar JSON for county profiles and the national table.
+`src/data/release.json` records asset paths, SHA-256 hashes, the source hash and
+release identity. The archived source GeoJSON and workbooks remain available.
+
+To regenerate these checked-in assets, install [tippecanoe](https://github.com/felt/tippecanoe), then run:
+
+```bash
+npm run assets:archive
+```
+
+This command changes display formats only; it does not recompute the science.
+New reconstructed products must be validated before replacing the release
+manifest. All currently displayed values are labeled as the December 2024 archive.
+
+Shared URLs retain the release, county, hazard, measure, time period, emissions,
+heat model and map camera. Unrecognized releases produce a visible warning.
+The optional OpenFreeMap Bright basemap supplies roads and place labels,
+with Mapzen/USGS terrain shading. Map layers controls adjust county opacity and
+terrain visibility, which are retained in shared URLs; the county overlay
+and data table remain independent of that provider.
+
+## Verification
+
+```bash
+npm test
+npm run lint
+npm run build
+```
+
+Tests cover URL round-trips, invalid combinations, missing and zero values,
+lossless archive conversion, and actual scores decoded from PMTiles.
 
 ## Hosting
 
