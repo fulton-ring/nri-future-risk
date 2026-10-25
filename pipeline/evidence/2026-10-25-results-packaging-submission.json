@@ -16,5 +16,8 @@
   "experimentsPointer": "gs://future-risk-index-experiments/runs/future-risk-results-20261025185300/results.json",
   "resultsManifest": "gs://future-risk-index-results/_releases/v20261025T140637Z.json",
   "runtime": "Cloud Batch, private e2-standard-8, 32 GiB, no external IP, 12-hour limit",
-  "completionVerified": false
+  "completionVerified": false,
+  "finalState": "FAILED",
+  "failure": "Portolan validation: geospatial inputs collection missing a thumbnail. No completed result package was uploaded.",
+  "supersededBy": "future-risk-results-20261025-datasets"
 }
