@@ -21,6 +21,14 @@ verification confirmed that all 19 paths are absent from NASA's published listin
 catalog gaps, not demonstrated intermittent transfer failures. No LOCA2 heat acquisition or real scoring ran, and no candidate was
 generated. [Acquisition evidence](evidence/2026-10-24-real-input-acquisition.json) lists every missing
 source and the hash-pinned checkpoint for resuming without repeating completed downloads.
+The subsequent user-approved available-year analysis `fri-analysis-20261025140637` succeeded
+on 2026-10-25: all three hazards were calculated for 3,108 CONUS counties and scores generated
+over the 3,231-county baseline. All 310,176 archive checks passed, all updated multipliers met
+the release floor, and the output hashes were verified. This exploratory output is non-publishable;
+the normal release path still requires complete wildfire periods. See the
+[analysis report](evidence/2026-10-25-available-year-analysis.md) and
+[run evidence](evidence/2026-10-25-available-year-analysis.json), including year omissions and
+the lower valid spatial support in some LOCA2 weighting areas.
 This branch is based directly on `main`, independent of the atlas UI branch. Hosted assets are
 verified even before that UI is merged; map activation waits until its release-manifest support exists.
 
