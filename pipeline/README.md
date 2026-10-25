@@ -106,6 +106,17 @@ snapshot passes all source/coverage checks. Retries can restore a checkpoint wit
 and its `--resume-sha256`; every restored object is hash verified. NEX file selection remains pinned
 across retries. Acquisition can take hours; it does not call any LLM or agent loop.
 
+For the user-approved available-year exploration, pass `--available-fwi-years` to preparation.
+It omits only the 19 catalog gaps pinned in `reference/available-fwi-years.json`, retaining
+26 historical years, 25 years per SSP2-4.5 period, and 28/27 SSP5-8.5 MID/LATE years.
+All other source, coverage and temporal checks remain in force. Period means use equally
+weighted available years; there is no interpolation or substitution. The snapshot explicitly
+records the analysis policy and is rejected by the normal release worker. Hamilton calculates
+the three hazards and writes a report, raw multipliers, hashes and provenance under
+`real/analyses/RUN_ID` in the private input bucket. Scores are included only if every raw
+multiplier meets the unchanged release floor; otherwise the report records the violations
+without clipping. These outputs are non-publishable and have no publication candidate manifest.
+
 Source acquisition is deliberately separate from release calculation. The preparation worker pins
 the original spike's newest-file selection, records complete raw-file hashes, and checkpoints its
 cache. The scoring worker consumes only the immutable exported snapshot. As an alternative to the

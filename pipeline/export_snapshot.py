@@ -15,10 +15,12 @@ import numpy as np
 import requests
 from scipy import sparse
 
+from fri_pipeline.snapshot import FWI_ANALYSIS, fwi_years
+
 REBUILD_COMMIT = "390f7c072dc23b5c33a7d7a87b99cecd8ef8041c"
 
 
-def export_inputs(inputs, output: Path, sources: list[dict]) -> Path:
+def export_inputs(inputs, output: Path, sources: list[dict], *, analysis: bool = False) -> Path:
     """Export verified prepared arrays; acquisition and network access remain caller-owned."""
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -57,19 +59,28 @@ def export_inputs(inputs, output: Path, sources: list[dict]) -> Path:
             path = output / f"{name}.npz"
             np.savez_compressed(path, values=values, months=months.to_numpy())
             register(name, path)
-    spans = {"historical": (1976, 2005), "MID": (2036, 2065), "LATE": (2070, 2099)}
     for ssp, period in [
         ("historical", "historical"),
         *[(s, p) for s in ("ssp245", "ssp585") for p in ("MID", "LATE")],
     ]:
-        first, last = spans[period]
+        years = fwi_years(ssp, period, analysis=analysis)
+        if analysis:
+            actual = [
+                year
+                for year in inputs.period_years(ssp, period)
+                if inputs.data.fwi_path("MME75", ssp, year).exists()
+            ]
+            if not np.array_equal(actual, years):
+                raise ValueError(
+                    f"FWI cache years disagree with the approved analysis: {ssp}/{period}"
+                )
         values = inputs.fwi(ssp, period, variable="FWI_P95", ensemble="MME75")
-        if len(values) != last - first + 1:
+        if len(values) != len(years):
             raise ValueError(
                 f"FWI missing years for {ssp}/{period}; resolve before snapshot export"
             )
         name, path = f"fwi_{ssp}_{period}", output / f"fwi_{ssp}_{period}.npz"
-        np.savez_compressed(path, values=values, years=np.arange(first, last + 1))
+        np.savez_compressed(path, values=values, years=years)
         register(name, path)
         edges, counts = inputs.loca2_histogram(ssp, period)
         name, path = f"loca2_{ssp}_{period}", output / f"loca2_{ssp}_{period}.npz"
@@ -83,6 +94,8 @@ def export_inputs(inputs, output: Path, sources: list[dict]) -> Path:
         "methodology": "fema-2024-county-area-weighted-v1",
         "artifacts": artifacts,
     }
+    if analysis:
+        manifest["analysis"] = FWI_ANALYSIS
     path = output / "snapshot.json"
     path.write_text(json.dumps(manifest, indent=2) + "\n")
     print(f"Snapshot manifest SHA-256: {hashlib.sha256(path.read_bytes()).hexdigest()}")

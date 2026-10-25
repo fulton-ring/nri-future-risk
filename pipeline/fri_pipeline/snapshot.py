@@ -15,6 +15,13 @@ CONTRACT = json.loads((ROOT / "pipeline/reference/contract.json").read_text())
 EXCLUDED = {"AK", "HI", "AS", "GU", "MP", "PR", "VI"}
 SSP = {"LOWER": "ssp245", "HIGHER": "ssp585"}
 SPANS = {"historical": (1976, 2005), "MID": (2036, 2065), "LATE": (2070, 2099)}
+FWI_ANALYSIS = json.loads((ROOT / "pipeline/reference/available-fwi-years.json").read_text())
+
+
+def fwi_years(scenario: str, period: str, *, analysis: bool = False) -> np.ndarray:
+    first, last = SPANS[period]
+    omitted = FWI_ANALYSIS["omittedYears"][scenario] if analysis else []
+    return np.array([year for year in range(first, last + 1) if year not in omitted])
 
 
 def sha256(path: Path) -> str:
@@ -52,10 +59,17 @@ class Snapshot:
 
     SSP = SSP
 
-    def __init__(self, manifest: Path):
+    def __init__(self, manifest: Path, *, analysis: bool = False):
         self.path = manifest.resolve()
         self.root = self.path.parent
         self.manifest = json.loads(self.path.read_text())
+        self.analysis = self.manifest.get("analysis")
+        if self.analysis is not None and (not analysis or self.analysis != FWI_ANALYSIS):
+            raise ValueError(
+                "Available-year analysis requires explicit opt-in and the pinned policy"
+            )
+        if analysis and self.analysis != FWI_ANALYSIS:
+            raise ValueError("Expected the pinned available-year analysis policy")
         if (
             self.manifest.get("methodology") != CONTRACT["id"]
             or self.manifest.get("rebuildCommit") != CONTRACT["rebuildCommit"]
@@ -180,8 +194,8 @@ class Snapshot:
             raise ValueError("Frozen wildfire method requires FWI_P95 / MME75")
         with np.load(self.file(f"fwi_{scenario}_{period}"), allow_pickle=False) as data:
             values, years = data["values"], data["years"]
-        first, last = SPANS[period]
-        if not np.array_equal(years, np.arange(first, last + 1)) or values.shape != (
+        expected = fwi_years(scenario, period, analysis=self.analysis is not None)
+        if not np.array_equal(years, expected) or values.shape != (
             len(years),
             self.county_weights()[0].shape[1],
         ):

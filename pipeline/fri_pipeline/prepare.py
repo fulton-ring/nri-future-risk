@@ -17,7 +17,7 @@ import numpy as np
 import requests
 
 from .candidate import validate_id, write_json
-from .snapshot import CONTRACT, ROOT, Snapshot, sha256
+from .snapshot import CONTRACT, FWI_ANALYSIS, ROOT, Snapshot, sha256
 from .storage import download, split_uri, upload
 
 REFERENCE_HASHES = {
@@ -189,7 +189,7 @@ def prepare_nex(data, workers: int) -> dict:
     return {"sourceFiles": len(jobs), "variables": ["tas", "pr"]}
 
 
-def prepare_fwi(data, inputs, workers: int) -> None:
+def prepare_fwi(data, inputs, workers: int, *, analysis: bool = False) -> None:
     import h5py
 
     grid = np.load(data.cache("nex", "grid.npz"))
@@ -211,7 +211,12 @@ def prepare_fwi(data, inputs, workers: int) -> None:
         np.savez(target, FWI_P95=values)
         raw.unlink()
 
-    jobs = [(scenario, year) for scenario, years in data.HEAT_YEARS.items() for year in years]
+    jobs = [
+        (scenario, year)
+        for scenario, years in data.HEAT_YEARS.items()
+        for year in years
+        if not analysis or year not in FWI_ANALYSIS["omittedYears"][scenario]
+    ]
     with ThreadPoolExecutor(min(workers, 3)) as pool:
         futures = [pool.submit(one, *job) for job in jobs]
         for count, future in enumerate(as_completed(futures), 1):
@@ -309,7 +314,13 @@ def restore_checkpoint(uri: str, expected_sha: str, cache: Path) -> None:
 
 
 def run(
-    run_id: str, input_uri: str, workers: int, resume_uri: str = "", resume_sha: str = ""
+    run_id: str,
+    input_uri: str,
+    workers: int,
+    resume_uri: str = "",
+    resume_sha: str = "",
+    *,
+    analysis: bool = False,
 ) -> None:
     validate_id(run_id)
     split_uri(f"{input_uri.rstrip('/')}/_validate")
@@ -338,7 +349,7 @@ def run(
         phase = "nex"
         inputs.county_weights()
         checkpoint(cache, acquisition_uri, phase)
-        prepare_fwi(data, inputs, workers)
+        prepare_fwi(data, inputs, workers, analysis=analysis)
         phase = "wildfire"
         checkpoint(cache, acquisition_uri, phase)
         prepare_loca2(data, workers)
@@ -352,8 +363,8 @@ def run(
         sys.path.insert(0, str(ROOT / "pipeline"))
         from export_snapshot import export_inputs
 
-        snapshot = export_inputs(inputs, cache.parent / "snapshot", sources)
-        verified = Snapshot(snapshot)
+        snapshot = export_inputs(inputs, cache.parent / "snapshot", sources, analysis=analysis)
+        verified = Snapshot(snapshot, analysis=analysis)
         # Force input coverage and schema checks before writing the completion marker.
         for scenario in inputs.SSP.values():
             for variable in ("tas", "pr"):
@@ -387,6 +398,21 @@ def run(
                 "methodology": CONTRACT["id"],
             },
         )
+        if analysis:
+            from .analysis import run_analysis
+
+            output = cache.parent / "analysis"
+            run_analysis(snapshot, output, run_id, os.environ["FRI_CODE_REVISION"])
+            analysis_uri = f"{input_uri.rstrip('/')}/analyses/{run_id}"
+            for path in sorted(output.iterdir(), key=lambda p: p.name == "analysis.json"):
+                upload(path, f"{analysis_uri}/{path.name}")
+            marker = json.loads(result.read_text())
+            marker.update(
+                analysisUri=analysis_uri,
+                analysisSha256=sha256(output / "analysis.json"),
+                publishable=False,
+            )
+            write_json(result, marker)
         upload(result, f"{acquisition_uri}/result.json")
         print(result.read_text(), flush=True)
     finally:
@@ -400,12 +426,24 @@ def main():
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--resume-uri", default="")
     parser.add_argument("--resume-sha256", default="")
+    parser.add_argument(
+        "--available-fwi-years",
+        action="store_true",
+        help="Run the pinned available-year analysis; never publish",
+    )
     args = parser.parse_args()
     if not 1 <= args.workers <= 8:
         parser.error("workers must be between one and eight")
     if bool(args.resume_uri) != bool(args.resume_sha256):
         parser.error("resume requires both --resume-uri and --resume-sha256")
-    run(args.run_id, args.input_uri, args.workers, args.resume_uri, args.resume_sha256)
+    run(
+        args.run_id,
+        args.input_uri,
+        args.workers,
+        args.resume_uri,
+        args.resume_sha256,
+        analysis=args.available_fwi_years,
+    )
 
 
 if __name__ == "__main__":

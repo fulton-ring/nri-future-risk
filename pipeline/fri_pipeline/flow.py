@@ -16,14 +16,14 @@ def archive_validation(baseline: pd.DataFrame) -> dict:
     return reproduce_archive(baseline)
 
 
-def input_snapshot(snapshot_path: str, replay: bool) -> dict:
+def input_snapshot(snapshot_path: str, replay: bool, analysis: bool = False) -> dict:
     if replay:
         if snapshot_path:
             raise ValueError("Archive replay cannot accept update inputs")
         return {"snapshot": None, "manifest": None}
     from pathlib import Path
 
-    snapshot = Snapshot(Path(snapshot_path))
+    snapshot = Snapshot(Path(snapshot_path), analysis=analysis)
     from .snapshot import sha256
 
     return {
