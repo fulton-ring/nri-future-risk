@@ -125,6 +125,79 @@ def loca_pieces(scenario: str, span: str) -> list[dict]:
     return pieces
 
 
+def download_loca2(url: str, target: Path) -> Path:
+    """Transfer one complete large file in four ranges pinned to its strong ETag."""
+    if target.exists():
+        record_source(Path(os.environ["FRI_CACHE"]) / "sources", url, target)
+        return target
+    metadata = requests.head(url, headers={"Accept-Encoding": "identity"}, timeout=(20, 60))
+    metadata.raise_for_status()
+    length = int(metadata.headers["Content-Length"])
+    etag = metadata.headers["ETag"]
+    if length < 4 or not etag.startswith('"') or not etag.endswith('"'):
+        raise ValueError("LOCA2 parallel transfer requires size and a strong ETag")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = target.with_name(target.name + ".partial")
+    with temporary.open("wb") as handle:
+        handle.truncate(length)
+
+    def transfer(first, last):
+        offset, progress = first, time.monotonic()
+        for attempt in range(4):
+            try:
+                headers = {
+                    "Range": f"bytes={offset}-{last}",
+                    "If-Match": etag,
+                    "Accept-Encoding": "identity",
+                }
+                with requests.get(url, headers=headers, stream=True, timeout=(20, 600)) as response:
+                    response.raise_for_status()
+                    if (
+                        response.status_code != 206
+                        or response.headers.get("Content-Range")
+                        != f"bytes {offset}-{last}/{length}"
+                        or response.headers.get("ETag") != etag
+                    ):
+                        raise ValueError("LOCA2 range or source version mismatch")
+                    with temporary.open("r+b") as handle:
+                        handle.seek(offset)
+                        for block in response.iter_content(8 << 20):
+                            if offset + len(block) > last + 1:
+                                raise ValueError(
+                                    "LOCA2 range response exceeded its requested length"
+                                )
+                            handle.write(block)
+                            offset += len(block)
+                            if time.monotonic() - progress >= 30:
+                                print(
+                                    f"Downloading {target.name} range {first}-{last}: "
+                                    f"{offset - first} bytes",
+                                    flush=True,
+                                )
+                                progress = time.monotonic()
+                if offset != last + 1:
+                    raise requests.ConnectionError("Incomplete LOCA2 range response")
+                return
+            except (requests.RequestException, OSError):
+                if attempt == 3:
+                    raise
+                time.sleep(5 * (attempt + 1))
+
+    bounds = [length * i // 4 for i in range(5)]
+    with ThreadPoolExecutor(4) as pool:
+        futures = [
+            pool.submit(transfer, a, b - 1) for a, b in zip(bounds, bounds[1:], strict=False)
+        ]
+        for future in futures:
+            future.result()
+    temporary.replace(target)
+    source = record_source(Path(os.environ["FRI_CACHE"]) / "sources", url, target)
+    print(
+        f"Downloaded {target.name}: {source['bytes']} bytes sha256={source['sha256']}", flush=True
+    )
+    return target
+
+
 @contextmanager
 def local_loca2_open(run: str, span: str):
     import h5py
@@ -247,7 +320,7 @@ def prepare_loca2(data, workers: int) -> None:
         url = data.LOCA2.format(run=scenario, span=span)
         raw = data.cache("loca2", "raw", f"{scenario}_{span}.nc")
         print(f"LOCA2 full source {scenario}/{span}", flush=True)
-        download_raw(url, raw, 600)
+        download_loca2(url, raw)
         if cells is None:
             cells, _, _ = data.loca2_cells()
         with ProcessPoolExecutor(workers, mp_context=multiprocessing.get_context("fork")) as pool:

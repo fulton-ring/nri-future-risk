@@ -5,6 +5,48 @@ import pytest
 from fri_pipeline.prepare import download_raw, loca_pieces, record_source, verify_reference
 
 
+@pytest.mark.parametrize("transfer", ["complete", "short", "changed-version"])
+def test_parallel_download_preserves_bytes_and_pins_source_version(tmp_path, monkeypatch, transfer):
+    import requests
+
+    from fri_pipeline import prepare
+
+    payload = b"0123456789abcdefghijklmnopqrstuvwxyz"
+    head = requests.Response()
+    head.status_code = 200
+    head.headers.update({"Content-Length": str(len(payload)), "ETag": '"fixed-version"'})
+    monkeypatch.setattr(prepare.requests, "head", lambda *a, **kw: head)
+    monkeypatch.setattr(prepare.time, "sleep", lambda _: None)
+    calls = []
+
+    def get(url, *, headers, **kwargs):
+        assert headers["If-Match"] == '"fixed-version"'
+        first, last = map(int, headers["Range"].removeprefix("bytes=").split("-"))
+        calls.append((first, last))
+        r = requests.Response()
+        r.status_code = 206
+        r.headers.update(
+            {"Content-Range": f"bytes {first}-{last}/{len(payload)}", "ETag": '"fixed-version"'}
+        )
+        r._content, r._content_consumed = payload[first : last + 1], True
+        if transfer == "short" and first == 0:
+            r._content = r._content[:-1]
+        if transfer == "changed-version":
+            r.headers["ETag"] = '"new-version"'
+        return r
+
+    monkeypatch.setattr(prepare.requests, "get", get)
+    monkeypatch.setenv("FRI_CACHE", str(tmp_path))
+    target = tmp_path / "source.nc"
+    if transfer == "changed-version":
+        with pytest.raises(ValueError, match="version"):
+            prepare.download_loca2("https://example.org/input.nc", target)
+        assert not target.exists()
+        return
+    assert prepare.download_loca2("https://example.org/input.nc", target).read_bytes() == payload
+    assert len(calls) == (5 if transfer == "short" else 4)
+
+
 def test_download_retries_server_failure_and_records_only_complete_source(tmp_path, monkeypatch):
     import requests
 
