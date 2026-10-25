@@ -14,7 +14,7 @@ permissions:
   contents: read
   id-token: write
 concurrency:
-  group: risk-candidate-${{ github.run_id }}
+  group: risk-candidate
   cancel-in-progress: false
 jobs:
   candidate:

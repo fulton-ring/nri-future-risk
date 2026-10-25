@@ -50,5 +50,6 @@
     "codeRevision": "58a61b520283759d9ce766e1eb1800a127ff849a",
     "provenanceSha256": "88f262a3ae0f659ae66327e93038f2b99882ca05bfe40f88ae6a2f66adf2c193"
   },
-  "sourceArchiveStatus": "RUNNING; completion and Portolan packaging are tracked separately."
+  "sourceArchiveStatus": "RUNNING; completion and Portolan packaging are tracked separately.",
+  "observedAt": "2026-10-25T18:52:09.468454+00:00"
 }
