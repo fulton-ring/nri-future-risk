@@ -28,7 +28,7 @@ def test_archive_checks_original_bytes_before_upload(tmp_path, monkeypatch):
         source, "gs://results/future-risk-index/reproducibility/inputs/v1", tmp_path, client
     )
     assert item["sha256"] == source["sha256"]
-    assert item["href"] == "originals/source-a/climate.nc"
+    assert item["href"] == f"originals/{source['sha256']}/climate.nc"
     assert blob.upload_from_filename.call_args.kwargs["if_generation_match"] == 0
     assert blob.metadata["sha256"] == source["sha256"]
     source["sha256"] = "f" * 64

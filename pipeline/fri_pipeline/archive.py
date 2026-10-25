@@ -22,10 +22,12 @@ def archive_one(source: dict, destination: str, cache: Path, client) -> dict:
         raise ValueError("Invalid source identity")
     if not source["url"].startswith("https://"):
         raise ValueError("Original sources must use HTTPS")
+    if not re.fullmatch(r"[a-f0-9]{64}", source["sha256"]):
+        raise ValueError("Invalid source SHA-256")
     filename = Path(source["title"]).name
     if filename != source["title"] or filename in {"", ".", ".."}:
         raise ValueError("Invalid original source filename")
-    href = f"originals/{source['id']}/{filename}"
+    href = f"originals/{source['sha256']}/{filename}"
     bucket, prefix = split_uri(destination)
     blob = client.bucket(bucket).blob(f"{prefix}/{href}")
     item = {
@@ -46,8 +48,13 @@ def archive_one(source: dict, destination: str, cache: Path, client) -> dict:
         download_loca2(source["url"], local)
     else:
         download_raw(source["url"], local)
-    if sha256(local) != source["sha256"] or local.stat().st_size != source["bytes"]:
-        raise ValueError(f"Original source hash or size changed: {source['url']}")
+    actual_sha, actual_size = sha256(local), local.stat().st_size
+    if actual_sha != source["sha256"] or actual_size != source["bytes"]:
+        local.unlink()
+        raise ValueError(
+            f"Original source hash or size changed: {source['url']}; "
+            f"expected {source['sha256']}/{source['bytes']}, observed {actual_sha}/{actual_size}"
+        )
     blob.metadata = {"sha256": source["sha256"], "source-id": source["id"]}
     blob.upload_from_filename(str(local), if_generation_match=0, timeout=1200)
     local.unlink()
@@ -102,13 +109,15 @@ def main():
             "sources": sorted(completed, key=lambda item: item["sourceId"]),
             "errors": errors,
             "provenanceSha256": args.provenance_sha256,
-            "codeRevision": os.environ.get("FRI_CODE_REVISION"),
         }
         write_json(manifest, value)
+        receipt = cache / "archive-run.json"
+        write_json(receipt, {**value, "codeRevision": os.environ.get("FRI_CODE_REVISION")})
+        upload(receipt, f"{args.experiment_uri.rstrip('/')}/archive-run.json")
         upload(manifest, f"{args.experiment_uri.rstrip('/')}/originals-manifest.json")
         if errors:
             raise RuntimeError(f"{len(errors)} original sources could not be archived exactly")
-        upload(manifest, f"{args.results_uri.rstrip('/')}/metadata/originals-manifest.json")
+        upload(manifest, f"{args.results_uri.rstrip('/')}/manifests/{args.provenance_sha256}.json")
         print(f"Archived all {len(completed)} original sources", flush=True)
 
 
