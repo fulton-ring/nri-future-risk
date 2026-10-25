@@ -70,6 +70,8 @@ def download_raw(url: str, target: Path, timeout: int = 300) -> Path:
             with requests.get(
                 url, stream=True, timeout=(20, timeout), headers={"Cache-Control": "no-cache"}
             ) as response:
+                if response.status_code == 429 or response.status_code >= 500:
+                    response.raise_for_status()
                 if response.status_code != 200:
                     raise ValueError(
                         f"Expected complete source object: {response.status_code}: {url}"
@@ -92,6 +94,7 @@ def download_raw(url: str, target: Path, timeout: int = 300) -> Path:
         except (requests.RequestException, OSError):
             if attempt == 3:
                 raise
+            print(f"Retrying {target.name} after transfer failure ({attempt + 1}/3)", flush=True)
             time.sleep(5 * (attempt + 1))
     raise RuntimeError("Unreachable download retry state")
 

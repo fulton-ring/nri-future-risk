@@ -15,6 +15,11 @@ image, source revision, candidate hashes and infrastructure state location.
 No production data has been published. The external
 publisher must register the new collection and consume the handoff/produce the receipt described
 below; this repository does not install code into or mutate that service's catalog.
+The first real acquisition completed all 474 NEX annual inputs and 131/150 wildfire years, then
+stopped because NASA returned HTTP 500 for the remaining 19 required MME75 files. Repeat probes
+confirmed those failures. No LOCA2 heat acquisition or real scoring ran, and no candidate was
+generated. [Acquisition evidence](evidence/2026-10-24-real-input-acquisition.json) lists every missing
+source and the hash-pinned checkpoint for resuming without repeating completed downloads.
 This branch is based directly on `main`, independent of the atlas UI branch. Hosted assets are
 verified even before that UI is merged; map activation waits until its release-manifest support exists.
 
@@ -100,10 +105,11 @@ snapshot passes all source/coverage checks. Retries can restore a checkpoint wit
 and its `--resume-sha256`; every restored object is hash verified. NEX file selection remains pinned
 across retries. Acquisition can take hours; it does not call any LLM or agent loop.
 
-Source acquisition is deliberately separate from release calculation. The original spike's downloader
-can use mutable upstream services and newest-file lookups, so Batch never invokes it. Prepare/review
-the climate cache using a clean checkout of `agent-content-demos` at
-`390f7c072dc23b5c33a7d7a87b99cecd8ef8041c`, then export its cached inputs using that project's environment:
+Source acquisition is deliberately separate from release calculation. The preparation worker pins
+the original spike's newest-file selection, records complete raw-file hashes, and checkpoints its
+cache. The scoring worker consumes only the immutable exported snapshot. As an alternative to the
+preparation worker, prepare/review a climate cache using a clean checkout of `agent-content-demos`
+at `390f7c072dc23b5c33a7d7a87b99cecd8ef8041c`, then export its cached inputs using that project's environment:
 
 ```bash
 # FRI_CACHE selects the already prepared cache used by the spike.
@@ -123,8 +129,8 @@ independently re-download raw inputs to verify the acquisition records.
 
 The exporter prohibits HTTP downloads, checks the upstream checkout, and hashes every exported
 artifact. An incomplete cache fails. In particular, the old spike tolerates missing NASA FWI years;
-this path requires every requested year and fails if any are absent. Missing FWI years, non-finite
-climate cells, or a wildfire HM below 1 must be investigated before a real release; do not bypass
+this path requires every requested year and fails if any are absent. Missing FWI years, temporal
+gaps, changing source-domain masks, or a wildfire HM below 1 must be investigated before a real release; do not bypass
 these gates or interpret successful archive replay as evidence they have been resolved.
 
 `snapshot.json` has `schemaVersion: 1`, `coverage: "CONUS"`, `methodology` equal to the frozen contract
@@ -152,7 +158,7 @@ each fetched object generation is pinned during transfer and every prepared file
 ## Cloud setup
 
 `infra/main.tf` provisions private versioned input/candidate/staging/receipt buckets, an Artifact
-Registry repository, three separate service accounts, workload identity and the required APIs.
+Registry repository, four separate service accounts, workload identity and the required APIs.
 Production backend and variables are recorded in `infra/prod.gcs.tfbackend` and `infra/prod.tfvars`.
 The backend reuses the existing infrastructure state bucket with an independent FRI prefix.
 Credentials and state contents are never committed.

@@ -2,7 +2,66 @@ from pathlib import Path
 
 import pytest
 
-from fri_pipeline.prepare import loca_pieces, record_source, verify_reference
+from fri_pipeline.prepare import download_raw, loca_pieces, record_source, verify_reference
+
+
+def test_download_retries_server_failure_and_records_only_complete_source(tmp_path, monkeypatch):
+    import requests
+
+    from fri_pipeline import prepare
+
+    def response(status, payload):
+        result = requests.Response()
+        result.status_code = status
+        result._content = payload
+        result._content_consumed = True
+        return result
+
+    responses = iter([response(500, b"server error"), response(200, b"complete source")])
+    monkeypatch.setenv("FRI_CACHE", str(tmp_path))
+    monkeypatch.setattr(prepare.requests, "get", lambda *a, **kw: next(responses))
+    monkeypatch.setattr(prepare.time, "sleep", lambda _: None)
+    target = tmp_path / "input.nc"
+    assert download_raw("https://example.org/input.nc", target).read_bytes() == b"complete source"
+    records = list((tmp_path / "sources").glob("*.json"))
+    assert len(records) == 1
+
+
+def test_download_rejects_partial_response(tmp_path, monkeypatch):
+    import requests
+
+    from fri_pipeline import prepare
+
+    response = requests.Response()
+    response.status_code = 206
+    response._content = b"partial source"
+    response._content_consumed = True
+    monkeypatch.setenv("FRI_CACHE", str(tmp_path))
+    monkeypatch.setattr(prepare.requests, "get", lambda *a, **kw: response)
+    with pytest.raises(ValueError, match="206"):
+        download_raw("https://example.org/input.nc", tmp_path / "input.nc")
+    assert not (tmp_path / "input.nc").exists()
+
+
+def test_download_stops_after_four_server_failures(tmp_path, monkeypatch):
+    from unittest.mock import Mock
+
+    import requests
+
+    from fri_pipeline import prepare
+
+    response = requests.Response()
+    response.status_code = 500
+    response._content = b""
+    response._content_consumed = True
+    get = Mock(return_value=response)
+    monkeypatch.setenv("FRI_CACHE", str(tmp_path))
+    monkeypatch.setattr(prepare.requests, "get", get)
+    monkeypatch.setattr(prepare.time, "sleep", lambda _: None)
+    with pytest.raises(requests.HTTPError):
+        download_raw("https://example.org/input.nc", tmp_path / "input.nc")
+    assert get.call_count == 4
+    assert not (tmp_path / "input.nc").exists()
 
 
 def test_loca_pieces_cover_each_requested_day_once():
