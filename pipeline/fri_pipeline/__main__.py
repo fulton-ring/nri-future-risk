@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 
 from .candidate import build_candidate, verify_candidate
-from .storage import fetch_candidate, fetch_snapshot, upload
+from .storage import fetch_candidate, fetch_snapshot, split_uri, upload
 
 
 def main():
@@ -67,6 +67,7 @@ def main():
                 for path in sorted(args.output.iterdir(), key=lambda p: p.name == "candidate.json"):
                     upload(path, f"{args.output_gcs.rstrip('/')}/{path.name}")
             if args.results_uri:
+                archive_uri = f"gs://{split_uri(args.output_gcs)[0]}/source-archives"
                 provenance_sha = sha256(args.output / "provenance.json")
                 subprocess.run(
                     [
@@ -78,9 +79,9 @@ def main():
                         "--provenance-sha256",
                         provenance_sha,
                         "--results-uri",
-                        f"{args.results_uri.rstrip('/')}/future-risk-index/sources",
+                        archive_uri,
                         "--experiment-uri",
-                        f"{args.output_gcs.rstrip('/')}/source-archive",
+                        archive_uri,
                     ],
                     check=True,
                 )
@@ -92,6 +93,8 @@ def main():
                         "build",
                         "--kind",
                         "candidate",
+                        "--source-archive-uri",
+                        archive_uri,
                         "--run-uri",
                         args.output_gcs,
                         "--run-sha256",

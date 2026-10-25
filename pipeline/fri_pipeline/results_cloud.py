@@ -15,7 +15,7 @@ from google.cloud import storage
 from scipy import sparse
 
 from .candidate import write_json
-from .results import COLLECTION, build_results, render_catalog
+from .results import COLLECTION, DATASET_FILES, build_results, render_catalog
 from .snapshot import Snapshot, sha256
 from .storage import download, fetch_candidate, fetch_snapshot, split_prefix, split_uri
 
@@ -42,91 +42,46 @@ def stage_cloud(
         check_approval(package, approved_candidate)
         if package["version"] != version or not re.fullmatch(r"v[0-9A-Za-z-]{1,62}", version):
             raise ValueError("Version identity mismatch")
-        source_bucket, source_root = split_prefix(results_uri)
-        target_bucket, target_root = split_prefix(staging_uri)
+        dataset_files = package["datasetFiles"]
+        if not dataset_files or any(
+            DATASET_FILES.get(slug) != file for slug, file in dataset_files.items()
+        ):
+            raise ValueError("Unrecognized dataset/file identity")
         prefixes = [
-            f"{COLLECTION}/{dataset}/{file}/{version}/"
-            for dataset, file in (("county-risk", "counties"), ("reproducibility", "inputs"))
+            f"{COLLECTION}/{slug}/{file}/{version}/" for slug, file in dataset_files.items()
         ]
         copies = {
             name: spec
             for name, spec in package["files"].items()
             if any(name.startswith(p) for p in prefixes)
         }
-        originals = root / "originals.json"
-        original_key = f"{prefixes[1]}metadata/originals-manifest.json"
-        download(
-            f"{results_uri.rstrip('/')}/{original_key}",
-            originals,
-            package["originalSourceManifestSha256"],
-        )
-        for item in json.loads(originals.read_text())["sources"]:
-            key = f"{COLLECTION}/sources/{item['href']}"
-            if ".." in Path(key).parts or not key.startswith(f"{COLLECTION}/sources/originals/"):
-                raise ValueError("Original source key escapes this collection")
-            copies[key] = {"sha256": item["sha256"], "bytes": item["bytes"]}
 
         def copy(item):
             key, spec = item
             if ".." in Path(key).parts or not key.startswith(f"{COLLECTION}/"):
                 raise ValueError("Result key escapes the Future Risk Index collection")
-            source = client.bucket(source_bucket).get_blob(
-                "/".join(p for p in (source_root, key) if p)
+            copy_verified(
+                client, f"{results_uri.rstrip('/')}/{key}", f"{staging_uri.rstrip('/')}/{key}", spec
             )
-            if (
-                source is None
-                or source.size != spec["bytes"]
-                or (source.metadata or {}).get("sha256") != spec["sha256"]
-            ):
-                raise ValueError(f"Result asset does not match the approved inventory: {key}")
-            destination_key = "/".join(p for p in (target_root, key) if p)
-            current = client.bucket(target_bucket).get_blob(destination_key)
-            if current:
-                if current.size != source.size or current.crc32c != source.crc32c:
-                    raise ValueError(f"Staging version already contains different bytes: {key}")
-                return
-            destination = client.bucket(target_bucket).blob(destination_key)
-            token = None
-            while True:
-                token, _, _ = destination.rewrite(
-                    source,
-                    token=token,
-                    if_generation_match=0,
-                    if_source_generation_match=int(source.generation),
-                )
-                if token is None:
-                    break
-            destination.reload()
-            if destination.size != source.size or destination.crc32c != source.crc32c:
-                raise ValueError(f"Staging copy integrity failed: {key}")
 
         with ThreadPoolExecutor(8) as pool:
             list(pool.map(copy, copies.items()))
         # Parent indexes contain only versions already staged plus this approved version.
-        county_path = f"{prefixes[0]}collection.json"
-        source_path = f"{prefixes[1]}collection.json"
-        county_doc, source_doc = root / "county.json", root / "sources.json"
-        download(
-            f"{results_uri.rstrip('/')}/{county_path}",
-            county_doc,
-            package["files"][county_path]["sha256"],
-        )
-        download(
-            f"{results_uri.rstrip('/')}/{source_path}",
-            source_doc,
-            package["files"][source_path]["sha256"],
-        )
-        county, sources = json.loads(county_doc.read_text()), json.loads(source_doc.read_text())
+        records = {}
+        for slug, file in dataset_files.items():
+            key = f"{COLLECTION}/{slug}/{file}/{version}/collection.json"
+            path = root / f"{slug}.json"
+            download(f"{results_uri.rstrip('/')}/{key}", path, package["files"][key]["sha256"])
+            doc = json.loads(path.read_text())
+            records[slug] = {
+                "file": file,
+                "title": doc["title"],
+                "assets": doc["assets"],
+                "bbox": doc["extent"]["spatial"]["bbox"][0],
+                "columns": doc.get("table:columns", []),
+            }
         tree = root / "catalog"
-        render_catalog(
-            tree,
-            version,
-            county["assets"],
-            sources["assets"],
-            county["extent"]["spatial"]["bbox"][0],
-            county.get("table:columns", []),
-            True,
-        )
+        render_catalog(tree, version, records, True)
         for path in tree.rglob("*"):
             if not path.is_file():
                 continue
@@ -160,6 +115,45 @@ def stage_cloud(
             "stagingUri": f"{staging_uri.rstrip('/')}/{COLLECTION}/",
             "manifestSha256": manifest_sha,
         }
+
+
+def copy_verified(client, source_uri: str, target_uri: str, spec: dict):
+    source_bucket, source_key = split_uri(source_uri)
+    target_bucket, target_key = split_uri(target_uri)
+    source = client.bucket(source_bucket).get_blob(source_key)
+    if (
+        source is None
+        or source.size != spec["bytes"]
+        or (source.metadata or {}).get("sha256") != spec["sha256"]
+    ):
+        raise ValueError(f"Source differs from the approved inventory: {source_uri}")
+    current = client.bucket(target_bucket).get_blob(target_key)
+    if current:
+        if (
+            current.size != source.size
+            or current.crc32c != source.crc32c
+            or (current.metadata or {}).get("sha256") != spec["sha256"]
+        ):
+            raise ValueError(f"Destination already contains different bytes: {target_uri}")
+        return
+    destination = client.bucket(target_bucket).blob(target_key)
+    token = None
+    while True:
+        token, _, _ = destination.rewrite(
+            source,
+            token=token,
+            if_generation_match=0,
+            if_source_generation_match=int(source.generation),
+        )
+        if token is None:
+            break
+    destination.reload()
+    if (
+        destination.size != source.size
+        or destination.crc32c != source.crc32c
+        or (destination.metadata or {}).get("sha256") != spec["sha256"]
+    ):
+        raise ValueError(f"Copy integrity failed: {target_uri}")
 
 
 def put_file(client, path: Path, uri: str, *, mutable: bool = False):
@@ -219,6 +213,7 @@ def build_cloud(
     version: str,
     experiment_uri: str,
     *,
+    source_archive_uri: str,
     kind="analysis",
     checkpoint_uri="",
     checkpoint_sha="",
@@ -248,7 +243,7 @@ def build_cloud(
         provenance_sha = sha256(run / "provenance.json")
         originals = work / "originals-manifest.json"
         download(
-            f"{results_uri.rstrip('/')}/{COLLECTION}/sources/manifests/{provenance_sha}.json",
+            f"{source_archive_uri.rstrip('/')}/manifests/{provenance_sha}.json",
             originals,
         )
         source_inventory = json.loads(originals.read_text())
@@ -284,18 +279,18 @@ def build_cloud(
             flush=True,
         )
 
-        def verify_original(item):
-            bucket, prefix = split_uri(f"{results_uri.rstrip('/')}/{COLLECTION}/sources")
-            blob = client.bucket(bucket).get_blob(f"{prefix}/{item['href']}")
-            if (
-                blob is None
-                or blob.size != item["bytes"]
-                or (blob.metadata or {}).get("sha256") != item["sha256"]
-            ):
-                raise ValueError(f"Original archived asset is missing or differs: {item['href']}")
+        def copy_original(item):
+            key, spec = item
+            copy_verified(
+                client,
+                f"{source_archive_uri.rstrip('/')}/{spec['href']}",
+                f"{results_uri.rstrip('/')}/{key}",
+                spec,
+            )
 
         with ThreadPoolExecutor(8) as pool:
-            list(pool.map(verify_original, source_inventory["sources"]))
+            list(pool.map(copy_original, package["sourceCopies"].items()))
+        package["sourceArchiveUri"] = source_archive_uri
         package["portolanValidation"] = validation
         package["packagingCodeRevision"] = os.environ.get("FRI_CODE_REVISION")
         package["workerImage"] = os.environ.get("FRI_WORKER_IMAGE")
@@ -312,7 +307,16 @@ def build_cloud(
             )
 
         with ThreadPoolExecutor(8) as pool:
-            list(pool.map(send, (key for key in package["files"] if key != "catalog.json")))
+            list(
+                pool.map(
+                    send,
+                    (
+                        key
+                        for key in package["files"]
+                        if key != "catalog.json" and key not in package["sourceCopies"]
+                    ),
+                )
+            )
         put_file(
             client,
             output / "result-manifest.json",
@@ -343,6 +347,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     build = commands.add_parser("build")
+    build.add_argument("--source-archive-uri", required=True)
     build.add_argument("--run-uri", required=True)
     build.add_argument("--run-sha256", required=True)
     build.add_argument("--snapshot-uri", required=True)
@@ -381,6 +386,7 @@ def main():
         args.results_uri,
         args.version,
         args.experiment_uri,
+        source_archive_uri=args.source_archive_uri,
         kind=args.kind,
         checkpoint_uri=args.checkpoint_uri,
         checkpoint_sha=args.checkpoint_sha256,

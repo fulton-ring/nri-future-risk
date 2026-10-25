@@ -187,7 +187,7 @@ Acquisition and original archiving can take hours; completed hash-verified downl
 A full source inventory should be archived before starting a release workflow. A first-time source
 archive can exceed the release worker's four-hour limit. Run `python -m fri_pipeline.archive --help`
 on a preparation Batch worker to populate it first. The archive stores content-addressed originals
-under `future-risk-index/sources/originals/SHA256/` and writes its complete manifest only after
+in the experiments bucket’s shared `source-archives/originals/SHA256/` cache and writes its complete manifest only after
 all recorded sources match their original SHA-256 and byte counts. Later runs reuse identical
 objects. Changed or unavailable source bytes fail the archive instead of silently substituting data.
 
@@ -205,20 +205,39 @@ All data belongs to the explicit **`future-risk-index`** collection, separate fr
 catalog.json
 future-risk-index/
   catalog.json
-  county-risk/counties/VERSION/
+  fri/counties/VERSION/
     collection.json
     geoparquet/counties.parquet
-    metadata/{source_manifest,data_dictionary,quality_manifest,...}.json
-  reproducibility/inputs/VERSION/
-    collection.json
+    metadata/                 # report, provenance, validation, original-source inventory
     prepared/                 # exact snapshot, weights, fuel shares, baseline and geometry
-    zarr/                     # 14 consolidated Zarr v2 climate stores
-    metadata/originals-manifest.json
-  sources/
-    originals/SHA256/FILENAME # original NetCDF, TIFF, workbook and boundary archive
-    manifests/PROVENANCE_SHA256.json
+    originals/                # original FEMA workbook
+  loca2/loca2/VERSION/
+    collection.json
+    zarr/                     # five exact prepared LOCA2 histogram stores
+    netcdf/                   # original LOCA2 downloads
+    metadata/
+  nex-gddp-cmip6/nex-gddp-cmip6/VERSION/
+    collection.json
+    zarr/                     # four prepared temperature/precipitation stores
+    netcdf/                   # original annual NEX downloads
+    metadata/
+  nex-gddp-fwi/nex-gddp-fwi/VERSION/
+    collection.json
+    zarr/                     # five prepared annual FWI stores
+    netcdf/                   # original annual FWI downloads
+    metadata/
+  landfire/landfire/VERSION/
+    collection.json
+    geotiff/
+    metadata/
+  census-boundaries/counties/VERSION/
+    collection.json
+    originals/                # original Census boundary archive
+    metadata/
 _releases/VERSION.json        # immutable inventory and completion record
 ```
+
+The hierarchy matches the existing HIFLD collection: collection → dataset → logical file → version → formats/assets. Each actual source dataset has its own catalog; `fri` is the derived dataset. The leaf `collection.json` lists the physical assets for that logical file version. Original files are copied from the verified acquisition cache into the same versioned dataset paths as their prepared arrays.
 
 Zarr preserves the exact analysis arrays and time/year or histogram coordinates with lossless
 compression. Original NetCDF preserves the bytes needed to repeat preprocessing. Both retain

@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 from pathlib import Path
+from urllib.parse import urlparse
 
 import numpy as np
 
@@ -20,6 +21,41 @@ DESCRIPTION = (
     "Maintained by Public Environmental Data Partners and Fulton Ring. "
     "Includes drought, wildfire and extreme heat under SSP2-4.5 and SSP5-8.5."
 )
+
+
+DATASET_FILES = {
+    "fri": "counties",
+    "loca2": "loca2",
+    "nex-gddp-cmip6": "nex-gddp-cmip6",
+    "nex-gddp-fwi": "nex-gddp-fwi",
+    "landfire": "landfire",
+    "census-boundaries": "counties",
+}
+DATASET_TITLES = {
+    "fri": "County Future Risk Index",
+    "loca2": "LOCA2 minimum temperature",
+    "nex-gddp-cmip6": "NASA NEX-GDDP-CMIP6 temperature and precipitation",
+    "nex-gddp-fwi": "NASA NEX-GDDP fire weather index",
+    "landfire": "LANDFIRE fuel models",
+    "census-boundaries": "Census county boundaries",
+}
+
+
+def source_dataset(url: str) -> str:
+    host = urlparse(url).hostname
+    if host == "cirrus.ucsd.edu":
+        return "loca2"
+    if host == "nex-gddp-cmip6.s3.us-west-2.amazonaws.com":
+        return "nex-gddp-cmip6"
+    if host == "data.nas.nasa.gov" and "/gddpimpact/FWI/" in url:
+        return "nex-gddp-fwi"
+    if host == "lfps.usgs.gov":
+        return "landfire"
+    if host == "www2.census.gov":
+        return "census-boundaries"
+    if host == "raw.githubusercontent.com" and "/nri-future-risk/" in url:
+        return "fri"
+    raise ValueError(f"Unknown source dataset: {url}")
 
 
 def asset(path: Path, relative_to: Path, title: str, media_type: str, roles=("data",)) -> dict:
@@ -76,8 +112,8 @@ def build_results(
             or item["sha256"] != recorded[item["sourceId"]]["sha256"]
         ):
             raise ValueError("Original source inventory differs from the input snapshot")
-    county_dir = output / COLLECTION / "county-risk/counties" / version
-    inputs_dir = output / COLLECTION / "reproducibility/inputs" / version
+    county_dir = output / COLLECTION / "fri/counties" / version
+    inputs_dir = county_dir
     if county_dir.exists() or inputs_dir.exists():
         raise ValueError("Result versions are immutable; choose an empty version")
     for folder in (
@@ -207,7 +243,28 @@ def build_results(
             "columns": columns,
         },
     )
-    source_assets = {}
+    source_assets = county_assets
+    datasets = {
+        "fri": {
+            "file": "counties",
+            "title": DATASET_TITLES["fri"],
+            "assets": county_assets,
+            "bbox": frame.total_bounds.tolist(),
+            "columns": columns,
+        }
+    }
+
+    def dataset_record(slug):
+        if slug not in datasets:
+            datasets[slug] = {
+                "file": DATASET_FILES[slug],
+                "title": DATASET_TITLES[slug],
+                "assets": {},
+                "bbox": [-180, -90, 180, 90],
+                "columns": [],
+            }
+        return datasets[slug]
+
     prepared = inputs_dir / "prepared"
     shutil.copyfile(snapshot.path, prepared / "snapshot.json")
     source_assets["prepared-snapshot"] = asset(
@@ -236,15 +293,25 @@ def build_results(
             "loca2_weights",
             "loca2_coordinates",
         }:
-            store = inputs_dir / "zarr" / f"{name}.zarr"
+            slug = (
+                "loca2"
+                if name.startswith("loca2_")
+                else "nex-gddp-fwi"
+                if name.startswith("fwi_")
+                else "nex-gddp-cmip6"
+            )
+            record = dataset_record(slug)
+            dataset_dir = output / COLLECTION / slug / record["file"] / version
+            store = dataset_dir / "zarr" / f"{name}.zarr"
+            store.parent.mkdir(parents=True, exist_ok=True)
             coordinates = (
                 loca_coordinates
                 if name.startswith("loca2_")
                 else {key: nex_coordinates[key].to_numpy() for key in ("lat", "lon")}
             )
             write_array_store(original, name, store, coordinates)
-            source_assets[f"zarr-{name}"] = {
-                "href": os.path.relpath(store, inputs_dir) + "/",
+            record["assets"][f"zarr-{name}"] = {
+                "href": os.path.relpath(store, dataset_dir) + "/",
                 "title": name.replace("_", " ") + " (Zarr)",
                 "type": "application/vnd.zarr",
                 "roles": ["data", "source"],
@@ -282,18 +349,38 @@ def build_results(
         "application/json",
         ("metadata",),
     )
-    original_sources = output / COLLECTION / "sources"
+    source_copies = {}
     for item in originals["sources"]:
-        original = (original_sources / item["href"]).resolve()
-        if not original.is_relative_to(original_sources.resolve()):
-            raise ValueError("Original source path escapes this collection")
-        source_assets[f"original-{item['sourceId']}"] = {
-            "href": os.path.relpath(original, inputs_dir),
-            "title": Path(item["href"]).name,
+        source = recorded[item["sourceId"]]
+        if source["url"] != item["sourceUrl"]:
+            raise ValueError("Original source URL differs from the input snapshot")
+        slug = source_dataset(source["url"])
+        record = dataset_record(slug)
+        dataset_dir = output / COLLECTION / slug / record["file"] / version
+        filename = Path(item["href"]).name
+        if ".." in Path(item["href"]).parts or not item["href"].startswith("originals/"):
+            raise ValueError("Original source path escapes its archive")
+        suffix = Path(filename).suffix.lower()
+        folder = (
+            "netcdf"
+            if suffix == ".nc"
+            else "geotiff"
+            if suffix in {".tif", ".tiff"}
+            else "originals"
+        )
+        original = dataset_dir / folder / filename
+        key = original.relative_to(output).as_posix()
+        spec = {"href": item["href"], "sha256": item["sha256"], "bytes": item["bytes"]}
+        if key in source_copies and source_copies[key] != spec:
+            raise ValueError(f"Original filenames collide: {key}")
+        source_copies[key] = spec
+        record["assets"][f"original-{item['sourceId']}"] = {
+            "href": os.path.relpath(original, dataset_dir),
+            "title": filename,
             "type": "application/netcdf"
-            if original.suffix == ".nc"
+            if suffix == ".nc"
             else "image/tiff"
-            if original.suffix in {".tif", ".tiff"}
+            if suffix in {".tif", ".tiff"}
             else "application/octet-stream",
             "roles": ["data", "source"],
             "file:size": item["bytes"],
@@ -308,24 +395,46 @@ def build_results(
         "application/json",
         ("metadata",),
     )
-    render_catalog(
-        output,
-        version,
-        county_assets,
-        source_assets,
-        frame.total_bounds.tolist(),
-        columns,
-        publishable,
-    )
+    for slug, record in datasets.items():
+        dataset_dir = output / COLLECTION / slug / record["file"] / version
+        (dataset_dir / "metadata").mkdir(parents=True, exist_ok=True)
+        if slug != "fri":
+            preview = dataset_dir / "metadata/analysis-counties.png"
+            shutil.copyfile(thumbnail, preview)
+            record["assets"]["thumbnail"] = asset(
+                preview, dataset_dir, "Counties used in this analysis", "image/png", ("thumbnail",)
+            )
+        write_json(
+            dataset_dir / "metadata/source_manifest.json",
+            {
+                "collection_slug": COLLECTION,
+                "dataset_slug": slug,
+                "file_slug": record["file"],
+                "version": version,
+                "title": record["title"],
+                "description": DESCRIPTION,
+                "provider": "Public Environmental Data Partners and Fulton Ring",
+                "sources": [
+                    source for source in recorded.values() if source_dataset(source["url"]) == slug
+                ],
+                "analysisPolicy": meta.get("analysis"),
+                "originalRunSha256": sha256(source_manifest),
+                "snapshotSha256": sha256(snapshot.path),
+                "publishable": publishable,
+            },
+        )
+    render_catalog(output, version, datasets, publishable)
     collection_path = county_dir / "collection.json"
     collection = json.loads(collection_path.read_text())
-    collection["links"].append(
+    collection["links"].extend(
         {
             "rel": "derived_from",
-            "href": f"../../../reproducibility/inputs/{version}/collection.json",
+            "href": f"../../../{slug}/{record['file']}/{version}/collection.json",
             "type": "application/json",
-            "title": "Exact analysis inputs and original source datasets",
+            "title": record["title"],
         }
+        for slug, record in datasets.items()
+        if slug != "fri"
     )
     collection.update(
         {
@@ -339,31 +448,20 @@ def build_results(
         }
     )
     write_json(collection_path, collection)
-    for dataset, file in (("county-risk", "counties"), ("reproducibility", "inputs")):
-        write_json(
-            output / COLLECTION / dataset / file / version / "metadata/source_manifest.json",
-            {
-                "collection_slug": COLLECTION,
-                "dataset_slug": dataset,
-                "file_slug": file,
-                "version": version,
-                "title": "County Future Risk Index"
-                if dataset == "county-risk"
-                else "Future Risk Index reproducibility inputs",
-                "description": DESCRIPTION,
-                "provider": "Public Environmental Data Partners and Fulton Ring",
-                "analysisPolicy": meta.get("analysis"),
-                "originalRunSha256": sha256(source_manifest),
-                "snapshotSha256": sha256(snapshot.path),
-                "publishable": publishable,
-            },
-        )
     files = {
         p.relative_to(output).as_posix(): {"sha256": sha256(p), "bytes": p.stat().st_size}
         for p in sorted(output.rglob("*"))
         if p.is_file()
     }
+    files.update(
+        {
+            key: {"sha256": item["sha256"], "bytes": item["bytes"]}
+            for key, item in source_copies.items()
+        }
+    )
     package = {
+        "datasetFiles": {slug: record["file"] for slug, record in datasets.items()},
+        "sourceCopies": source_copies,
         "collection": COLLECTION,
         "version": version,
         "analysisId": meta["id"],
@@ -451,10 +549,7 @@ def write_array_store(source: Path, name: str, destination: Path, coordinates=No
 def render_catalog(
     root: Path,
     version: str,
-    county_assets: dict,
-    source_assets: dict,
-    bbox: list,
-    columns: list,
+    datasets: dict,
     publishable: bool,
 ) -> None:
     """Use relative navigation and asset links; copying the collection needs no URL rewriting."""
@@ -489,9 +584,7 @@ def render_catalog(
             links = [link for link in links if link.get("rel") != "child"] + [
                 prior_children[key] for key in sorted(prior_children)
             ]
-        if collection is None and identity.endswith(
-            ("/county-risk/counties", "/reproducibility/inputs")
-        ):
+        if collection is None and identity.count("/") == 2:
             latest = max(link["href"] for link in links if link.get("rel") == "child")
             links.append(
                 {
@@ -542,7 +635,7 @@ def render_catalog(
                 "and Fulton Ring.\n"
             )
             value["fri:publication_status"] = "candidate" if publishable else "analysis"
-            if identity.startswith(f"{COLLECTION}/county-risk/"):
+            if identity.startswith(f"{COLLECTION}/fri/"):
                 value["stac_extensions"].append(TABLE_EXTENSION)
                 value["table:columns"] = columns
                 value["hifld:feature_id_column"] = "county_id"
@@ -565,38 +658,26 @@ def render_catalog(
         root / COLLECTION / "catalog.json",
         COLLECTION,
         "Future Risk Index",
-        [
-            ("county-risk/catalog.json", "County risk"),
-            ("reproducibility/catalog.json", "Reproducibility inputs"),
-        ],
+        [(f"{slug}/catalog.json", record["title"]) for slug, record in datasets.items()],
     )
-    for dataset, file, title, assets, spatial in [
-        ("county-risk", "counties", "County Future Risk Index", county_assets, bbox),
-        (
-            "reproducibility",
-            "inputs",
-            "Inputs for reproducing the Future Risk Index",
-            source_assets,
-            [-180, -90, 180, 90],
-        ),
-    ]:
-        base = root / COLLECTION / dataset
+    for slug, record in datasets.items():
+        file = record["file"]
+        title = record["title"]
+        columns = record.get("columns", [])
+        base = root / COLLECTION / slug
         node(
-            base / "catalog.json",
-            f"{COLLECTION}/{dataset}",
-            title,
-            [(f"{file}/catalog.json", title)],
+            base / "catalog.json", f"{COLLECTION}/{slug}", title, [(f"{file}/catalog.json", title)]
         )
         node(
             base / file / "catalog.json",
-            f"{COLLECTION}/{dataset}/{file}",
+            f"{COLLECTION}/{slug}/{file}",
             title,
             [(f"{version}/collection.json", f"{title} — {version}")],
         )
         node(
             base / file / version / "collection.json",
-            f"{COLLECTION}/{dataset}/{file}/{version}",
+            f"{COLLECTION}/{slug}/{file}/{version}",
             title,
             [],
-            (assets, spatial),
+            (record["assets"], record["bbox"]),
         )

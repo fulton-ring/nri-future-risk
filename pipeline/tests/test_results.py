@@ -37,11 +37,21 @@ def test_portolan_collection_is_separate_and_links_survive_copy(tmp_path):
             "title": "Analysis report",
         }
     }
-    for dataset, file in [("county-risk", "counties"), ("reproducibility", "inputs")]:
+    for dataset, file in [("fri", "counties"), ("loca2", "loca2")]:
         path = tmp_path / "future-risk-index" / dataset / file / "v1" / "metadata"
         path.mkdir(parents=True)
         (path / "report.md").write_text("Synthetic fixture report")
-    render_catalog(tmp_path, "v1", assets, assets, [-125, 24, -66, 50], [], False)
+    records = {
+        slug: {
+            "file": file,
+            "title": slug,
+            "assets": assets,
+            "bbox": [-125, 24, -66, 50],
+            "columns": [],
+        }
+        for slug, file in [("fri", "counties"), ("loca2", "loca2")]
+    }
+    render_catalog(tmp_path, "v1", records, False)
     report = validate(tmp_path, data=False, schema=True)
     assert report.passed, [
         (f.rule_id, f.message) for f in report.findings if f.severity.value == "error"
@@ -54,13 +64,13 @@ def test_portolan_collection_is_separate_and_links_survive_copy(tmp_path):
             href = item["href"]
             if "://" not in href:
                 assert (path.parent / href).resolve().exists(), (path, href)
-    for dataset, file in [("county-risk", "counties"), ("reproducibility", "inputs")]:
+    for dataset, file in [("fri", "counties"), ("loca2", "loca2")]:
         folder = tmp_path / "future-risk-index" / dataset / file / "v2/metadata"
         folder.mkdir(parents=True)
         (folder / "report.md").write_text("Second synthetic report")
-    render_catalog(tmp_path, "v2", assets, assets, [-125, 24, -66, 50], [], False)
+    render_catalog(tmp_path, "v2", records, False)
     file_catalog = json.loads(
-        (tmp_path / "future-risk-index/county-risk/counties/catalog.json").read_text()
+        (tmp_path / "future-risk-index/fri/counties/catalog.json").read_text()
     )
     assert {link["href"] for link in file_catalog["links"] if link["rel"] == "child"} == {
         "v1/collection.json",
@@ -99,6 +109,9 @@ def test_candidate_packages_real_county_geometry_and_lossless_input_stores(tmp_p
     from fri_pipeline.results import build_results
 
     snapshot = prepared_snapshot(tmp_path / "inputs")
+    source_manifest = json.loads(snapshot.read_text())
+    source_manifest["sources"][0]["url"] = "https://cirrus.ucsd.edu/synthetic-fixture.nc"
+    snapshot.write_text(json.dumps(source_manifest))
     candidate = tmp_path / "candidate"
     build_candidate(candidate, "results-test", snapshot=str(snapshot), code_revision="a" * 40)
     originals = tmp_path / "originals.json"
@@ -112,7 +125,7 @@ def test_candidate_packages_real_county_geometry_and_lossless_input_stores(tmp_p
                         "sha256": "a" * 64,
                         "bytes": 1,
                         "href": "originals/fixture/synthetic.nc",
-                        "sourceUrl": "https://example.org/fixture",
+                        "sourceUrl": "https://cirrus.ucsd.edu/synthetic-fixture.nc",
                     }
                 ],
             }
@@ -127,14 +140,42 @@ def test_candidate_packages_real_county_geometry_and_lossless_input_stores(tmp_p
         "v20261025T120000Z",
         {"lat": np.array([35.0]), "lon": np.array([-100.0])},
     )
-    parquet = (
-        root
-        / "future-risk-index/county-risk/counties/v20261025T120000Z/geoparquet/counties.parquet"
-    )
+    parquet = root / "future-risk-index/fri/counties/v20261025T120000Z/geoparquet/counties.parquet"
     counties = gpd.read_parquet(parquet)
     assert len(counties) == package["featureCount"] == 3218
     assert counties.county_id.is_unique
     assert package["sourceRunManifest"] == "candidate.json"
     assert len(list(root.rglob("*.zarr"))) == 14
+    assert (
+        len(list((root / "future-risk-index/loca2/loca2/v20261025T120000Z/zarr").glob("*.zarr")))
+        == 5
+    )
+    assert (
+        len(
+            list(
+                (
+                    root / "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T120000Z/zarr"
+                ).glob("*.zarr")
+            )
+        )
+        == 4
+    )
+    assert (
+        len(
+            list(
+                (root / "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T120000Z/zarr").glob(
+                    "*.zarr"
+                )
+            )
+        )
+        == 5
+    )
+    assert not (root / "future-risk-index/reproducibility").exists()
+    assert not (root / "future-risk-index/county-risk").exists()
+    assert package["sourceCopies"]
+    assert all("/v20261025T120000Z/" in key for key in package["sourceCopies"])
+    assert (
+        root / "future-risk-index/fri/counties/v20261025T120000Z/prepared/snapshot.json"
+    ).exists()
     validation = validate(root, data=False, schema=True)
     assert validation.passed, [(f.rule_id, f.message) for f in validation.errors]
