@@ -8,9 +8,9 @@ resource "google_project_service" "required" {
   disable_on_destroy = false
 }
 
-resource "google_storage_bucket" "fri" {
-  for_each                    = toset(["inputs", "candidates", "staging", "receipts"])
-  name                        = "${var.project}-fri-${each.value}"
+resource "google_storage_bucket" "future_risk" {
+  for_each                    = toset(["experiments", "results"])
+  name                        = "${var.bucket_prefix}-${each.value}"
   location                    = var.region
   uniform_bucket_level_access = true
   public_access_prevention    = "enforced"
@@ -66,31 +66,47 @@ resource "google_artifact_registry_repository_iam_member" "image" {
 
 resource "google_storage_bucket_iam_member" "access" {
   for_each = {
-    worker_inputs      = { account = "worker", bucket = "inputs", role = "roles/storage.objectViewer" }
-    prep_inputs_read   = { account = "preparation", bucket = "inputs", role = "roles/storage.objectViewer" }
-    prep_inputs_create = { account = "preparation", bucket = "inputs", role = "roles/storage.objectCreator" }
-    worker_output      = { account = "worker", bucket = "candidates", role = "roles/storage.objectCreator" }
-    worker_output_read = { account = "worker", bucket = "candidates", role = "roles/storage.objectViewer" }
-    runner_output      = { account = "runner", bucket = "candidates", role = "roles/storage.objectViewer" }
-    approval_output    = { account = "publication", bucket = "candidates", role = "roles/storage.objectViewer" }
-    approval_staging   = { account = "publication", bucket = "staging", role = "roles/storage.objectCreator" }
-    approval_retry     = { account = "publication", bucket = "staging", role = "roles/storage.objectViewer" }
-    approval_receipts  = { account = "publication", bucket = "receipts", role = "roles/storage.objectViewer" }
+    worker_experiments_read  = { account = "worker", bucket = "experiments", role = "roles/storage.objectViewer" }
+    worker_experiments_write = { account = "worker", bucket = "experiments", role = "roles/storage.objectCreator" }
+    worker_results_read      = { account = "worker", bucket = "results", role = "roles/storage.objectViewer" }
+    worker_results_write     = { account = "worker", bucket = "results", role = "roles/storage.objectCreator" }
+    prep_experiments_read    = { account = "preparation", bucket = "experiments", role = "roles/storage.objectViewer" }
+    prep_experiments_write   = { account = "preparation", bucket = "experiments", role = "roles/storage.objectCreator" }
+    prep_results_read        = { account = "preparation", bucket = "results", role = "roles/storage.objectViewer" }
+    prep_results_write       = { account = "preparation", bucket = "results", role = "roles/storage.objectCreator" }
+    runner_experiments       = { account = "runner", bucket = "experiments", role = "roles/storage.objectViewer" }
+    runner_results           = { account = "runner", bucket = "results", role = "roles/storage.objectViewer" }
+    publication_results      = { account = "publication", bucket = "results", role = "roles/storage.objectViewer" }
   }
-  bucket = google_storage_bucket.fri[each.value.bucket].name
+  bucket = google_storage_bucket.future_risk[each.value.bucket].name
   role   = each.value.role
   member = "serviceAccount:${google_service_account.fri[each.value.account].email}"
 }
 
-resource "google_storage_bucket_iam_member" "transform" {
-  for_each = {
-    staged_sources = { bucket = "staging", role = "roles/storage.objectViewer" }
-    receipt_writer = { bucket = "receipts", role = "roles/storage.objectCreator" }
-    receipt_retry  = { bucket = "receipts", role = "roles/storage.objectViewer" }
+resource "google_storage_bucket_iam_member" "publisher_staging" {
+  for_each = toset(["roles/storage.objectUser", "roles/storage.objectViewer"])
+  bucket   = var.publisher_staging_bucket
+  role     = each.value
+  member   = "serviceAccount:${google_service_account.fri["publication"].email}"
+  dynamic "condition" {
+    for_each = each.value == "roles/storage.objectUser" ? [1] : []
+    content {
+      title      = "future-risk-index-collection-only"
+      expression = "resource.name.startsWith('projects/_/buckets/${var.publisher_staging_bucket}/objects/future-risk-index/')"
+    }
   }
-  bucket = google_storage_bucket.fri[each.value.bucket].name
-  role   = each.value.role
-  member = "serviceAccount:${var.transform_service_account}"
+}
+
+# Versioned data is create-only; shared Portolan indexes advance between releases.
+resource "google_storage_bucket_iam_member" "results_catalog" {
+  for_each = toset(["worker", "preparation"])
+  bucket   = google_storage_bucket.future_risk["results"].name
+  role     = "roles/storage.objectUser"
+  member   = "serviceAccount:${google_service_account.fri[each.value].email}"
+  condition {
+    title      = "future-risk-index-catalogs-only"
+    expression = "resource.name == 'projects/_/buckets/${google_storage_bucket.future_risk["results"].name}/objects/catalog.json' || (resource.name.startsWith('projects/_/buckets/${google_storage_bucket.future_risk["results"].name}/objects/future-risk-index/') && resource.name.endsWith('/catalog.json'))"
+  }
 }
 
 resource "google_iam_workload_identity_pool" "github" {

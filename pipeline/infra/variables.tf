@@ -11,10 +11,15 @@ variable "github_repository_id" {
   type        = string
   description = "Numeric GitHub repository ID; protects against name reuse."
 }
-variable "transform_service_account" {
-  type        = string
-  description = "Existing HIFLD Next transform/publisher service account email."
+variable "bucket_prefix" {
+  type    = string
+  default = "future-risk-index"
 }
+variable "publisher_staging_bucket" {
+  type        = string
+  description = "Existing external publication staging bucket; this module does not create it."
+}
+
 
 variable "network" {
   type        = string

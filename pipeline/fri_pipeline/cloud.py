@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 
 from .candidate import validate_id
-from .storage import split_uri
+from .storage import split_prefix, split_uri
 
 
 def job_config(
@@ -24,6 +24,8 @@ def job_config(
     network: str,
     subnetwork: str,
     replay: bool = False,
+    results_uri: str = "",
+    results_version: str = "",
 ) -> dict:
     validate_id(release_id)
     if not re.fullmatch(r"projects/[^/]+/global/networks/[^/]+", network) or not re.fullmatch(
@@ -41,6 +43,12 @@ def job_config(
     if not replay:
         split_uri(snapshot)
     split_uri(output)
+    if bool(results_uri) != bool(results_version) or (replay and results_uri):
+        raise ValueError("Portolan results require a version and real update inputs")
+    if results_uri:
+        split_prefix(results_uri)
+        if not re.fullmatch(r"v[0-9A-Za-z-]{1,62}", results_version):
+            raise ValueError("Invalid Portolan version")
     commands = [
         "run",
         "--output",
@@ -55,6 +63,8 @@ def job_config(
     commands += (
         ["--replay"] if replay else ["--snapshot", snapshot, "--snapshot-sha256", snapshot_sha]
     )
+    if results_uri:
+        commands += ["--results-uri", results_uri, "--results-version", results_version]
     return {
         "taskGroups": [
             {
@@ -65,7 +75,9 @@ def job_config(
                     "computeResource": {"cpuMilli": 8000, "memoryMib": 32768},
                     "maxRetryCount": 0,
                     "maxRunDuration": "14400s",
-                    "environment": {"variables": {"FRI_WORKER_IMAGE": image}},
+                    "environment": {
+                        "variables": {"FRI_WORKER_IMAGE": image, "FRI_CODE_REVISION": code_revision}
+                    },
                 },
             }
         ],
@@ -107,6 +119,8 @@ def main():
     parser.add_argument("--snapshot", default="")
     parser.add_argument("--snapshot-sha256", default="")
     parser.add_argument("--replay", action="store_true")
+    parser.add_argument("--results-uri", default="")
+    parser.add_argument("--results-version", default="")
     args = parser.parse_args()
     config = job_config(
         image=args.image,
@@ -119,6 +133,8 @@ def main():
         network=args.network,
         subnetwork=args.subnetwork,
         replay=args.replay,
+        results_uri=args.results_uri,
+        results_version=args.results_version,
     )
     base = ["gcloud", "batch", "jobs"]
     common = ["--project", args.project, "--location", args.region]

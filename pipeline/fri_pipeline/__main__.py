@@ -1,5 +1,7 @@
 import argparse
 import json
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -18,6 +20,8 @@ def main():
     run.add_argument("--snapshot", default="")
     run.add_argument("--snapshot-sha256", default="")
     run.add_argument("--output-gcs")
+    run.add_argument("--results-uri", default="")
+    run.add_argument("--results-version", default="")
     verify = sub.add_parser("verify")
     verify.add_argument("directory", type=Path)
     verify.add_argument("--publication", action="store_true")
@@ -31,6 +35,13 @@ def main():
         fetch_candidate(args.uri, args.directory)
         meta = verify_candidate(args.directory)
     else:
+        if args.results_uri and (
+            args.replay
+            or not args.output_gcs
+            or not args.results_version
+            or not args.snapshot.startswith("gs://")
+        ):
+            parser.error("Portolan results require a GCS snapshot, experiments output and version")
         with tempfile.TemporaryDirectory(prefix="fri-inputs-") as temporary:
             snapshot = args.snapshot
             if not args.replay:
@@ -55,6 +66,49 @@ def main():
             if args.output_gcs:
                 for path in sorted(args.output.iterdir(), key=lambda p: p.name == "candidate.json"):
                     upload(path, f"{args.output_gcs.rstrip('/')}/{path.name}")
+            if args.results_uri:
+                provenance_sha = sha256(args.output / "provenance.json")
+                subprocess.run(
+                    [
+                        sys.executable,
+                        "-m",
+                        "fri_pipeline.archive",
+                        "--provenance-uri",
+                        f"{args.output_gcs.rstrip('/')}/provenance.json",
+                        "--provenance-sha256",
+                        provenance_sha,
+                        "--results-uri",
+                        f"{args.results_uri.rstrip('/')}/future-risk-index/sources",
+                        "--experiment-uri",
+                        f"{args.output_gcs.rstrip('/')}/source-archive",
+                    ],
+                    check=True,
+                )
+                subprocess.run(
+                    [
+                        sys.executable,
+                        "-m",
+                        "fri_pipeline.results_cloud",
+                        "build",
+                        "--kind",
+                        "candidate",
+                        "--run-uri",
+                        args.output_gcs,
+                        "--run-sha256",
+                        sha256(args.output / "candidate.json"),
+                        "--snapshot-uri",
+                        args.snapshot,
+                        "--snapshot-sha256",
+                        args.snapshot_sha256,
+                        "--results-uri",
+                        args.results_uri,
+                        "--version",
+                        args.results_version,
+                        "--experiment-uri",
+                        args.output_gcs,
+                    ],
+                    check=True,
+                )
     print(
         json.dumps(
             {

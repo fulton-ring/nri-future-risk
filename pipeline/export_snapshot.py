@@ -49,6 +49,16 @@ def export_inputs(inputs, output: Path, sources: list[dict], *, analysis: bool =
     path = output / "nex_coordinates.csv"
     inputs.cell_coordinates().to_csv(path, index=False)
     register("nex_coordinates", path)
+    cells, _, _ = inputs.data.loca2_cells()
+    with np.load(inputs.data.cache("loca2", "grid.npz"), allow_pickle=False) as grid:
+        lat, lon = np.meshgrid(
+            grid["lat"], np.where(grid["lon"] > 180, grid["lon"] - 360, grid["lon"]), indexing="ij"
+        )
+    path = output / "loca2_coordinates.csv"
+    import pandas as pd
+
+    pd.DataFrame({"lat": lat.ravel()[cells], "lon": lon.ravel()[cells]}).to_csv(path, index=False)
+    register("loca2_coordinates", path)
     path = output / "fuel_shares.csv"
     inputs.county_fuel_shares().to_csv(path, index_label="STCOFIPS", float_format="%.17g")
     register("fuel_shares", path)

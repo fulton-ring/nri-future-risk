@@ -9,11 +9,18 @@ from google.cloud import storage
 from .snapshot import sha256
 
 
-def split_uri(uri: str) -> tuple[str, str]:
-    match = re.fullmatch(r"gs://([a-z0-9][a-z0-9._-]+)/([^?#]+)", uri)
-    if not match or ".." in match[2].split("/"):
+def split_prefix(uri: str) -> tuple[str, str]:
+    match = re.fullmatch(r"gs://([a-z0-9][a-z0-9._-]+)(?:/([^?#]*))?", uri)
+    if not match or ".." in (match[2] or "").split("/"):
         raise ValueError("Expected gs://bucket/path without query, fragment, or traversal")
-    return match[1], match[2]
+    return match[1], match[2] or ""
+
+
+def split_uri(uri: str) -> tuple[str, str]:
+    bucket, key = split_prefix(uri)
+    if not key:
+        raise ValueError("Expected gs://bucket/path for an object")
+    return bucket, key
 
 
 def download(uri: str, target: Path, expected_sha: str | None = None) -> None:

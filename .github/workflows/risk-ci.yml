@@ -15,7 +15,7 @@ jobs:
           version: "0.5.4"
           enable-cache: true
           cache-dependency-glob: pipeline/uv.lock
-      - run: uv run --directory pipeline --frozen pytest -q
+      - run: uv run --directory pipeline --frozen --extra results pytest -q
       - run: uv run --directory pipeline --frozen ruff check .
       - run: uv run --directory pipeline --frozen ruff format --check .
       - name: Check preparation image and native geospatial imports

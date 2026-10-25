@@ -1,4 +1,4 @@
-name: Publish approved county risk
+name: Stage approved Future Risk Index results
 on:
   push:
     branches: [main]
@@ -10,45 +10,51 @@ concurrency:
   group: risk-publication
   cancel-in-progress: false
 jobs:
-  publish:
+  stage:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 180
     env:
-      CANDIDATE_BUCKET: ${{ vars.FRI_CANDIDATE_BUCKET }}
+      RESULTS_BUCKET: ${{ vars.FRI_RESULTS_BUCKET }}
       STAGING_BUCKET: ${{ vars.FRI_PUBLISHER_STAGING_BUCKET }}
-      RECEIPT_BUCKET: ${{ vars.FRI_RECEIPT_BUCKET }}
-      PUBLISHED_BUCKET: ${{ vars.FRI_PUBLISHED_BUCKET }}
-      ATLAS_ORIGIN: ${{ vars.FRI_ATLAS_ORIGIN }}
       BEFORE_SHA: ${{ github.event.before }}
       APPROVED_SHA: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.FRI_PR_TOKEN }}
-      - name: Identify exactly one approved candidate
+      - name: Identify the exact approved result
         run: |
           python - <<'PY'
-          import json, os, re, subprocess
+          import hashlib, json, os, re, subprocess
           from pathlib import Path
           paths = subprocess.check_output([
               "git", "diff", "--name-only", os.environ["BEFORE_SHA"], os.environ["APPROVED_SHA"],
               "--", "releases/candidates/*/candidate.json"
           ], text=True).splitlines()
           if len(paths) != 1:
-              raise SystemExit("Merge exactly one new candidate per PR")
-          match = re.fullmatch(r"releases/candidates/([a-z][a-z0-9-]{2,62})/candidate.json", paths[0])
-          if not match:
+              raise SystemExit("Merge exactly one candidate per PR")
+          path = Path(paths[0])
+          if not re.fullmatch(r"releases/candidates/[a-z][a-z0-9-]{2,62}/candidate.json", str(path)):
               raise SystemExit("Invalid candidate path")
-          meta = json.loads(Path(paths[0]).read_text())
-          if meta["id"] != match[1]:
-              raise SystemExit("Candidate path and release ID disagree")
+          candidate = json.loads(path.read_text())
+          pointer = json.loads((path.parent / "results.json").read_text())
+          digest = hashlib.sha256(path.read_bytes()).hexdigest()
+          if not candidate["publishable"] or not pointer["publishable"]:
+              raise SystemExit("Exploratory analyses require a separate scientific publication review")
+          if pointer["collection"] != "future-risk-index" or pointer["sourceRunSha256"] != digest:
+              raise SystemExit("Portolan result does not match the approved candidate")
+          if pointer["resultsUri"] != f"gs://{os.environ['RESULTS_BUCKET']}":
+              raise SystemExit("Results bucket differs from deployment configuration")
+          if not re.fullmatch(r"v[0-9A-Za-z-]{1,62}", pointer["version"]):
+              raise SystemExit("Invalid results version")
+          if not re.fullmatch(r"[a-f0-9]{64}", pointer["manifestSha256"]):
+              raise SystemExit("Invalid results manifest digest")
           with open(os.environ["GITHUB_ENV"], "a") as handle:
-              handle.write(f"RELEASE_ID={match[1]}\n")
+              handle.write(f"REVIEW_PATH={path.parent}\n")
+              handle.write(f"RESULTS_VERSION={pointer['version']}\n")
+              handle.write(f"RESULTS_MANIFEST_SHA={pointer['manifestSha256']}\n")
           PY
-          for name in CANDIDATE_BUCKET STAGING_BUCKET RECEIPT_BUCKET PUBLISHED_BUCKET ATLAS_ORIGIN; do
-            test -n "${!name}" || { echo "Missing configuration: $name"; exit 1; }
-          done
+          test -n "$RESULTS_BUCKET" && test -n "$STAGING_BUCKET"
       - uses: astral-sh/setup-uv@v5
         with:
           version: "0.5.4"
@@ -57,70 +63,16 @@ jobs:
           workload_identity_provider: ${{ vars.FRI_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.FRI_PUBLISHER_SERVICE_ACCOUNT }}
       - uses: google-github-actions/setup-gcloud@v2
-      - name: Verify exact approved source
+      - name: Copy approved collection data to existing staging
         run: |
-          uv run --directory pipeline --frozen python -m fri_pipeline fetch \
-            "gs://$CANDIDATE_BUCKET/runs/$RELEASE_ID" /tmp/approved
-          cmp "releases/candidates/$RELEASE_ID/candidate.json" /tmp/approved/candidate.json
-          uv run --directory pipeline --frozen python -m fri_pipeline verify /tmp/approved --publication
-          python - <<'PY'
-          import datetime, os, subprocess
-          timestamp = int(subprocess.check_output(["git", "show", "-s", "--format=%ct", os.environ["APPROVED_SHA"]]))
-          date = datetime.datetime.fromtimestamp(timestamp, datetime.timezone.utc)
-          with open(os.environ["GITHUB_ENV"], "a") as handle:
-              handle.write(f"PUBLISHER_VERSION={date.strftime('v%Y%m%dT%H%M%SZ')}\n")
-              handle.write(f"RELEASE_DATE={date.strftime('%Y-%m-%d')}\n")
-          PY
-      - name: Stage approved inputs for registered publisher
-        run: |
-          uv run --directory pipeline --frozen python -m fri_pipeline.publication stage /tmp/approved \
-            --staging-uri "gs://$STAGING_BUCKET" --version "$PUBLISHER_VERSION" \
-            --receipt-uri "gs://$RECEIPT_BUCKET/$RELEASE_ID/receipt.json"
-      - name: Wait for publisher receipt
-        run: |
-          for attempt in $(seq 1 480); do
-            if gcloud storage cp "gs://$RECEIPT_BUCKET/$RELEASE_ID/receipt.json" /tmp/receipt.json; then
-              exit 0
-            fi
-            sleep 30
-          done
-          echo "Publisher receipt missing after four hours. Current map release retained."
-          exit 1
-      - name: Check whether atlas activation is available
-        run: |
-          if test -f src/lib/release.ts; then
-            echo "ACTIVATE_ATLAS=true" >> "$GITHUB_ENV"
-          else
-            echo "ACTIVATE_ATLAS=false" >> "$GITHUB_ENV"
-            echo "Publication completed. Atlas activation awaits the independent UI upgrade." >> "$GITHUB_STEP_SUMMARY"
-          fi
-      - name: Verify hosted assets and prepare activation
-        run: |
-          uv run --directory pipeline --frozen python -m fri_pipeline.publication activate /tmp/approved \
-            --receipt /tmp/receipt.json --bucket "$PUBLISHED_BUCKET" --origin "$ATLAS_ORIGIN" \
-            --date "$RELEASE_DATE" --manifest-output /tmp/activated-release.json
-      - name: Activate release without overwriting newer approvals
-        if: env.ACTIVATE_ATLAS == 'true'
-        run: |
-          git fetch origin main
-          CHANGED=$(git diff --name-only "$APPROVED_SHA" origin/main -- releases/candidates/)
-          test -z "$CHANGED" || { echo "A newer candidate was approved; refusing stale activation"; exit 1; }
-          git checkout -B main origin/main
-          cp /tmp/activated-release.json src/data/release.json
-      - uses: actions/setup-node@v4
-        if: env.ACTIVATE_ATLAS == 'true'
+          uv run --directory pipeline --frozen --extra results python -m fri_pipeline.results_cloud stage \
+            --results-uri "gs://$RESULTS_BUCKET" --version "$RESULTS_VERSION" \
+            --manifest-sha256 "$RESULTS_MANIFEST_SHA" \
+            --approved-candidate "$REVIEW_PATH/candidate.json" \
+            --staging-uri "gs://$STAGING_BUCKET" > /tmp/promotion.json
+          cat /tmp/promotion.json >> "$GITHUB_STEP_SUMMARY"
+          echo "Staged the future-risk-index collection. Downstream publication owns transforms, hosted assets and catalog activation." >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci && npm test && npm run build
-        if: env.ACTIVATE_ATLAS == 'true'
-      - name: Commit activation
-        if: env.ACTIVATE_ATLAS == 'true'
-        run: |
-          git config user.name "future-risk-release[bot]"
-          git config user.email "future-risk-release[bot]@users.noreply.github.com"
-          git add src/data/release.json
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m "data: activate approved release $RELEASE_ID"
-          git push origin HEAD:main
-          echo "Activated $RELEASE_ID; Pages deployment follows this commit." >> "$GITHUB_STEP_SUMMARY"
+          name: future-risk-index-staging-${{ github.run_id }}
+          path: /tmp/promotion.json

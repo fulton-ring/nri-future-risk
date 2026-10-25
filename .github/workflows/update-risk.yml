@@ -1,4 +1,4 @@
-name: Prepare county risk update
+name: Prepare Future Risk Index results
 on:
   workflow_dispatch:
     inputs:
@@ -28,7 +28,8 @@ jobs:
       SUBNETWORK: ${{ vars.FRI_SUBNETWORK }}
       REGISTRY: ${{ vars.FRI_IMAGE_REPOSITORY }}
       WORKER_SA: ${{ vars.FRI_BATCH_SERVICE_ACCOUNT }}
-      CANDIDATE_BUCKET: ${{ vars.FRI_CANDIDATE_BUCKET }}
+      EXPERIMENTS_BUCKET: ${{ vars.FRI_EXPERIMENTS_BUCKET }}
+      RESULTS_BUCKET: ${{ vars.FRI_RESULTS_BUCKET }}
       SNAPSHOT_URI: ${{ inputs.snapshot_uri }}
       SNAPSHOT_SHA: ${{ inputs.snapshot_sha256 }}
       RELEASE_ID: fri-${{ github.run_id }}-${{ github.run_attempt }}
@@ -38,13 +39,13 @@ jobs:
         env:
           PR_TOKEN: ${{ secrets.FRI_PR_TOKEN }}
         run: |
-          for name in PROJECT REGION NETWORK SUBNETWORK REGISTRY WORKER_SA CANDIDATE_BUCKET PR_TOKEN; do
+          for name in PROJECT REGION NETWORK SUBNETWORK REGISTRY WORKER_SA EXPERIMENTS_BUCKET RESULTS_BUCKET PR_TOKEN; do
             test -n "${!name}" || { echo "Missing configuration: $name"; exit 1; }
           done
       - uses: astral-sh/setup-uv@v5
         with:
           version: "0.5.4"
-      - run: uv run --directory pipeline --frozen pytest -q
+      - run: uv run --directory pipeline --frozen --extra results pytest -q
       - uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ vars.FRI_WORKLOAD_IDENTITY_PROVIDER }}
@@ -58,23 +59,37 @@ jobs:
             --tag "$REGISTRY:$GITHUB_SHA" --push --metadata-file /tmp/image.json .
           DIGEST=$(jq -r '."containerimage.digest"' /tmp/image.json)
           echo "WORKER_IMAGE=$REGISTRY@$DIGEST" >> "$GITHUB_ENV"
-      - name: Execute Hamilton on Cloud Batch
+      - name: Assign results version
+        run: echo "RESULTS_VERSION=$(date -u +v%Y%m%dT%H%M%SZ)" >> "$GITHUB_ENV"
+      - name: Execute Hamilton, source archiving and Portolan packaging on Cloud Batch
         run: |
           uv run --directory pipeline --frozen python -m fri_pipeline.cloud \
             --project "$PROJECT" --region "$REGION" --image "$WORKER_IMAGE" \
             --network "$NETWORK" --subnetwork "$SUBNETWORK" \
             --service-account "$WORKER_SA" --snapshot "$SNAPSHOT_URI" \
-            --snapshot-sha256 "$SNAPSHOT_SHA" --output "gs://$CANDIDATE_BUCKET/runs/$RELEASE_ID" \
-            --release-id "$RELEASE_ID" --code-revision "$GITHUB_SHA"
+            --snapshot-sha256 "$SNAPSHOT_SHA" --output "gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID" \
+            --release-id "$RELEASE_ID" --code-revision "$GITHUB_SHA" \
+            --results-uri "gs://$RESULTS_BUCKET" --results-version "$RESULTS_VERSION"
       - name: Verify and prepare review files
         run: |
           uv run --directory pipeline --frozen python -m fri_pipeline fetch \
-            "gs://$CANDIDATE_BUCKET/runs/$RELEASE_ID" /tmp/candidate
+            "gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID" /tmp/candidate
           uv run --directory pipeline --frozen python -m fri_pipeline verify /tmp/candidate --publication
+          gcloud storage cp "gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID/results.json" /tmp/results.json
+          python - <<'PY'
+          import json
+          pointer = json.load(open("/tmp/results.json"))
+          if pointer["collection"] != "future-risk-index" or not pointer["publishable"]:
+              raise SystemExit("Portolan result is not a publication candidate")
+          PY
           TARGET="releases/candidates/$RELEASE_ID"
           mkdir -p "$TARGET"
           cp /tmp/candidate/{candidate.json,report.md,validation.json,provenance.json,changes.json} "$TARGET/"
+          cp /tmp/results.json "$TARGET/results.json"
           cat /tmp/candidate/report.md >> "$GITHUB_STEP_SUMMARY"
+          cp /tmp/candidate/report.md /tmp/pr-body.md
+          echo "Portolan results: gs://$RESULTS_BUCKET/future-risk-index/ ($RESULTS_VERSION)" >> /tmp/pr-body.md
+          echo "Includes analysis-ready Zarr and hash-verified original source files." >> /tmp/pr-body.md
       - uses: actions/upload-artifact@v4
         with:
           name: risk-review-${{ env.RELEASE_ID }}
@@ -87,4 +102,4 @@ jobs:
           add-paths: releases/candidates/
           title: "Update county risk: ${{ env.RELEASE_ID }}"
           commit-message: "data: propose county risk release ${{ env.RELEASE_ID }}"
-          body-path: /tmp/candidate/report.md
+          body-path: /tmp/pr-body.md

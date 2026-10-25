@@ -10,8 +10,8 @@ output "github_variables" {
     FRI_RUNNER_SERVICE_ACCOUNT      = google_service_account.fri["runner"].email
     FRI_PUBLISHER_SERVICE_ACCOUNT   = google_service_account.fri["publication"].email
     FRI_WORKLOAD_IDENTITY_PROVIDER  = google_iam_workload_identity_pool_provider.github.name
-    FRI_CANDIDATE_BUCKET            = google_storage_bucket.fri["candidates"].name
-    FRI_PUBLISHER_STAGING_BUCKET    = google_storage_bucket.fri["staging"].name
-    FRI_RECEIPT_BUCKET              = google_storage_bucket.fri["receipts"].name
+    FRI_EXPERIMENTS_BUCKET          = google_storage_bucket.future_risk["experiments"].name
+    FRI_RESULTS_BUCKET              = google_storage_bucket.future_risk["results"].name
+    FRI_PUBLISHER_STAGING_BUCKET    = var.publisher_staging_bucket
   }
 }

@@ -1,0 +1,54 @@
+{
+  "complete": true,
+  "completedAt": "2026-10-25T16:56:00.434081+00:00",
+  "destinationBucket": "future-risk-index-experiments",
+  "mapping": {
+    "hifld-next-fri-inputs": "",
+    "hifld-next-fri-candidates": "legacy-candidates/",
+    "hifld-next-fri-staging": "legacy-staging/",
+    "hifld-next-fri-receipts": "legacy-receipts/"
+  },
+  "buckets": {
+    "hifld-next-fri-inputs": {
+      "currentObjects": 5035,
+      "allGenerations": 5035,
+      "bytes": 15985921934
+    },
+    "hifld-next-fri-candidates": {
+      "currentObjects": 8,
+      "allGenerations": 8,
+      "bytes": 41501118
+    },
+    "hifld-next-fri-staging": {
+      "currentObjects": 0,
+      "allGenerations": 0,
+      "bytes": 0
+    },
+    "hifld-next-fri-receipts": {
+      "currentObjects": 0,
+      "allGenerations": 0,
+      "bytes": 0
+    }
+  },
+  "manifestUri": "gs://future-risk-index-experiments/_migrations/2026-10-25-four-to-two/manifest.json",
+  "manifestSha256": "3bb9e30d346c5ad086ed6fb3cb5076eab4745c333690608a9a60ce479c1de703",
+  "verifiedGenerations": 5043,
+  "verifiedBytes": 16027423052,
+  "verification": [
+    "size",
+    "CRC32C",
+    "MD5"
+  ],
+  "legacyDeletion": "All original object generations and all four legacy buckets deleted after explicit user approval. Verified copies retained.",
+  "currentBuckets": [
+    "future-risk-index-experiments",
+    "future-risk-index-results"
+  ],
+  "sourceArchiveJob": {
+    "job": "future-risk-archive-20261025174607",
+    "image": "us-central1-docker.pkg.dev/hifld-next/fri/preparation@sha256:58c5451f8b0a72129916335cf8c6964c0d5ea757a3b532e93cb13464f88b7103",
+    "codeRevision": "58a61b520283759d9ce766e1eb1800a127ff849a",
+    "provenanceSha256": "88f262a3ae0f659ae66327e93038f2b99882ca05bfe40f88ae6a2f66adf2c193"
+  },
+  "sourceArchiveStatus": "RUNNING; completion and Portolan packaging are tracked separately."
+}
