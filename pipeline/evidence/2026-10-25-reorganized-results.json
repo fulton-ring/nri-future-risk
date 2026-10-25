@@ -363,5 +363,12 @@
     "originalBytes": 195553470248,
     "originalNetCdfFiles": 612
   },
-  "legacySourceLayout": "Retained pending explicit cleanup approval after automatic approval review rejected removal. New dataset/version copies and experiments cache are verified."
+  "legacySourceLayout": "Retained pending explicit cleanup approval after automatic approval review rejected removal. New dataset/version copies and experiments cache are verified.",
+  "legacySourceCleanup": {
+    "completedAt": "2026-10-25T23:36:18.293182+00:00",
+    "deletedGenerations": 619,
+    "remainingOldGenerations": 0,
+    "retainedCopiesVerified": true,
+    "evidence": "2026-10-25-source-layout-cleanup.json"
+  }
 }
