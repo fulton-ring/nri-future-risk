@@ -19,119 +19,147 @@
       "scenario": "historical",
       "year": 1982,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_historical_fwi_metrics_yearly_1982.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "historical",
       "year": 1983,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_historical_fwi_metrics_yearly_1983.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "historical",
       "year": 1986,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_historical_fwi_metrics_yearly_1986.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "historical",
       "year": 2002,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_historical_fwi_metrics_yearly_2002.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "ssp245",
       "year": 2045,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_ssp245_fwi_metrics_yearly_2045.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "ssp245",
       "year": 2051,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_ssp245_fwi_metrics_yearly_2051.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "ssp245",
       "year": 2053,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_ssp245_fwi_metrics_yearly_2053.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "ssp245",
       "year": 2057,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_ssp245_fwi_metrics_yearly_2057.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "ssp245",
       "year": 2060,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_ssp245_fwi_metrics_yearly_2060.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "ssp245",
       "year": 2070,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_ssp245_fwi_metrics_yearly_2070.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "ssp245",
       "year": 2075,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_ssp245_fwi_metrics_yearly_2075.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "ssp245",
       "year": 2082,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_ssp245_fwi_metrics_yearly_2082.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "ssp245",
       "year": 2096,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_ssp245_fwi_metrics_yearly_2096.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "ssp245",
       "year": 2098,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_ssp245_fwi_metrics_yearly_2098.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "ssp585",
       "year": 2050,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_ssp585_fwi_metrics_yearly_2050.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "ssp585",
       "year": 2060,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_ssp585_fwi_metrics_yearly_2060.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "ssp585",
       "year": 2070,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_ssp585_fwi_metrics_yearly_2070.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "ssp585",
       "year": 2081,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_ssp585_fwi_metrics_yearly_2081.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     },
     {
       "scenario": "ssp585",
       "year": 2098,
       "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/MME75_ssp585_fwi_metrics_yearly_2098.nc",
-      "status": 500
+      "status": 500,
+      "listedInCatalog": false
     }
   ],
   "heatAcquisitionStarted": false,
   "candidateGenerated": false,
   "publicationPerformed": false,
-  "nextStep": "Restore this checkpoint after the required NASA MME75 files become available, or verify an authoritative mirror with the same dataset and statistic. Never omit years or substitute ensemble statistics."
+  "nextStep": "Find an authoritative source for the 19 MME75 catalog gaps, or explicitly review a methodology change for incomplete periods. Do not silently omit years or substitute ensemble statistics. Completed downloads can be restored from the pinned checkpoint.",
+  "catalogVerification": {
+    "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/",
+    "retrievedAt": "2026-10-25T13:43:38.220699+00:00",
+    "sha256": "5a9b08e38dcd38c03c7d96a3dbf9404090ac01f4b490fd3cfb1ceeba47c105e2",
+    "bytes": 264106,
+    "listedMME75FilesForRequiredScenarios": 205,
+    "requiredFilesAbsent": 19,
+    "interpretation": "All 19 failed source URLs are absent from the published catalog. HTTP 500 is the observed response for those unpublished paths; rate limiting or an intermittent outage is not established."
+  }
 }

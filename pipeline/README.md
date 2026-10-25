@@ -16,8 +16,9 @@ No production data has been published. The external
 publisher must register the new collection and consume the handoff/produce the receipt described
 below; this repository does not install code into or mutate that service's catalog.
 The first real acquisition completed all 474 NEX annual inputs and 131/150 wildfire years, then
-stopped because NASA returned HTTP 500 for the remaining 19 required MME75 files. Repeat probes
-confirmed those failures. No LOCA2 heat acquisition or real scoring ran, and no candidate was
+stopped because NASA returned HTTP 500 for the remaining 19 required MME75 files. Catalog
+verification confirmed that all 19 paths are absent from NASA's published listing; these are
+catalog gaps, not demonstrated intermittent transfer failures. No LOCA2 heat acquisition or real scoring ran, and no candidate was
 generated. [Acquisition evidence](evidence/2026-10-24-real-input-acquisition.json) lists every missing
 source and the hash-pinned checkpoint for resuming without repeating completed downloads.
 This branch is based directly on `main`, independent of the atlas UI branch. Hosted assets are
