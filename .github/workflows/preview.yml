@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: cloudflare-preview
-      url: ${{ steps.deploy.outputs.deployment-url }}
+      url: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
@@ -60,13 +60,13 @@ jobs:
       - name: Verify hosted PMTiles ranges
         if: steps.deploy.outputs.deployment-url != ''
         env:
-          PREVIEW_URL: ${{ steps.deploy.outputs.deployment-url }}
+          PREVIEW_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
         run: node scripts/check_preview_http.mjs "$PREVIEW_URL"
       - name: Post or update PR preview comment
         if: steps.deploy.outputs.deployment-url != ''
         uses: actions/github-script@v8
         env:
-          PREVIEW_URL: ${{ steps.deploy.outputs.deployment-url }}
+          PREVIEW_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
           SOURCE_BRANCH: ${{ github.head_ref || github.ref_name }}
         with:
           script: |

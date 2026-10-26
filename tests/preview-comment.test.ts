@@ -3,14 +3,14 @@ import { test } from 'node:test';
 import { createRequire } from 'node:module';
 const publish = createRequire(import.meta.url)('../cloudflare/preview-comment.cjs');
 
-test('a successful PR preview creates a comment with its URL and revision', async () => {
+test('a successful PR preview comments with the stable branch URL and revision', async () => {
   const calls: unknown[] = [];
   const github = {rest:{issues:{listComments:()=>{}, createComment:async (args: unknown)=>calls.push(args)}}, paginate:async ()=>[]};
-  await publish({github, context:{repo:{owner:'fulton-ring',repo:'nri-future-risk'}, payload:{pull_request:{number:3,head:{sha:'abcdef123456'}}}, sha:'merge-sha',runId:1}, url:'https://abc.future-risk-index-preview.pages.dev',branch:'feat/future-risk-atlas'});
+  await publish({github, context:{repo:{owner:'fulton-ring',repo:'nri-future-risk'}, payload:{pull_request:{number:3,head:{sha:'abcdef123456'}}}, sha:'merge-sha',runId:1}, url:'https://review-feat-fut-ad599b6f.future-risk-index-preview.pages.dev',branch:'feat/future-risk-atlas'});
   assert.equal(calls.length,1);
   const comment = calls[0] as {issue_number:number,body:string};
   assert.equal(comment.issue_number,3);
-  assert.ok(comment.body.includes('https://abc.future-risk-index-preview.pages.dev'));
+  assert.ok(comment.body.includes('https://review-feat-fut-ad599b6f.future-risk-index-preview.pages.dev'));
   assert.ok(comment.body.includes('abcdef1'));
 });
 
