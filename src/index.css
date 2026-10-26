@@ -1410,3 +1410,11 @@ th small {
     padding-right: 30px;
   }
 }
+
+.primer-actions {
+  list-style: disc;
+  padding-left: 20px;
+}
+.primer-actions li {
+  margin: 12px 0;
+}
