@@ -84,3 +84,14 @@ needed to deploy to GitHub Pages, you'll just need to enable GitHub Pages in
 your fork's repository settings.
 
 More deployment guides to come as needed.
+
+## Cloudflare PR previews
+
+The Cloudflare preview workflow builds same-repository PRs and `feat/**` branches.
+Set the repository secret `CLOUDFLARE_API_TOKEN` (Cloudflare Pages Edit) and
+variable `CLOUDFLARE_ACCOUNT_ID` for the `future-risk-index-preview` Pages project.
+After deployment and hosted PMTiles checks pass, the workflow posts a preview
+link on the PR and updates that comment on subsequent builds.
+
+Run `npm run build:cloudflare` to prepare a root-hosted preview locally.
+The Pages worker provides byte-range responses required by PMTiles.
