@@ -23,7 +23,7 @@ import CountySearch from "./components/counties/CountySearch";
 import CountyPanel from "./components/counties/CountyPanel";
 import Legend from "./components/map/Legend";
 import { assetUrl, useCounties } from "./clients/api";
-import { release, isAnalysis } from "./data/releases";
+import { release } from "./data/releases";
 import {
   colorFor,
   describeValue,
@@ -137,11 +137,8 @@ export default function App() {
           {release.title}.
         </div>
       )}
-      <section className={`release-banner ${isAnalysis ? "release-warning" : ""}`} aria-label="Data version">
+      <section className="release-banner" aria-label="Data version">
         <VersionSelect />
-        <p>{isAnalysis
-          ? "19 wildfire years are unavailable. Exploratory results; not an approved release."
-          : "Original FEMA projections · NRI v1.19 baseline."}</p>
         <nav className="version-links" aria-label="Selected version information">
           <a href={assetUrl(`versions/${release.id}/methodology.html`)}>Methodology</a>
           <a href={assetUrl(`versions/${release.id}/data.html`)}>Data</a>

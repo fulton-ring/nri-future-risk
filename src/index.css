@@ -1421,7 +1421,6 @@ th small {
   border-bottom: 1px solid var(--border);
   background: var(--card);
 }
-.release-banner.release-warning { background: #f5dfb1; }
 .release-banner .version-field {
   display: flex;
   align-items: center;
@@ -1439,7 +1438,6 @@ th small {
   min-height: 34px;
   background: transparent;
 }
-.release-banner p { margin: 0; font-size: 12px; line-height: 1.5; }
 @media (max-width: 700px) {
   .release-banner { align-items: stretch; flex-direction: column; gap: 8px; padding: 10px 16px; }
   .release-banner .version-field { justify-content: space-between; }
@@ -1456,7 +1454,6 @@ th small {
 }
 .site-header .github-link:hover { text-decoration: underline; text-underline-offset: 4px; }
 .release-banner { flex-wrap: wrap; }
-.release-banner p { flex: 1; min-width: 180px; }
 .version-links { display: flex; flex: none; gap: 16px; margin-left: auto; }
 .version-links a { font-size: 12px; min-height: 34px; display: inline-flex; align-items: center; text-decoration: none; }
 .version-links a:hover { text-decoration: underline; text-underline-offset: 4px; }
@@ -1467,6 +1464,5 @@ th small {
 .atlas-select-trigger .select-option-label > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .release-banner .atlas-select-trigger { font-size: 13px; line-height: 20px; }
 @media (max-width: 700px) {
-  .release-banner p { min-width: 0; }
   .version-links { margin-left: 0; }
 }
