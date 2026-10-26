@@ -10,7 +10,7 @@ import { Protocol } from "pmtiles";
 import { Layers } from "lucide-react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { assetUrl } from "../../clients/api";
-import release from "../../data/release.json";
+import { release } from "../../data/releases";
 import {
   colorFor,
   describeValue,

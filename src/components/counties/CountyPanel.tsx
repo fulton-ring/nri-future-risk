@@ -1,3 +1,4 @@
+import { release, isAnalysis } from "../../data/releases";
 import { Download, MapPin, X } from "lucide-react";
 import {
   changeLabel,
@@ -76,7 +77,8 @@ export default function CountyPanel({ county, view, onClear }: Props) {
       [
         JSON.stringify(
           {
-            release: "fema-2024-12-05",
+            release: release.id,
+            status: release.status,
             county: { id: county.id, name: county.name, state: county.state },
             view,
             values: county.values,
@@ -96,6 +98,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
   };
   return (
     <>
+      {isAnalysis && county.vintage === "FEMA archive" && <p className="caption">Archived multipliers; drought, wildfire and LOCA2 risk ranks are recomputed across all counties.</p>}
       <div className="county-heading">
         <div>
           <span className="section-label">County profile · {county.state}</span>

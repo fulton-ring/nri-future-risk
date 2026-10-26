@@ -17,11 +17,12 @@ import {
   DialogTitle,
 } from "./components/ui/dialog";
 import Controls from "./components/filters/Controls";
+import VersionSelect from "./components/filters/VersionSelect";
 import CountySearch from "./components/counties/CountySearch";
 import CountyPanel from "./components/counties/CountyPanel";
 import Legend from "./components/map/Legend";
 import { assetUrl, useCounties } from "./clients/api";
-import release from "./data/release.json";
+import { release, isAnalysis } from "./data/releases";
 import {
   colorFor,
   describeValue,
@@ -104,7 +105,7 @@ export default function App() {
           <span>
             <h1>Future Risk Index</h1>
             <small className="archive-label">
-              FEMA archive · December 2024
+              {isAnalysis ? "Analysis preview · October 2026" : "FEMA archive · December 2024"}
             </small>
           </span>
         </a>
@@ -128,9 +129,12 @@ export default function App() {
       {requestedRelease && requestedRelease !== RELEASE && (
         <div role="alert" className="release-warning">
           The requested release “{requestedRelease}” is unavailable. Showing the
-          December 2024 archive.
+          {release.title}.
         </div>
       )}
+      {isAnalysis && <div role="note" className="release-warning">
+        Analysis preview · 19 wildfire years are unavailable. This is not an approved release.
+      </div>}
       <main className="atlas-layout">
         <aside
           className="explore-panel"
@@ -138,6 +142,7 @@ export default function App() {
           tabIndex={-1}
           aria-label="Exploration controls"
         >
+          <VersionSelect />
           <CountySearch counties={counties ?? []} onSelect={selectCounty} />
           <Controls view={view} onChange={update} />
         </aside>
@@ -184,7 +189,7 @@ export default function App() {
           {isLoading && (
             <div className="data-status" role="status">
               <span className="loading-dot" />
-              Loading archived county data…
+              Loading county data…
             </div>
           )}
           {error && (
@@ -196,7 +201,7 @@ export default function App() {
           )}
           {counties && view.county && !county && (
             <div className="data-status" role="alert">
-              This county is not included in the archive.
+              This county is not included in this dataset.
               <button onClick={() => update({ county: "" })}>
                 Clear selection
               </button>
@@ -362,9 +367,10 @@ export default function App() {
             <DialogDescription>
               {dialog === "settings"
                 ? "Choose a hazard, measure and future."
-                : "Archived FEMA data · December 2024."}
+                : isAnalysis ? "Exploratory analysis · NRI v1.19 baseline." : "Archived FEMA data · December 2024."}
             </DialogDescription>
           </DialogHeader>
+          {dialog !== "methods" && <VersionSelect />}
           {dialog === "settings" ? (
             <>
               <Controls view={view} onChange={update} />
@@ -378,8 +384,7 @@ export default function App() {
           ) : dialog === "release" ? (
             <div className="prose">
               <p>
-                FEMA’s December 5, 2024 master datasheet, using the NRI v1.19
-                baseline.
+                {isAnalysis ? "Drought, wildfire and LOCA2 heat recalculated for 3,108 CONUS counties using the frozen NRI v1.19 baseline. Coastal flooding, hurricane and NEX heat projections retain FEMA’s archived values." : "FEMA’s December 5, 2024 master datasheet, using the NRI v1.19 baseline."}
               </p>
               <dl>
                 <dt>Coverage</dt>
@@ -393,6 +398,10 @@ export default function App() {
                 </dd>
               </dl>
               <h3>Download & inspect</h3>
+              {isAnalysis && <>
+                <a href={assetUrl("preview/report.md")}>Analysis report <ArrowUpRight size={15} /></a>
+                <a href={assetUrl("preview/provenance.json")}>Source provenance <ArrowUpRight size={15} /></a>
+              </>}
               <a
                 href={assetUrl(
                   "NRI_Future_Risk_Master_Datasheet_12052024.xlsx",
@@ -412,9 +421,7 @@ export default function App() {
               <details>
                 <summary>Archive provenance</summary>
                 <p>
-                  The display assets are derived from the repository’s archived
-                  county GeoJSON without changing scientific values. Source
-                  SHA-256:
+                  {isAnalysis ? "Display assets come from the hash-verified Batch GeoParquet. County scores and multipliers are unchanged by tile conversion. GeoParquet SHA-256:" : "Display assets come from the archived county GeoJSON without changing scientific values. Source SHA-256:"}
                 </p>
                 <code className="checksum">{release.sourceSha256}</code>
               </details>
@@ -426,6 +433,12 @@ export default function App() {
                 public tool. Public Environmental Data Partners and Fulton Ring
                 preserve this archived release.
               </p>
+              {isAnalysis && <>
+                <h3>About this analysis</h3>
+                <p>Drought, wildfire and LOCA2 heat use new climate inputs. The analysis omits 19 wildfire years absent from NASA’s catalog, without interpolation. Coastal flooding, hurricane and NEX heat remain archived. Outside CONUS, archived multipliers are retained; supported risk ranks are recomputed nationally.</p>
+                <p>Source masks remain unchanged. LOCA2 valid weighting support varies by county, down to 51.3%; the 0.25° weighting boxes do not imply 6 km county estimates.</p>
+                <a href={assetUrl("preview/report.md")}>Read the analysis report <ArrowUpRight size={15} /></a>
+              </>}
               <h3>Three ways to read the map</h3>
               <p>
                 <strong>Annual loss rating</strong> groups projected yearly

@@ -1,0 +1,65 @@
+name: Cloudflare preview
+on:
+  pull_request:
+  push:
+    branches: ['feat/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+  deployments: write
+concurrency:
+  group: cloudflare-preview-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  preview:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment:
+      name: cloudflare-preview
+      url: ${{ steps.deploy.outputs.deployment-url }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run lint
+      - run: npm run build:cloudflare
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preview-site-${{ github.run_id }}
+          path: dist/
+      - name: Assign preview branch
+        env:
+          SOURCE_BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          python3 - <<'PY'
+          import os, re
+          branch = re.sub(r'[^a-z0-9-]+', '-', os.environ['SOURCE_BRANCH'].lower()).strip('-')[:45]
+          with open(os.environ['GITHUB_ENV'], 'a') as handle:
+              handle.write(f'PREVIEW_BRANCH=review-{branch}\n')
+          PY
+      - name: Deploy branch preview
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
+        id: deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4.152.0'
+          command: pages deploy dist --project-name future-risk-index-preview --branch ${{ env.PREVIEW_BRANCH }} --force
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify hosted PMTiles ranges
+        if: steps.deploy.outputs.deployment-url != ''
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: node scripts/check_preview_http.mjs "$PREVIEW_URL"
+      - name: Explain missing deployment credentials
+        if: env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == ''
+        run: |
+          echo 'Preview build passed and is available as an artifact. Configure CLOUDFLARE_API_TOKEN (Pages Edit) and CLOUDFLARE_ACCOUNT_ID to enable automatic preview URLs.' >> "$GITHUB_STEP_SUMMARY"

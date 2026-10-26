@@ -38,3 +38,6 @@ pipeline/snapshots/
 *.tfstate.*
 *.tfplan
 gha-creds-*.json
+
+# Cloudflare local deployment state
+.wrangler/

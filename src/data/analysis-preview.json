@@ -1,0 +1,21 @@
+{
+  "id": "fri-analysis-20261025140637",
+  "title": "Available-year analysis preview",
+  "date": "2026-10-25",
+  "baseline": "NRI v1.19",
+  "status": "analysis",
+  "sourceSha256": "a571eea0e9a737a89254c5422c5350ee82f3f161c6d6d00ebad94e8b6b9b328a",
+  "resultManifestSha256": "fe41c5ede33035f18081ed8044f449e7b3d4db1ecdbeb336083865bc51945faf",
+  "countyCount": 3218,
+  "assets": {
+    "counties.json": {
+      "path": "preview/counties.json",
+      "sha256": "34a4c808d3af5eed1d6ac5097d6bd080a9b90381f6aa1e5651db867ba3869fbf"
+    },
+    "counties.pmtiles": {
+      "path": "preview/counties.pmtiles",
+      "sha256": "5d49262218febbc4fe6025eaf180f48539bd75137f8d08253d4af22fa41dd6ee"
+    }
+  },
+  "sourceLayer": "counties"
+}

@@ -88,3 +88,40 @@ More deployment guides to come as needed.
 ## County update pipeline
 
 See [pipeline/README.md](pipeline/README.md) for the independent Hamilton/Cloud Batch pipeline, Terraform configuration and publication contract.
+
+### Combined analysis preview
+
+`feat/future-risk-preview` combines the atlas interface and county risk infrastructure branches.
+The normal build continues to show the FEMA archive. `npm run build:cloudflare` selects the
+available-year analysis explicitly and builds at `/` for the dedicated Cloudflare preview project.
+
+The Data version dropdown switches between the FEMA archive and the Batch analysis. Shared URLs carry the selected release ID and override the deployment default. The selector is also available in the Data dialog and mobile map settings.
+
+The preview contains the completed Batch analysis, with 3,218 county geometries and all five
+hazards. Drought, wildfire and LOCA2 heat are recalculated; coastal flooding, hurricane and NEX heat
+remain archived. The page identifies the analysis and its 19 missing wildfire years. It is not a
+publication candidate. The preview has no connection to the publisher staging workflow.
+
+Preview assets are checked in under `public/preview/`. Rebuild them from the immutable results
+manifest and county GeoParquet using `scripts/build_preview_assets.py --help` in the pipeline's
+`results` environment. The builder verifies the source hashes and every decoded PMTiles feature's
+hazard values. Preview tiles stop at zoom 6 and overzoom for closer views, retaining every county
+and numeric attribute while fitting Cloudflare's 25 MiB asset limit. Full source geometry remains
+in the original GeoParquet. Map assets, reports and provenance are served with the preview site;
+large legacy geometry files are excluded from the deployment. A Pages worker routes only PMTiles requests through Cloudflare’s Cache API because Pages static hosting does not supply HTTP 206 range responses. Cache keys include the asset SHA-256; the cache streams the file and serves partial responses without loading it into JavaScript memory.
+
+```bash
+npm ci
+npm test
+npm run build:cloudflare
+npx wrangler@4.152.0 pages deploy dist --project-name future-risk-index-preview \
+  --branch review-feat-future-risk-preview --force
+```
+
+`.github/workflows/preview.yml` builds feature branches and same-repository PRs. Set the repository
+variable `CLOUDFLARE_ACCOUNT_ID` and a repository secret `CLOUDFLARE_API_TOKEN` with **Account →
+Cloudflare Pages → Edit** for the preview account to enable automatic deployment. Without the token,
+the workflow still tests/builds and uploads a review artifact. It does not reuse a personal OAuth
+session in CI. Preview branch names always start with `review-`, so they never target the Pages
+project's `main` production branch. Cloudflare's `--force` flag selects its existing Pages upload
+path rather than the newer Workers migration wrapper.

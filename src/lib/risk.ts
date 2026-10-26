@@ -1,4 +1,5 @@
-export const RELEASE = "fema-2024-12-05";
+import { release } from "../data/releases";
+export const RELEASE = release.id;
 export const hazards = {
   WFIR: "Wildfire",
   DRGT: "Drought",
@@ -33,6 +34,7 @@ export type County = {
   state: string;
   bounds: [number, number, number, number];
   values: Values;
+  vintage?: string;
 };
 export type Value = string | number | null;
 export const ratingNames = [
