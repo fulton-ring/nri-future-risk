@@ -27,3 +27,6 @@ dist-ssr
 .venv
 
 .wrangler/
+
+# Generated version documentation
+public/versions/

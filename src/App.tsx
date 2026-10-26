@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import {
-  ArrowUpRight,
+  CircleHelp,
+  Github,
   Check,
   ChevronDown,
   Map as MapIcon,
@@ -18,11 +19,12 @@ import {
 } from "./components/ui/dialog";
 import WelcomePrimer from "./components/WelcomePrimer";
 import Controls from "./components/filters/Controls";
+import VersionSelect from "./components/filters/VersionSelect";
 import CountySearch from "./components/counties/CountySearch";
 import CountyPanel from "./components/counties/CountyPanel";
 import Legend from "./components/map/Legend";
 import { assetUrl, useCounties } from "./clients/api";
-import release from "./data/release.json";
+import { release } from "./data/releases";
 import {
   colorFor,
   describeValue,
@@ -41,9 +43,16 @@ const RiskMap = lazy(() => import("./components/map/Map"));
 export default function App() {
   const [view, setView] = useState(() => readState(window.location.search));
   const [section, setSection] = useState<"map" | "table">("map");
-  const [dialog, setDialog] = useState<
-    "methods" | "release" | "settings" | null
-  >("methods");
+  const [dialog, setDialog] = useState<"primer" | "settings" | null>(() => {
+    try { return sessionStorage.getItem("fri-primer-seen") ? null : "primer"; }
+    catch { return "primer"; }
+  });
+  useEffect(() => {
+    if (dialog === "primer") {
+      try { sessionStorage.setItem("fri-primer-seen", "1"); }
+      catch { /* The guide still works when storage is unavailable. */ }
+    }
+  }, [dialog]);
   const [copied, setCopied] = useState("");
   const [resetKey, setResetKey] = useState(0);
   const [tableQuery, setTableQuery] = useState("");
@@ -104,14 +113,11 @@ export default function App() {
         <a className="brand" href={import.meta.env.BASE_URL}>
           <span>
             <h1>Future Risk Index</h1>
-            <small className="archive-label">
-              FEMA archive · December 2024
-            </small>
           </span>
         </a>
         <nav aria-label="Main navigation">
-          <button onClick={() => setDialog("methods")}>Methodology</button>
-          <button onClick={() => setDialog("release")}>Data</button>
+          <button className="icon-button" onClick={() => setDialog("primer")} aria-label="How to use the map" title="How to use the map"><CircleHelp size={18} /></button>
+          <a className="github-link" href="https://github.com/fulton-ring/nri-future-risk" target="_blank" rel="noopener noreferrer"><Github size={17} aria-hidden="true" /> GitHub</a>
           <button
             className="share-button"
             aria-label="Share view"
@@ -129,9 +135,16 @@ export default function App() {
       {requestedRelease && requestedRelease !== RELEASE && (
         <div role="alert" className="release-warning">
           The requested release “{requestedRelease}” is unavailable. Showing the
-          December 2024 archive.
+          {release.title}.
         </div>
       )}
+      <section className="release-banner" aria-label="Data version">
+        <VersionSelect />
+        <nav className="version-links" aria-label="Selected version information">
+          <a href={assetUrl(`versions/${release.id}/methodology.html`)}>Methodology</a>
+          <a href={assetUrl(`versions/${release.id}/data.html`)}>Data</a>
+        </nav>
+      </section>
       <main className="atlas-layout">
         <aside
           className="explore-panel"
@@ -185,7 +198,7 @@ export default function App() {
           {isLoading && (
             <div className="data-status" role="status">
               <span className="loading-dot" />
-              Loading archived county data…
+              Loading county data…
             </div>
           )}
           {error && (
@@ -197,7 +210,7 @@ export default function App() {
           )}
           {counties && view.county && !county && (
             <div className="data-status" role="alert">
-              This county is not included in the archive.
+              This county is not included in this dataset.
               <button onClick={() => update({ county: "" })}>
                 Clear selection
               </button>
@@ -288,16 +301,11 @@ export default function App() {
                   </tbody>
                 </table>
                 {!filtered.length && !isLoading && (
-                  <p>
-                    No counties match. Try another name or clear your filter.
-                  </p>
+                  <p>No matching counties.</p>
                 )}
               </div>
             </div>
           )}
-          <div className="map-footnote">
-            <span>County-level estimates</span>
-          </div>
         </section>
         <aside
           className={`county-panel ${county ? "has-county" : ""} ${expanded ? "expanded" : ""}`}
@@ -309,12 +317,8 @@ export default function App() {
             onClick={() => setExpanded(!expanded)}
           >
             <span>
-              {county ? `${county.name}, ${county.state}` : "County profile"}
-              <small>
-                {county
-                  ? `${hazards[view.hazard]} · ${periodLabel(view.period)} · ${describeValue(metricValue(county.values, view), view.metric)}`
-                  : "Select a county to explore"}
-              </small>
+              {county ? `${county.name}, ${county.state}` : "Select a county"}
+              {county && <small>{`${hazards[view.hazard]} · ${periodLabel(view.period)} · ${describeValue(metricValue(county.values, view), view.metric)}`}</small>}
             </span>
             <ChevronDown size={18} />
           </button>
@@ -354,16 +358,10 @@ export default function App() {
         >
           <DialogHeader>
             <DialogTitle>
-              {dialog === "settings"
-                ? "Map settings"
-                : dialog === "release"
-                  ? "Data"
-                  : "Welcome to the Future Risk Index"}
+              {dialog === "settings" ? "Map settings" : "Welcome to the Future Risk Index"}
             </DialogTitle>
             <DialogDescription>
-              {dialog === "settings"
-                ? "Choose a hazard, measure and future."
-                : "Archived FEMA data · December 2024."}
+              {dialog === "settings" ? "Choose a hazard, measure and future." : "What the tool represents and how to interpret it."}
             </DialogDescription>
           </DialogHeader>
           {dialog === "settings" ? (
@@ -376,50 +374,6 @@ export default function App() {
                 Show results
               </button>
             </>
-          ) : dialog === "release" ? (
-            <div className="prose">
-              <p>
-                FEMA’s December 5, 2024 master datasheet, using the NRI v1.19
-                baseline.
-              </p>
-              <dl>
-                <dt>Coverage</dt>
-                <dd>
-                  {release.countyCount.toLocaleString()} counties and county
-                  equivalents with archived boundaries
-                </dd>
-                <dt>Release ID</dt>
-                <dd>
-                  <code>{release.id}</code>
-                </dd>
-              </dl>
-              <h3>Download & inspect</h3>
-              <a
-                href={assetUrl(
-                  "NRI_Future_Risk_Master_Datasheet_12052024.xlsx",
-                )}
-              >
-                Original master datasheet <ArrowUpRight size={15} />
-              </a>
-              <a href={assetUrl("NRI_Data_Dictionary.xlsx")}>
-                FEMA data dictionary <ArrowUpRight size={15} />
-              </a>
-              <a href="https://github.com/fulton-ring/nri-future-risk">
-                Source code & archived inputs <ArrowUpRight size={15} />
-              </a>
-              <a href="https://buymeacoffee.com/herzo175">
-                Support this project <ArrowUpRight size={15} />
-              </a>
-              <details>
-                <summary>Archive provenance</summary>
-                <p>
-                  The display assets are derived from the repository’s archived
-                  county GeoJSON without changing scientific values. Source
-                  SHA-256:
-                </p>
-                <code className="checksum">{release.sourceSha256}</code>
-              </details>
-            </div>
           ) : (
             <WelcomePrimer />
           )}

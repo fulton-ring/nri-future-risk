@@ -95,3 +95,15 @@ link on the PR and updates that comment on subsequent builds.
 
 Run `npm run build:cloudflare` to prepare a root-hosted preview locally.
 The Pages worker provides byte-range responses required by PMTiles.
+
+## Version information and welcome guide
+
+The Data version header identifies the displayed dataset and links to its separate
+Methodology and Data pages. This UI branch includes only the FEMA archive; the
+new analysis data and its pipeline remain on the combined preview branch.
+Shared links retain the selected release. The main header links to GitHub, and
+the help button reopens the welcome guide. The guide opens once per tab session,
+so changing versions does not show it again.
+
+Every build generates the version pages with `scripts/build_version_pages.mjs`.
+They include the original technical document, download links and source checksums.

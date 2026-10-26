@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import release from "../data/release.json";
+import { release } from "../data/releases";
 import type { County, Values } from "../lib/risk";
 
 export function assetUrl(path: string): string {

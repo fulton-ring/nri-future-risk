@@ -1,4 +1,5 @@
-import { Download, MapPin, X } from "lucide-react";
+import { release, isAnalysis } from "../../data/releases";
+import { Download, X } from "lucide-react";
 import {
   changeLabel,
   colorFor,
@@ -17,9 +18,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
   if (!county)
     return (
       <div className="county-empty">
-        <MapPin size={30} strokeWidth={1.3} />
         <h2>Select a county</h2>
-        <p>Search by name or select a county on the map.</p>
       </div>
     );
   const value = metricValue(county.values, view);
@@ -76,7 +75,8 @@ export default function CountyPanel({ county, view, onClear }: Props) {
       [
         JSON.stringify(
           {
-            release: "fema-2024-12-05",
+            release: release.id,
+            status: release.status,
             county: { id: county.id, name: county.name, state: county.state },
             view,
             values: county.values,
@@ -96,9 +96,10 @@ export default function CountyPanel({ county, view, onClear }: Props) {
   };
   return (
     <>
+      {isAnalysis && county.vintage === "FEMA archive" && <p className="caption">Archived multipliers; drought, wildfire and LOCA2 risk ranks are recomputed across all counties.</p>}
       <div className="county-heading">
         <div>
-          <span className="section-label">County profile · {county.state}</span>
+          <span className="section-label">{county.state}</span>
           <h2>{county.name}</h2>
         </div>
         <button
