@@ -1424,3 +1424,11 @@ th small {
 @media (max-width: 700px) {
   .version-links { margin-left: 0; }
 }
+
+.primer-actions {
+  list-style: disc;
+  padding-left: 20px;
+}
+.primer-actions li {
+  margin: 12px 0;
+}

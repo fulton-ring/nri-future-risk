@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./components/ui/dialog";
+import WelcomePrimer from "./components/WelcomePrimer";
 import Controls from "./components/filters/Controls";
 import VersionSelect from "./components/filters/VersionSelect";
 import CountySearch from "./components/counties/CountySearch";
@@ -357,7 +358,7 @@ export default function App() {
         >
           <DialogHeader>
             <DialogTitle>
-              {dialog === "settings" ? "Map settings" : "How to use the map"}
+              {dialog === "settings" ? "Map settings" : "Welcome to the Future Risk Index"}
             </DialogTitle>
             <DialogDescription>
               {dialog === "settings" ? "Choose a hazard, measure and future." : "What the tool represents and how to interpret it."}
@@ -374,77 +375,7 @@ export default function App() {
               </button>
             </>
           ) : (
-            <div className="prose">
-              <p>FEMA created the Future Risk Index and later discontinued the public tool. Public Environmental Data Partners and Fulton Ring preserve its data and methods.</p>
-              <h3>Choose a data version</h3>
-              <p>The version header identifies the dataset being shown. Its Methodology and Data links describe that version’s calculations, coverage and downloads. Different versions can include different hazards and climate models.</p>
-              <h3>Three ways to read the map</h3>
-              <p>
-                <strong>Annual loss rating</strong> groups projected yearly
-                economic losses into FEMA’s five published categories. Dollar
-                ranges are category thresholds, not uncertainty intervals.
-              </p>
-              <p>
-                <strong>Change in annual loss</strong> is the hazard multiplier:
-                projected annual loss divided by baseline annual loss. A
-                multiplier of 2× means twice the baseline losses. A large
-                multiplier does not necessarily mean the largest dollar losses.
-              </p>
-              <p>
-                <strong>Risk rating</strong> is a comparative category combining
-                economic loss with social vulnerability and community
-                resilience. It is not the probability of an event.
-              </p>
-              <h3>Two pathways, two time periods</h3>
-              <p>
-                Lower and higher emissions describe alternative climate futures.
-                They are not assigned probabilities. The drought, wildfire and
-                extreme heat series use mid-century (2036–2065) and late-century
-                (2070–2099) projection periods; historical reference periods
-                vary by hazard and source.
-              </p>
-              <table className="pathway-table">
-                <caption>Scenario families by hazard</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Hazard</th>
-                    <th scope="col">Lower</th>
-                    <th scope="col">Higher</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <th scope="row">Drought, heat, wildfire</th>
-                    <td>SSP2-4.5</td>
-                    <td>SSP5-8.5</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Hurricane</th>
-                    <td>RCP 4.5</td>
-                    <td>RCP 8.5</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Coastal flooding</th>
-                    <td>Intermediate SLR</td>
-                    <td>High SLR</td>
-                  </tr>
-                </tbody>
-              </table>
-              <h3>What stays fixed</h3>
-              <p>
-                These projections hold baseline exposure and social conditions
-                fixed. They do not account for future population, development,
-                adaptation or changing demographics. Baseline refers to the
-                archived NRI, not conditions today.
-              </p>
-              <h3>Geography & missing data</h3>
-              <p>
-                Results describe entire counties. Zooming in adds geographic
-                context, not scientific resolution. Gray means unavailable,
-                white means no rating, and pale gray means not applicable. These
-                are different from zero losses.
-              </p>
-            </div>
+            <WelcomePrimer />
           )}
         </DialogContent>
       </Dialog>
