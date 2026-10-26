@@ -300,16 +300,11 @@ export default function App() {
                   </tbody>
                 </table>
                 {!filtered.length && !isLoading && (
-                  <p>
-                    No counties match. Try another name or clear your filter.
-                  </p>
+                  <p>No matching counties.</p>
                 )}
               </div>
             </div>
           )}
-          <div className="map-footnote">
-            <span>County-level estimates</span>
-          </div>
         </section>
         <aside
           className={`county-panel ${county ? "has-county" : ""} ${expanded ? "expanded" : ""}`}
@@ -321,12 +316,8 @@ export default function App() {
             onClick={() => setExpanded(!expanded)}
           >
             <span>
-              {county ? `${county.name}, ${county.state}` : "County profile"}
-              <small>
-                {county
-                  ? `${hazards[view.hazard]} · ${periodLabel(view.period)} · ${describeValue(metricValue(county.values, view), view.metric)}`
-                  : "Select a county to explore"}
-              </small>
+              {county ? `${county.name}, ${county.state}` : "Select a county"}
+              {county && <small>{`${hazards[view.hazard]} · ${periodLabel(view.period)} · ${describeValue(metricValue(county.values, view), view.metric)}`}</small>}
             </span>
             <ChevronDown size={18} />
           </button>

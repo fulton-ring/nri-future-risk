@@ -568,24 +568,6 @@ summary {
   border-radius: 50%;
   background: #8d7856;
 }
-.map-footnote {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 7px;
-  padding: 9px 16px;
-  font-size: 9px;
-  color: var(--muted-foreground);
-  border-top: 1px solid var(--border);
-}
-.map-footnote button {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 9px;
-  padding: 0;
-}
 .county-panel {
   border-left: 1px solid var(--border);
   background: var(--card);
@@ -595,11 +577,6 @@ summary {
 .county-empty {
   padding: 27px 25px;
 }
-.county-empty > svg {
-  margin-top: 58px;
-  margin-bottom: 16px;
-  color: #7a8575;
-}
 .county-empty h2 {
   font-family: var(--font-serif);
   font-size: 30px;
@@ -607,12 +584,6 @@ summary {
   line-height: 1.2;
   letter-spacing: -0.7px;
   margin-bottom: 16px;
-}
-.county-empty > p {
-  font-size: 13px;
-  color: var(--muted-foreground);
-  line-height: 1.7;
-  margin-bottom: 35px;
 }
 .reading-note {
   padding: 18px 0;
@@ -1012,9 +983,6 @@ th small {
   .map-toolbar h2 {
     font-size: 22px;
   }
-  .map-footnote button {
-    display: none;
-  }
   .legend-ranges {
     font-size: 7px;
   }
@@ -1104,13 +1072,6 @@ th small {
     font-size: 8px;
     gap: 5px 8px;
   }
-  .map-footnote {
-    padding: 7px 14px;
-    font-size: 8px;
-  }
-  .map-footnote button {
-    display: none;
-  }
   .county-panel {
     border-left: 0;
     border-top: 1px solid var(--border);
@@ -1171,9 +1132,6 @@ th small {
   }
   .county-empty {
     padding: 20px;
-  }
-  .county-empty > svg {
-    margin-top: 20px;
   }
   .site-footer {
     padding: 8px 14px;
