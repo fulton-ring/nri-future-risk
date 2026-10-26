@@ -1411,4 +1411,37 @@ th small {
   }
 }
 
-.version-field { margin-bottom: 18px; }
+
+.release-banner {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+}
+.release-banner.release-warning { background: #f5dfb1; }
+.release-banner .version-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+}
+.release-banner .version-field > label {
+  margin: 0;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.release-banner .atlas-select-trigger {
+  width: 224px;
+  height: 34px;
+  min-height: 34px;
+  background: transparent;
+}
+.release-banner p { margin: 0; font-size: 12px; line-height: 1.5; }
+@media (max-width: 700px) {
+  .release-banner { align-items: stretch; flex-direction: column; gap: 8px; padding: 10px 16px; }
+  .release-banner .version-field { justify-content: space-between; }
+  .release-banner .atlas-select-trigger { width: min(224px, 70%); }
+}

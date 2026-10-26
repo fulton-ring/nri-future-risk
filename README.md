@@ -95,7 +95,7 @@ See [pipeline/README.md](pipeline/README.md) for the independent Hamilton/Cloud 
 The normal build continues to show the FEMA archive. `npm run build:cloudflare` selects the
 available-year analysis explicitly and builds at `/` for the dedicated Cloudflare preview project.
 
-The Data version dropdown switches between the FEMA archive and the Batch analysis. Shared URLs carry the selected release ID and override the deployment default. The selector is also available in the Data dialog and mobile map settings.
+The Data version dropdown switches between the FEMA archive and the Batch analysis. Shared URLs carry the selected release ID and override the deployment default. The selector sits in the version disclaimer header on desktop and mobile, alongside the selected version’s status.
 
 The preview contains the completed Batch analysis, with 3,218 county geometries and all five
 hazards. Drought, wildfire and LOCA2 heat are recalculated; coastal flooding, hurricane and NEX heat

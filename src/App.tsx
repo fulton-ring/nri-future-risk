@@ -104,9 +104,6 @@ export default function App() {
         <a className="brand" href={import.meta.env.BASE_URL}>
           <span>
             <h1>Future Risk Index</h1>
-            <small className="archive-label">
-              {isAnalysis ? "Analysis preview · October 2026" : "FEMA archive · December 2024"}
-            </small>
           </span>
         </a>
         <nav aria-label="Main navigation">
@@ -132,9 +129,12 @@ export default function App() {
           {release.title}.
         </div>
       )}
-      {isAnalysis && <div role="note" className="release-warning">
-        Analysis preview · 19 wildfire years are unavailable. This is not an approved release.
-      </div>}
+      <section className={`release-banner ${isAnalysis ? "release-warning" : ""}`} aria-label="Data version">
+        <VersionSelect />
+        <p>{isAnalysis
+          ? "19 wildfire years are unavailable. Exploratory results; not an approved release."
+          : "Original FEMA projections · NRI v1.19 baseline."}</p>
+      </section>
       <main className="atlas-layout">
         <aside
           className="explore-panel"
@@ -142,7 +142,6 @@ export default function App() {
           tabIndex={-1}
           aria-label="Exploration controls"
         >
-          <VersionSelect />
           <CountySearch counties={counties ?? []} onSelect={selectCounty} />
           <Controls view={view} onChange={update} />
         </aside>
@@ -370,7 +369,6 @@ export default function App() {
                 : isAnalysis ? "Exploratory analysis · NRI v1.19 baseline." : "Archived FEMA data · December 2024."}
             </DialogDescription>
           </DialogHeader>
-          {dialog !== "methods" && <VersionSelect />}
           {dialog === "settings" ? (
             <>
               <Controls view={view} onChange={update} />
