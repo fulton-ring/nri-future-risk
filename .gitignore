@@ -41,3 +41,6 @@ gha-creds-*.json
 
 # Cloudflare local deployment state
 .wrangler/
+
+# Generated version documentation
+public/versions/

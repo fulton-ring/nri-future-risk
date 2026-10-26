@@ -2,7 +2,7 @@ import { readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 // Deploy the explorer's assets; legacy source geometry stays in the repository.
-const keep = new Set(['index.html', 'assets', 'atlas', 'preview', 'NRI_Data_Dictionary.xlsx', 'NRI_Future_Risk_Master_Datasheet_12052024.xlsx']);
+const keep = new Set(['index.html', 'assets', 'atlas', 'preview', 'versions', 'NRI_Data_Dictionary.xlsx', 'NRI_Future_Risk_Master_Datasheet_12052024.xlsx']);
 for (const entry of await readdir('dist')) {
   if (!keep.has(entry)) await rm(join('dist', entry), { recursive: true });
 }

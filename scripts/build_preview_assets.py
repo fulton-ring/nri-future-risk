@@ -105,6 +105,7 @@ def main():
     # Zoom 6 plus overzoom keeps the review archive within Pages' 25 MiB per-file limit.
     # All county attributes remain present and are checked in every decoded tile.
     verify_tiles(output / "counties.pmtiles", payload)
+    shutil.copyfile(args.geoparquet, output / "counties.parquet")
     for name in ["report.md", "provenance.json", "validation.json"]:
         spec = manifest["files"][
             f"future-risk-index/fri/counties/{manifest['version']}/metadata/{name}"

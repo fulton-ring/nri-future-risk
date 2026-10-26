@@ -129,3 +129,5 @@ project's `main` production branch. Cloudflare's `--force` flag selects its exis
 path rather than the newer Workers migration wrapper.
 
 Combined branch preview: https://review-feat-fut-0dc4eaf5.future-risk-index-preview.pages.dev
+
+The version header links to standalone methodology and data pages for the selected release. The general guide opens once per tab session and is available again from the help button; version switches do not reopen it. `build_version_pages.mjs` generates the version documents during every build, including links to the exact analysis GeoParquet.
