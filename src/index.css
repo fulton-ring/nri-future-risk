@@ -1445,3 +1445,28 @@ th small {
   .release-banner .version-field { justify-content: space-between; }
   .release-banner .atlas-select-trigger { width: min(224px, 70%); }
 }
+
+.site-header .github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 13px;
+  font-size: 13px;
+  text-decoration: none;
+}
+.site-header .github-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.release-banner { flex-wrap: wrap; }
+.release-banner p { flex: 1; min-width: 180px; }
+.version-links { display: flex; flex: none; gap: 16px; margin-left: auto; }
+.version-links button { font-size: 12px; min-height: 34px; }
+.version-links button:hover { text-decoration: underline; text-underline-offset: 4px; }
+.atlas-select-trigger { overflow: hidden; }
+.atlas-select-trigger > span { display: block; flex: 1; min-width: 0; overflow: hidden; }
+.atlas-select-trigger > svg { flex-shrink: 0; }
+.atlas-select-trigger .select-option-label { display: flex; max-width: 100%; }
+.atlas-select-trigger .select-option-label > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.release-banner .atlas-select-trigger { font-size: 13px; line-height: 20px; }
+@media (max-width: 700px) {
+  .release-banner p { min-width: 0; }
+  .version-links { margin-left: 0; }
+}

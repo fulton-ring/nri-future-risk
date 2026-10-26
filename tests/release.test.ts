@@ -42,3 +42,15 @@ test('a selected version in a shared URL overrides the deployment default', () =
   assert.equal(selectRelease('archive', 'fri-analysis-20261025140637').status, 'analysis');
   assert.equal(selectRelease('archive', 'unavailable-version').status, 'archive');
 });
+
+test('analysis controls and shared URLs only expose recalculated series', async () => {
+  const { releaseHazards, releaseModels, readState } = await import('../src/lib/risk.ts');
+  assert.deepEqual(releaseHazards('analysis'), ['WFIR', 'DRGT', 'EXHT']);
+  assert.deepEqual(releaseModels('analysis'), ['L95', 'L99']);
+  assert.ok(releaseHazards('archive').includes('CFLD'));
+  assert.ok(releaseHazards('archive').includes('HRCN'));
+  assert.ok(releaseModels('archive').includes('N99'));
+  assert.equal(readState('?hazard=HRCN&model=N99', 'analysis').hazard, 'WFIR');
+  assert.equal(readState('?hazard=EXHT&model=N99', 'analysis').model, 'L95');
+  assert.equal(readState('?hazard=HRCN&model=N99', 'archive').hazard, 'HRCN');
+});

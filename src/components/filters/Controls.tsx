@@ -29,6 +29,8 @@ import {
 } from "../ui/select";
 import {
   hazards,
+  releaseHazards,
+  releaseModels,
   pathwayLabel,
   metrics,
   type ViewState,
@@ -57,7 +59,8 @@ export default function Controls({
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="atlas-select-content">
-            {Object.entries(hazards).map(([key, label]) => {
+            {releaseHazards().map((key) => {
+              const label = hazards[key];
               const Icon = hazardIcons[key as Hazard];
               return (
                 <SelectItem key={key} value={key} className="atlas-select-item">
@@ -175,7 +178,7 @@ export default function Controls({
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="atlas-select-content">
-              {(["L95", "L99", "N95", "N99"] as Model[]).map((model) => {
+              {releaseModels().map((model) => {
                 const Icon = model.startsWith("L") ? Grid2X2 : Globe;
                 return (
                   <SelectItem

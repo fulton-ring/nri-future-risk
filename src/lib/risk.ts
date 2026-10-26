@@ -53,14 +53,20 @@ export const lossRanges: Record<Hazard, string[]> = {
   CFLD: ["<$55K", "$55K–932K", "$932K–5.96M", "$5.96M–29.4M", ">$29.4M"],
   HRCN: ["<$625K", "$625K–7.36M", "$7.36M–43M", "$43M–191M", ">$191M"],
 };
-export function readState(search: string): ViewState {
+export function releaseHazards(status = release.status): Hazard[] {
+  return status === "analysis" ? ["WFIR", "DRGT", "EXHT"] : Object.keys(hazards) as Hazard[];
+}
+export function releaseModels(status = release.status): Model[] {
+  return status === "analysis" ? ["L95", "L99"] : ["L95", "L99", "N95", "N99"];
+}
+export function readState(search: string, status = release.status): ViewState {
   const p = new URLSearchParams(search);
   const hazard = p.get("hazard") as Hazard;
   const metric = p.get("metric") as Metric;
   const period = p.get("period");
   const model = p.get("model") as Model;
   const state: ViewState = {
-    hazard: Object.prototype.hasOwnProperty.call(hazards, hazard)
+    hazard: releaseHazards(status).includes(hazard)
       ? hazard
       : "WFIR",
     metric: Object.prototype.hasOwnProperty.call(metrics, metric)
@@ -68,7 +74,7 @@ export function readState(search: string): ViewState {
       : "loss",
     period: period === "base" || period === "late" ? period : "mid",
     emissions: p.get("emissions") === "higher" ? "higher" : "lower",
-    model: ["L95", "L99", "N95", "N99"].includes(model) ? model : "L95",
+    model: releaseModels(status).includes(model) ? model : "L95",
     county: /^\d{5}$/.test(p.get("county") || "") ? p.get("county")! : "",
     opacity:
       p.has("opacity") &&

@@ -97,9 +97,11 @@ available-year analysis explicitly and builds at `/` for the dedicated Cloudflar
 
 The Data version dropdown switches between the FEMA archive and the Batch analysis. Shared URLs carry the selected release ID and override the deployment default. The selector sits in the version disclaimer header on desktop and mobile, alongside the selected version’s status.
 
-The preview contains the completed Batch analysis, with 3,218 county geometries and all five
-hazards. Drought, wildfire and LOCA2 heat are recalculated; coastal flooding, hurricane and NEX heat
-remain archived. The page identifies the analysis and its 19 missing wildfire years. It is not a
+The preview contains the completed Batch analysis with 3,218 county geometries. The analysis
+controls expose only recalculated drought, wildfire and LOCA2 heat. Coastal flooding, hurricane
+and NEX heat are available by selecting the FEMA archive version. Unsupported hazard/model URL
+parameters are normalized when switching versions. The source assets retain archived fields for
+reproducibility. The page identifies the analysis and its 19 missing wildfire years. It is not a
 publication candidate. The preview has no connection to the publisher staging workflow.
 
 Preview assets are checked in under `public/preview/`. Rebuild them from the immutable results

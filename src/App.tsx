@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import {
   ArrowUpRight,
+  Github,
   Check,
   ChevronDown,
   Map as MapIcon,
@@ -107,8 +108,7 @@ export default function App() {
           </span>
         </a>
         <nav aria-label="Main navigation">
-          <button onClick={() => setDialog("methods")}>Methodology</button>
-          <button onClick={() => setDialog("release")}>Data</button>
+          <a className="github-link" href="https://github.com/fulton-ring/nri-future-risk" target="_blank" rel="noopener noreferrer"><Github size={17} aria-hidden="true" /> GitHub</a>
           <button
             className="share-button"
             aria-label="Share view"
@@ -134,6 +134,10 @@ export default function App() {
         <p>{isAnalysis
           ? "19 wildfire years are unavailable. Exploratory results; not an approved release."
           : "Original FEMA projections · NRI v1.19 baseline."}</p>
+        <nav className="version-links" aria-label="Selected version information">
+          <button onClick={() => setDialog("methods")}>Methodology</button>
+          <button onClick={() => setDialog("release")}>Data</button>
+        </nav>
       </section>
       <main className="atlas-layout">
         <aside
@@ -361,7 +365,7 @@ export default function App() {
                 ? "Map settings"
                 : dialog === "release"
                   ? "Data"
-                  : "Understanding future risk"}
+                  : isAnalysis ? "Analysis methodology" : "FEMA methodology"}
             </DialogTitle>
             <DialogDescription>
               {dialog === "settings"
@@ -382,7 +386,7 @@ export default function App() {
           ) : dialog === "release" ? (
             <div className="prose">
               <p>
-                {isAnalysis ? "Drought, wildfire and LOCA2 heat recalculated for 3,108 CONUS counties using the frozen NRI v1.19 baseline. Coastal flooding, hurricane and NEX heat projections retain FEMA’s archived values." : "FEMA’s December 5, 2024 master datasheet, using the NRI v1.19 baseline."}
+                {isAnalysis ? "Drought, wildfire and LOCA2 heat recalculated for 3,108 CONUS counties using the frozen NRI v1.19 baseline. Only these recalculated series are shown in this version. Select the FEMA archive for coastal flooding, hurricane and NEX heat." : "FEMA’s December 5, 2024 master datasheet, using the NRI v1.19 baseline."}
               </p>
               <dl>
                 <dt>Coverage</dt>
@@ -410,14 +414,11 @@ export default function App() {
               <a href={assetUrl("NRI_Data_Dictionary.xlsx")}>
                 FEMA data dictionary <ArrowUpRight size={15} />
               </a>
-              <a href="https://github.com/fulton-ring/nri-future-risk">
-                Source code & archived inputs <ArrowUpRight size={15} />
-              </a>
               <a href="https://buymeacoffee.com/herzo175">
                 Support this project <ArrowUpRight size={15} />
               </a>
               <details>
-                <summary>Archive provenance</summary>
+                <summary>Provenance</summary>
                 <p>
                   {isAnalysis ? "Display assets come from the hash-verified Batch GeoParquet. County scores and multipliers are unchanged by tile conversion. GeoParquet SHA-256:" : "Display assets come from the archived county GeoJSON without changing scientific values. Source SHA-256:"}
                 </p>
@@ -429,11 +430,11 @@ export default function App() {
               <p>
                 FEMA created the Future Risk Index and later discontinued the
                 public tool. Public Environmental Data Partners and Fulton Ring
-                preserve this archived release.
+                preserve its data and methods.
               </p>
               {isAnalysis && <>
                 <h3>About this analysis</h3>
-                <p>Drought, wildfire and LOCA2 heat use new climate inputs. The analysis omits 19 wildfire years absent from NASA’s catalog, without interpolation. Coastal flooding, hurricane and NEX heat remain archived. Outside CONUS, archived multipliers are retained; supported risk ranks are recomputed nationally.</p>
+                <p>Drought, wildfire and LOCA2 heat use new climate inputs. The analysis omits 19 wildfire years absent from NASA’s catalog, without interpolation. Coastal flooding, hurricane and NEX heat are available in the FEMA archive version. Outside CONUS, archived multipliers are retained; supported risk ranks are recomputed nationally.</p>
                 <p>Source masks remain unchanged. LOCA2 valid weighting support varies by county, down to 51.3%; the 0.25° weighting boxes do not imply 6 km county estimates.</p>
                 <a href={assetUrl("preview/report.md")}>Read the analysis report <ArrowUpRight size={15} /></a>
               </>}
@@ -463,7 +464,7 @@ export default function App() {
                 vary by hazard and source.
               </p>
               <table className="pathway-table">
-                <caption>Pathways in the archived data</caption>
+                <caption>Pathways for this version</caption>
                 <thead>
                   <tr>
                     <th scope="col">Hazard</th>
@@ -477,7 +478,7 @@ export default function App() {
                     <td>SSP2-4.5</td>
                     <td>SSP5-8.5</td>
                   </tr>
-                  <tr>
+                  {!isAnalysis && <><tr>
                     <th scope="row">Hurricane</th>
                     <td>RCP 4.5</td>
                     <td>RCP 8.5</td>
@@ -486,7 +487,7 @@ export default function App() {
                     <th scope="row">Coastal flooding</th>
                     <td>Intermediate SLR</td>
                     <td>High SLR</td>
-                  </tr>
+                  </tr></>}
                 </tbody>
               </table>
               <p>
