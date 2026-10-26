@@ -115,7 +115,7 @@ npm ci
 npm test
 npm run build:cloudflare
 npx wrangler@4.152.0 pages deploy dist --project-name future-risk-index-preview \
-  --branch review-feat-future-risk-preview --force
+  --branch review-feat-fut-0dc4eaf5 --force
 ```
 
 `.github/workflows/preview.yml` builds feature branches and same-repository PRs. Set the repository
@@ -125,3 +125,5 @@ the workflow still tests/builds and uploads a review artifact. It does not reuse
 session in CI. Preview branch names always start with `review-`, so they never target the Pages
 project's `main` production branch. Cloudflare's `--force` flag selects its existing Pages upload
 path rather than the newer Workers migration wrapper.
+
+Combined branch preview: https://review-feat-fut-0dc4eaf5.future-risk-index-preview.pages.dev

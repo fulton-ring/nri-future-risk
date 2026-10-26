@@ -39,10 +39,12 @@ jobs:
           SOURCE_BRANCH: ${{ github.head_ref || github.ref_name }}
         run: |
           python3 - <<'PY'
-          import os, re
-          branch = re.sub(r'[^a-z0-9-]+', '-', os.environ['SOURCE_BRANCH'].lower()).strip('-')[:45]
+          import hashlib, os, re
+          source = os.environ['SOURCE_BRANCH']
+          branch = re.sub(r'[^a-z0-9-]+', '-', source.lower()).strip('-')[:8]
+          suffix = hashlib.sha256(source.encode()).hexdigest()[:8]
           with open(os.environ['GITHUB_ENV'], 'a') as handle:
-              handle.write(f'PREVIEW_BRANCH=review-{branch}\n')
+              handle.write(f'PREVIEW_BRANCH=review-{branch}-{suffix}\n')
           PY
       - name: Deploy branch preview
         if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
