@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 const [base] = process.argv.slice(2);
 if (!base) throw new Error('Usage: node scripts/check_preview_http.mjs PREVIEW_URL');
@@ -20,6 +21,8 @@ for (const id of ['fema-2024-12-05', 'fri-analysis-20261025140637']) {
     assert.ok(body.includes(`<h1>${page === 'data' ? 'Data' : 'Methodology'}</h1>`), 'documentation must not fall back to the explorer');
   }
 }
-const parquet = await fetch(new URL('/preview/counties.parquet', base), {method:'HEAD', headers:{'User-Agent':'Mozilla/5.0'}});
+const parquet = await fetch(new URL('/preview/counties.parquet', base), {headers:{'User-Agent':'Mozilla/5.0'}});
 assert.equal(parquet.status, 200);
+const release = JSON.parse(await readFile('src/data/analysis-preview.json', 'utf8'));
+assert.equal(createHash('sha256').update(Buffer.from(await parquet.arrayBuffer())).digest('hex'), release.sourceSha256);
 console.log('Verified methodology/data pages for both versions and the analysis GeoParquet download.');
