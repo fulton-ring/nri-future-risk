@@ -7,6 +7,7 @@ on:
 permissions:
   contents: read
   deployments: write
+  pull-requests: write
 concurrency:
   group: cloudflare-preview-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
@@ -61,6 +62,16 @@ jobs:
         env:
           PREVIEW_URL: ${{ steps.deploy.outputs.deployment-url }}
         run: node scripts/check_preview_http.mjs "$PREVIEW_URL"
+      - name: Post or update PR preview comment
+        if: steps.deploy.outputs.deployment-url != ''
+        uses: actions/github-script@v8
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.deployment-url }}
+          SOURCE_BRANCH: ${{ github.head_ref || github.ref_name }}
+        with:
+          script: |
+            const publish = require(`${process.env.GITHUB_WORKSPACE}/cloudflare/preview-comment.cjs`);
+            return await publish({ github, context, url: process.env.PREVIEW_URL, branch: process.env.SOURCE_BRANCH });
       - name: Explain missing deployment credentials
         if: env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == ''
         run: |
