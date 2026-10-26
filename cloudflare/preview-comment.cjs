@@ -11,7 +11,7 @@ module.exports = async ({github, context, url, branch}) => {
   const marker = '<!-- future-risk-cloudflare-preview -->';
   for (const pull of pulls) {
     const revision = pull.head?.sha || context.sha;
-    const body = `${marker}\n**Cloudflare preview**\n\n[Open preview](${preview.href}) · [Build](https://github.com/${owner}/${repo}/actions/runs/${context.runId})\n\nCommit: \`${revision.slice(0,7)}\``;
+    const body = `${marker}\n**Cloudflare preview**\n\n[Open branch preview](${preview.href}) · [Build](https://github.com/${owner}/${repo}/actions/runs/${context.runId})\n\nCommit: \`${revision.slice(0,7)}\``;
     const comments = await github.paginate(github.rest.issues.listComments, {owner, repo, issue_number:pull.number, per_page:100});
     const prior = comments.find(comment => comment.user?.login === 'github-actions[bot]' && comment.body?.includes(marker));
     if (prior) await github.rest.issues.updateComment({owner, repo, comment_id:prior.id, body});
