@@ -15,7 +15,8 @@ taken down:
 
 ## Architecture
 
-The atlas uses React, TypeScript, MapLibre GL JS and PMTiles, bundled with Vite.
+The atlas uses TanStack Start and Router with React, TypeScript, MapLibre GL JS and PMTiles.
+Vite builds a prerendered static site for GitHub Pages and Cloudflare Pages.
 Fonts are provided by Fontsource, and dropdowns/dialogs use shadcn components.
 The map reads archived scores and ratings directly from PMTiles properties.
 A separate lossless attribute table supports county search, comparisons and
@@ -131,3 +132,20 @@ path rather than the newer Workers migration wrapper.
 Combined branch preview: https://review-feat-fut-0dc4eaf5.future-risk-index-preview.pages.dev
 
 The version header links to standalone methodology and data pages for the selected release. The general guide opens once per tab session and is available again from the help button; version switches do not reopen it. `build_version_pages.mjs` generates the version documents during every build, including links to the exact analysis GeoParquet.
+
+## Rendering and static builds
+
+Use Node 22.12 or newer. TanStack Start owns the HTML document, route metadata and
+hydration. The introduction is prerendered as readable HTML; the interactive explorer
+loads in the browser so WebGL, shared URL state and session storage remain client-only.
+Version-specific Methodology and Data pages are generated during the build.
+
+`npm run build` targets `/nri-future-risk/` for GitHub Pages. `npm run build:cloudflare`
+targets `/` and prepares the existing PMTiles range worker. The build strips the temporary
+SSR output and checks the static HTML, asset URLs and version documents. Both deployments
+continue to serve static files; no application server is required.
+
+`npm run preview -- --port 4173 --strictPort` serves the built static site. Set
+`VITE_BASE_PATH=/` when previewing a Cloudflare build. `npm run dev` runs Start's development
+server. This migration preserves the current version selector and datasets; it does not
+add county landing pages or change any scientific values.
