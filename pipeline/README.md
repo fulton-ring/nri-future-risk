@@ -46,6 +46,9 @@ climate tests exercise the actual hazard implementations; they do not validate n
 GeoParquet and Zarr tests verify exact round trips, including zeros, missing values and histograms.
 Portolan metadata is checked with Rashid. Output version directories must be new.
 
+See [METHODOLOGY.md](METHODOLOGY.md) for the hazard calculations, reference periods,
+scoring equations, coverage limitations and reproduction contract.
+
 ## Frozen scientific contract
 
 `reference/contract.json` pins the workbook, geometry, method and verification commits. Every run:
@@ -261,3 +264,21 @@ The publisher must retain all county hazard properties, numeric `county_id` feat
 `fips`, provenance and immutable asset URLs. Hosted PMTiles and CORS/range behavior must pass the
 existing `fri_pipeline.publication` verification checks before a separate map activation.
 No custom request/receipt service is required by the staging workflow.
+
+## Public review of results (proposed)
+
+The results bucket currently enforces public access prevention; it is private. Public read
+access would let reviewers download the immutable versioned outputs, methodology evidence,
+lineage, Zarr arrays and original inputs without Google Cloud credentials. Experiments,
+checkpoints and Terraform state should remain private.
+
+The results bucket includes copied source files as well as our derived outputs. Review the
+redistribution terms for each source dataset before exposing the entire bucket. Public review
+of an analysis does not make it an approved release; retain its analysis status and measured
+limitations in the catalog and reports.
+
+Enabling public reads would require a reviewed Terraform change to the results bucket's
+public access prevention setting and an anonymous read-only IAM grant. Check inherited
+organization policy and configure CORS if browser clients need direct cross-origin access.
+Keep write permissions restricted to the existing service accounts. This PR does not change
+bucket visibility or grant anonymous access.
