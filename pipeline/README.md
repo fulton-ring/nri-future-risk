@@ -279,3 +279,7 @@ Start at the [public catalog](https://storage.googleapis.com/future-risk-index-r
 Relative dataset/file/version links identify the data and provenance for each version.
 Public access to an analysis is for review; its analysis status and scientific limitations
 remain in the catalog and reports, and the normal staging gates still reject it.
+
+[Public-access verification](evidence/2026-10-27-public-results.json) records anonymous
+catalog/listing/download/range checks, the GeoParquet checksum, private-bucket denials
+and the clean post-apply Terraform plan.
