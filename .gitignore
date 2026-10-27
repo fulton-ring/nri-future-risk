@@ -25,3 +25,12 @@ dist-ssr
 
 # Python Scripts
 .venv
+
+.wrangler/
+
+# Generated version documentation
+public/versions/
+
+# TanStack generated routes and build state
+src/routeTree.gen.ts
+.tanstack/
