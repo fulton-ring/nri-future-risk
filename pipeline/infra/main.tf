@@ -13,9 +13,24 @@ resource "google_storage_bucket" "future_risk" {
   name                        = "${var.bucket_prefix}-${each.value}"
   location                    = var.region
   uniform_bucket_level_access = true
-  public_access_prevention    = "enforced"
+  public_access_prevention    = each.key == "results" ? "inherited" : "enforced"
   force_destroy               = false
   versioning { enabled = true }
+  dynamic "cors" {
+    for_each = each.key == "results" ? [1] : []
+    content {
+      origin          = ["*"]
+      method          = ["GET", "HEAD"]
+      response_header = ["Content-Type", "Content-Length", "Content-Range", "Accept-Ranges", "ETag"]
+      max_age_seconds = 3600
+    }
+  }
+}
+
+resource "google_storage_bucket_iam_member" "public_results" {
+  bucket = google_storage_bucket.future_risk["results"].name
+  role   = "roles/storage.objectViewer"
+  member = "allUsers"
 }
 
 resource "google_service_account" "fri" {

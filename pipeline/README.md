@@ -12,7 +12,9 @@ There are exactly two project data buckets:
 | `future-risk-index-experiments` | Downloads/checkpoints, prepared snapshots, analysis runs, candidate review files, migration evidence and results pointers |
 | `future-risk-index-results` | Portable Portolan catalog: versioned county GeoParquet, analysis-ready Zarr, exact prepared inputs, original source files and provenance |
 
-Both are private and versioned. The existing Terraform state bucket is shared infrastructure,
+Both are versioned. Experiments remain private; results allow anonymous reads and listings,
+including versioned outputs, prepared arrays, original source files and provenance.
+Public read access does not grant write access or approve an analysis for release. The existing Terraform state bucket is shared infrastructure,
 not another project data bucket. State uses the isolated prefix
 `gs://hifld-next-iac-prod-49775666365/nri-future-risk/prod`.
 
@@ -265,20 +267,15 @@ The publisher must retain all county hazard properties, numeric `county_id` feat
 existing `fri_pipeline.publication` verification checks before a separate map activation.
 No custom request/receipt service is required by the staging workflow.
 
-## Public review of results (proposed)
+## Public review of results
 
-The results bucket currently enforces public access prevention; it is private. Public read
-access would let reviewers download the immutable versioned outputs, methodology evidence,
-lineage, Zarr arrays and original inputs without Google Cloud credentials. Experiments,
-checkpoints and Terraform state should remain private.
+Terraform grants `allUsers` the read-only `roles/storage.objectViewer` role on
+`future-risk-index-results` and configures GET/HEAD CORS for browser clients. Experiments,
+checkpoints and Terraform state remain private. Write permissions remain restricted to the
+existing service accounts. The complete results bucket, including original source files,
+is readable and listable without Google Cloud credentials; source terms continue to apply.
 
-The results bucket includes copied source files as well as our derived outputs. Review the
-redistribution terms for each source dataset before exposing the entire bucket. Public review
-of an analysis does not make it an approved release; retain its analysis status and measured
-limitations in the catalog and reports.
-
-Enabling public reads would require a reviewed Terraform change to the results bucket's
-public access prevention setting and an anonymous read-only IAM grant. Check inherited
-organization policy and configure CORS if browser clients need direct cross-origin access.
-Keep write permissions restricted to the existing service accounts. This PR does not change
-bucket visibility or grant anonymous access.
+Start at the [public catalog](https://storage.googleapis.com/future-risk-index-results/catalog.json).
+Relative dataset/file/version links identify the data and provenance for each version.
+Public access to an analysis is for review; its analysis status and scientific limitations
+remain in the catalog and reports, and the normal staging gates still reject it.

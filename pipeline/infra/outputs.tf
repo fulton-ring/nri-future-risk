@@ -15,3 +15,8 @@ output "github_variables" {
     FRI_PUBLISHER_STAGING_BUCKET    = var.publisher_staging_bucket
   }
 }
+
+output "results_catalog_url" {
+  description = "Anonymous HTTPS entry point for reviewing the results catalog."
+  value       = "https://storage.googleapis.com/${google_storage_bucket.future_risk["results"].name}/catalog.json"
+}
