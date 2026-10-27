@@ -45,3 +45,7 @@ needed to deploy to GitHub Pages, you'll just need to enable GitHub Pages in
 your fork's repository settings.
 
 More deployment guides to come as needed.
+
+## County update pipeline
+
+See [pipeline/README.md](pipeline/README.md) for the independent Hamilton/Cloud Batch pipeline, Terraform configuration and publication contract.

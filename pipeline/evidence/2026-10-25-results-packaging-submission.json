@@ -1,0 +1,23 @@
+{
+  "job": "future-risk-results-20261025185300",
+  "image": "us-central1-docker.pkg.dev/hifld-next/fri/preparation@sha256:2c1645435d5fa2452e9032c6f81244c8fce2ab719ceb3e55d21216a5da310787",
+  "codeRevision": "e703ed1aa2c4835da3f53fc0b436f3ffe4843c05",
+  "sourceArchiveJob": "future-risk-archive-20261025174607",
+  "checkpointSha256": "d7b903f375f74b08f3aecab8f1d5dba669b118683835138422ee60d54b9ae886",
+  "version": "v20261025T140637Z",
+  "resultsUri": "gs://future-risk-index-results/future-risk-index/",
+  "publishable": false,
+  "submittedAt": "2026-10-25T18:52:09.469449+00:00",
+  "initialState": "SCHEDULED",
+  "jobUid": "future-risk-result-a1ad3afd-89cc-43db0",
+  "mode": "Wait for all original source hashes to verify, then package the completed available-year analysis. No scoring recomputation and no publication.",
+  "runManifestSha256": "19040e4f1c8a0f19c0d9fe112bac1e19744864ed471cac31f10405a287fc5be9",
+  "snapshotSha256": "6e083b1795215e66a0ba5c709b2b02d41523800ecefcfc3c8413901ea82eddf4",
+  "experimentsPointer": "gs://future-risk-index-experiments/runs/future-risk-results-20261025185300/results.json",
+  "resultsManifest": "gs://future-risk-index-results/_releases/v20261025T140637Z.json",
+  "runtime": "Cloud Batch, private e2-standard-8, 32 GiB, no external IP, 12-hour limit",
+  "completionVerified": false,
+  "finalState": "FAILED",
+  "failure": "Portolan validation: geospatial inputs collection missing a thumbnail. No completed result package was uploaded.",
+  "supersededBy": "future-risk-results-20261025-datasets"
+}

@@ -25,3 +25,16 @@ dist-ssr
 
 # Python Scripts
 .venv
+
+# Risk pipeline local state and credentials
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+pipeline/output/
+pipeline/snapshots/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+gha-creds-*.json
