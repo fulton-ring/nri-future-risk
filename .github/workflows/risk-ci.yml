@@ -26,3 +26,4 @@ jobs:
       - run: terraform fmt -check pipeline/infra
       - run: terraform -chdir=pipeline/infra init -backend=false
       - run: terraform -chdir=pipeline/infra validate
+      - run: terraform -chdir=pipeline/infra test -var-file=prod.tfvars

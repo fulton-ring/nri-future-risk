@@ -12,7 +12,9 @@ There are exactly two project data buckets:
 | `future-risk-index-experiments` | Downloads/checkpoints, prepared snapshots, analysis runs, candidate review files, migration evidence and results pointers |
 | `future-risk-index-results` | Portable Portolan catalog: versioned county GeoParquet, analysis-ready Zarr, exact prepared inputs, original source files and provenance |
 
-Both are private and versioned. The existing Terraform state bucket is shared infrastructure,
+Both are versioned. Experiments remain private; results allow anonymous reads and listings,
+including versioned outputs, prepared arrays, original source files and provenance.
+Public read access does not grant write access or approve an analysis for release. The existing Terraform state bucket is shared infrastructure,
 not another project data bucket. State uses the isolated prefix
 `gs://hifld-next-iac-prod-49775666365/nri-future-risk/prod`.
 
@@ -45,6 +47,9 @@ Replays reproduce the archived classification/score fields and are never publish
 climate tests exercise the actual hazard implementations; they do not validate new observations.
 GeoParquet and Zarr tests verify exact round trips, including zeros, missing values and histograms.
 Portolan metadata is checked with Rashid. Output version directories must be new.
+
+See [METHODOLOGY.md](METHODOLOGY.md) for the hazard calculations, reference periods,
+scoring equations, coverage limitations and reproduction contract.
 
 ## Frozen scientific contract
 
@@ -261,3 +266,16 @@ The publisher must retain all county hazard properties, numeric `county_id` feat
 `fips`, provenance and immutable asset URLs. Hosted PMTiles and CORS/range behavior must pass the
 existing `fri_pipeline.publication` verification checks before a separate map activation.
 No custom request/receipt service is required by the staging workflow.
+
+## Public review of results
+
+Terraform grants `allUsers` the read-only `roles/storage.objectViewer` role on
+`future-risk-index-results` and configures GET/HEAD CORS for browser clients. Experiments,
+checkpoints and Terraform state remain private. Write permissions remain restricted to the
+existing service accounts. The complete results bucket, including original source files,
+is readable and listable without Google Cloud credentials; source terms continue to apply.
+
+Start at the [public catalog](https://storage.googleapis.com/future-risk-index-results/catalog.json).
+Relative dataset/file/version links identify the data and provenance for each version.
+Public access to an analysis is for review; its analysis status and scientific limitations
+remain in the catalog and reports, and the normal staging gates still reject it.
