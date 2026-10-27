@@ -1432,3 +1432,15 @@ th small {
 .primer-actions li {
   margin: 12px 0;
 }
+
+.site-introduction {
+  max-width: 660px;
+  height: 100dvh;
+  overflow: auto;
+  margin: 0 auto;
+  padding: 30px;
+}
+.site-introduction h1 {
+  font-family: var(--font-serif);
+  font-size: 28px;
+}
