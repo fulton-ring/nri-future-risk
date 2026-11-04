@@ -1,0 +1,20 @@
+{
+  "id": "fema-2024-county-area-weighted-v1",
+  "baseline": "NRI v1.19",
+  "workbookSha256": "9f5666c14a189954d9ea2b6b03129dd94a8822fce3b5563e1e08e61824a50f75",
+  "geometrySha256": "11ce58492bbf9e2fbf3e28dfb2162bd799e777f66d02df3e59b865c8c6f23ecf",
+  "population": 3231,
+  "geometryCount": 3218,
+  "supportedVariants": ["DRGT", "WFIR", "EXHT_L95", "EXHT_L99"],
+  "scenarioOrder": ["MID_LOWER", "MID_HIGHER", "LATE_LOWER", "LATE_HIGHER"],
+  "pathways": {"LOWER": "SSP2-4.5", "HIGHER": "SSP5-8.5"},
+  "coverage": "CONUS county hazard multipliers; non-CONUS multipliers carried forward from FEMA archive",
+  "ranking": "Full 3231-county scenario-specific population, including zero ties; outside-CONUS ranks can change when CONUS risk changes",
+  "aggregation": "Archive-compatible county area weighting; not aggregated tract projections",
+  "spatialSupport": "LOCA2 1/16-degree centers weighted with 0.25-degree boxes; no 6 km claim",
+  "rebuildCommit": "390f7c072dc23b5c33a7d7a87b99cecd8ef8041c",
+  "verificationCommit": "8367c2f06106599ac65290302918f0f75b9ec248",
+  "verificationPr": "https://github.com/fulton-ring/agent-content-demos/pull/120",
+  "methodologyUrl": "https://eelp.law.harvard.edu/wp-content/uploads/2025/03/NRI_Future_Risk_Technical_Document.pdf",
+  "methodologySha256": "cb9e4415c3d53972e941d2f52753ef43f25680901de9140a1cfd846f45a208d4"
+}

@@ -1,0 +1,10 @@
+.git
+node_modules
+dist
+pipeline/.venv
+**/__pycache__
+.pytest_cache
+.ruff_cache
+releases
+public/atlas
+gha-creds-*.json

@@ -1,0 +1,77 @@
+{
+  "verifiedAt": "2026-10-24",
+  "infrastructure": {
+    "project": "hifld-next",
+    "terraformBackend": "gs://hifld-next-iac-prod-49775666365/nri-future-risk/prod",
+    "initialApply": {
+      "added": 37,
+      "changed": 0,
+      "destroyed": 0
+    },
+    "networkUpdate": "Outputs only; existing VPC/subnet reused; no public VM IPs"
+  },
+  "batch": {
+    "releaseId": "fri-replay-20261024205347",
+    "project": "hifld-next",
+    "region": "us-central1",
+    "codeRevision": "8ba11dfea3bd3b77e6ff03ed34fa0a89dc4e0a55",
+    "image": "us-central1-docker.pkg.dev/hifld-next/fri/worker@sha256:85802b38dc7c09ec0db59adde1cd76bb0a452bd5d40bff415dad0d88c31f1aae",
+    "candidateUri": "gs://hifld-next-fri-candidates/runs/fri-replay-20261024205347",
+    "network": "projects/hifld-next/global/networks/hifld-prod-vpc",
+    "subnetwork": "projects/hifld-next/regions/us-central1/subnetworks/hifld-prod-subnet",
+    "name": "projects/hifld-next/locations/us-central1/jobs/fri-replay-20261024205347",
+    "uid": "fri-replay-2026102-43786ecd-c6da-4fe30",
+    "state": "SUCCEEDED",
+    "runDuration": "27.909337373s",
+    "taskCounts": {
+      "SUCCEEDED": "1"
+    }
+  },
+  "validation": {
+    "downloadedArtifactsVerifiedLocally": true,
+    "candidateSha256": "c1435398eb697a60385130582b6be9fc5cec024d1c2ca3115b32c51b9cccea64",
+    "archiveRegression": {
+      "comparisons": 310176,
+      "mismatches": 0
+    },
+    "scoringPopulation": 3231,
+    "mappedCounties": 3218,
+    "publishable": false,
+    "artifacts": {
+      "changes.json": {
+        "sha256": "6f19f2ae79d8f71151960794cb4641f17d2a86c5d41b7d8210f832c3cacb0df2",
+        "bytes": 2834
+      },
+      "counties.geojson": {
+        "sha256": "976b5ae1e168be924e2c9cd94124abc303159f9ef129e77e99d139d7d3757c81",
+        "bytes": 29904375
+      },
+      "counties.json": {
+        "sha256": "57b88d8634eda410990503fb2ecd475d4292311437b34e5e0b48d08bd37ac18f",
+        "bytes": 10450057
+      },
+      "multipliers.csv": {
+        "sha256": "1d05bbcf0aab8a27ff49cc2c63d430f3fa29b284c0c7046414fd448c4332d0d4",
+        "bytes": 1131108
+      },
+      "provenance.json": {
+        "sha256": "5f066e578d46cf2261210795bc03bdadf7da99283eb4e3840792b2f9baef524c",
+        "bytes": 1616
+      },
+      "report.md": {
+        "sha256": "805f7668e242a25d3a7753fb17e9a0fe6b380f6d4543a50eb8df748b37f366f9",
+        "bytes": 1802
+      },
+      "validation.json": {
+        "sha256": "b7ed5cbbd1dec82256730c326d2eca33b795a0f01631d015d48bc57e04d11dfd",
+        "bytes": 8016
+      }
+    }
+  },
+  "initialAttempt": {
+    "jobId": "fri-replay-20261024204757",
+    "result": "Canceled and deleted after audit logs identified constraints/compute.vmExternalIpAccess",
+    "fix": "Required explicit private VPC/subnet and noExternalIpAddress=true; project policy unchanged"
+  },
+  "publication": "No live publication or map activation; archive replay is non-publishable"
+}
