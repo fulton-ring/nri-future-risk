@@ -15,7 +15,7 @@ import numpy as np
 import requests
 from scipy import sparse
 
-from fri_pipeline.snapshot import FWI_ANALYSIS, fwi_years
+from fri_pipeline.snapshot import CONTRACT, FWI_ANALYSIS, fwi_years
 
 REBUILD_COMMIT = "390f7c072dc23b5c33a7d7a87b99cecd8ef8041c"
 
@@ -78,13 +78,13 @@ def export_inputs(inputs, output: Path, sources: list[dict], *, analysis: bool =
             actual = [
                 year
                 for year in inputs.period_years(ssp, period)
-                if inputs.data.fwi_path("MME75", ssp, year).exists()
+                if inputs.data.fwi_path("MME50", ssp, year).exists()
             ]
             if not np.array_equal(actual, years):
                 raise ValueError(
                     f"FWI cache years disagree with the approved analysis: {ssp}/{period}"
                 )
-        values = inputs.fwi(ssp, period, variable="FWI_P95", ensemble="MME75")
+        values = inputs.fwi(ssp, period, variable="FWI", ensemble="MME50")
         if len(values) != len(years):
             raise ValueError(
                 f"FWI missing years for {ssp}/{period}; resolve before snapshot export"
@@ -101,7 +101,7 @@ def export_inputs(inputs, output: Path, sources: list[dict], *, analysis: bool =
         "coverage": "CONUS",
         "sources": sources,
         "rebuildCommit": REBUILD_COMMIT,
-        "methodology": "fema-2024-county-area-weighted-v1",
+        "methodology": CONTRACT["id"],
         "artifacts": artifacts,
     }
     if analysis:

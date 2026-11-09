@@ -268,20 +268,20 @@ def prepare_fwi(data, inputs, workers: int, *, analysis: bool = False) -> None:
     grid = np.load(data.cache("nex", "grid.npz"))
 
     def one(scenario, year):
-        target = data.fwi_path("MME75", scenario, year)
+        target = data.fwi_path("MME50", scenario, year)
         if target.exists():
             return
-        url = data.FWI.format(ensemble="MME75", scenario=scenario, year=year)
-        raw = download_raw(url, data.cache("fwi", "raw", f"{scenario}_{year}.nc"))
+        url = data.FWI.format(ensemble="MME50", scenario=scenario, year=year)
+        raw = download_raw(url, data.cache("fwi", "raw", f"MME50_{scenario}_{year}.nc"))
         with h5py.File(raw) as handle:
             rows, cols = data.box_slices(handle["lat"][:], handle["lon"][:])
             if not np.array_equal(handle["lat"][rows], grid["lat"]) or not np.array_equal(
                 handle["lon"][cols], grid["lon"]
             ):
                 raise ValueError("FWI and NEX coordinates differ; cannot reuse county weights")
-            values = handle["FWI_P95"][rows, cols].astype(np.float32)
+            values = handle["FWI"][rows, cols].astype(np.float32)
         values[np.abs(values) > 1e10] = np.nan
-        np.savez(target, FWI_P95=values)
+        np.savez(target, FWI=values)
         raw.unlink()
 
     jobs = [
@@ -396,6 +396,8 @@ def run(
     analysis: bool = False,
 ) -> None:
     validate_id(run_id)
+    if analysis:
+        raise ValueError("The legacy available-year policy cannot be used with MME50")
     split_uri(f"{input_uri.rstrip('/')}/_validate")
     reference = ROOT / "pipeline/vendor/fri_rebuild"
     verify_reference(reference)
@@ -432,6 +434,10 @@ def run(
             json.loads(path.read_text())
             for path in sorted((cache / "sources").glob("*.json"))
             if path.name != "nex-file-selection.json"
+            and (
+                "/FWI/" not in json.loads(path.read_text())["url"]
+                or "/MME/MME50_" in json.loads(path.read_text())["url"]
+            )
         ]
         sys.path.insert(0, str(ROOT / "pipeline"))
         from export_snapshot import export_inputs
@@ -446,7 +452,7 @@ def run(
             ("historical", "historical"),
             *[(s, p) for s in inputs.SSP.values() for p in ("MID", "LATE")],
         ]:
-            verified.fwi(scenario, period, "FWI_P95", "MME75")
+            verified.fwi(scenario, period, "FWI", "MME50")
             verified.loca2_histogram(scenario, period)
         verified.county_fuel_shares()
         manifest = json.loads(snapshot.read_text())

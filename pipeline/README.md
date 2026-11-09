@@ -82,7 +82,7 @@ County estimates retain the reviewed area-weighted method. No tracts, no v1.20 s
 national reconstruction claim. LOCA2 source centers retain 0.25° weighting boxes; no 6 km spatial
 support claim. Changes to baseline, geometry, aggregation, source support, scenarios or coefficients'
 fitting method require a new contract and comparison report. The fitted wildfire coefficient is
-recorded for each candidate alongside its MME75/FWI_P95 settings and baseline/source fingerprints.
+recorded for each candidate alongside its MME50/FWI settings and baseline/source fingerprints.
 
 Published updated variants include `_HM`, `_PALR`, `_PRISKR`, `_PRISKS`, `_DELTAR`, plus `_PALT`
 (projected annual loss, dollars/year) and `_PRISKV` (projected risk value, baseline hazard RISKV × HM).
@@ -92,7 +92,7 @@ Dollar outputs follow the validated equations; FEMA's archive has no direct publ
 
 `fri_pipeline.prepare` provides the real acquisition worker (`Preparation.Dockerfile`). It uses
 hash-checked copies of the pinned spike's data/weighting code in `vendor/fri_rebuild`, downloads
-only NEX monthly tas/pr, MME75/FWI_P95 and LOCA2 tasmin, and records complete raw-file hashes.
+only NEX monthly tas/pr, MME50/FWI and LOCA2 tasmin, and records complete raw-file hashes.
 LOCA2 files are downloaded and processed one at a time; the percentile calculation and 0.25°
 county weighting are unchanged. The preparation and scoring accounts can read/create experiment and results objects.
 They cannot write to the publisher staging bucket or publish hosted data. Shared catalog indexes
@@ -104,7 +104,8 @@ snapshot passes all source/coverage checks. Retries can restore a checkpoint wit
 and its `--resume-sha256`; every restored object is hash verified. NEX file selection remains pinned
 across retries. Acquisition can take hours; it does not call any LLM or agent loop.
 
-For the user-approved available-year exploration, pass `--available-fwi-years` to preparation.
+The legacy MME75 available-year exploration used `--available-fwi-years` in preparation.
+That option is rejected by the v2 MME50 contract; the following describes the historical run.
 It omits only the 19 catalog gaps pinned in `reference/available-fwi-years.json`, retaining
 26 historical years, 25 years per SSP2-4.5 period, and 28/27 SSP5-8.5 MID/LATE years.
 All other source, coverage and temporal checks remain in force. Period means use equally
@@ -154,7 +155,7 @@ nonempty `sourceIds`. Absolute/traversing paths and unknown sources fail verific
 | `nex_coordinates` | CSV, `lat`, `lon`, matching NEX weight columns |
 | `fuel_shares` | CSV, `STCOFIPS`, `nonburnable` and fuel groups, fractions summing to one |
 | `monthly_{tas,pr}_{ssp245,ssp585}` | NumPy NPZ `values` (month × cell), `months` (datetime64), Jan 1950–Dec 2100; °C and mm/day |
-| `fwi_{scenario}_{period}` | NPZ `values` (year × cell), `years`; MME75/FWI_P95 |
+| `fwi_{scenario}_{period}` | NPZ `values` (year × cell), `years`; MME50/FWI |
 | `loca2_{scenario}_{period}` | NPZ `edges`, `counts`; original 0.1°C histogram including no-data row |
 
 FWI and LOCA2 keys cover `historical_historical`, and each of `ssp245`/`ssp585` × `MID`/`LATE`.

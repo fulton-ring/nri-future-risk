@@ -333,8 +333,8 @@ def verify_candidate(directory: Path, *, publication: bool = False) -> dict:
         if (
             not isinstance(elasticity, (int, float))
             or not math.isfinite(elasticity)
-            or parameters.get("wildfireEnsemble") != "MME75"
-            or parameters.get("wildfireVariable") != "FWI_P95"
+            or parameters.get("wildfireEnsemble") != "MME50"
+            or parameters.get("wildfireVariable") != "FWI"
         ):
             raise ValueError("Publication requires the fitted wildfire coefficient and method")
         snapshot = provenance["inputSnapshot"]

@@ -512,7 +512,7 @@ def write_array_store(source: Path, name: str, destination: Path, coordinates=No
                 "degC" if "_tas_" in name else "mm day-1" if "_pr_" in name else "1"
             )
             if name.startswith("fwi_"):
-                dataset.attrs.update(variable="FWI_P95", ensemble="MME75", aggregation="annual")
+                dataset.attrs.update(variable="FWI", ensemble="MME50", aggregation="annual")
             else:
                 dataset.attrs.update(aggregation="monthly mean", source_grid_spacing_degrees=0.25)
         else:

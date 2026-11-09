@@ -58,13 +58,19 @@ in the completed analysis.
 
 ## Wildfire
 
-[wildfire.py](fri_pipeline/wildfire.py) uses NASA annual MME75 `FWI_P95` and LANDFIRE fuel shares.
+[wildfire.py](fri_pipeline/wildfire.py) uses NASA MME50 annual mean `FWI` and LANDFIRE fuel shares.
 Historical FWI is averaged over 1976–2005 and future FWI over each projection period, then
 area-weighted to counties. The county multiplier is:
 
 ```text
 HM = (future county FWI / historical county FWI) ** gamma
 ```
+
+The v2 contract switches from MME75/P95 to MME50/annual mean based on the
+[controlled FWI-choice spike](https://github.com/fulton-ring/agent-content-demos/tree/claude/cool-cray-ex74h1/fri-wildfire-fwi-choice).
+Gamma is refitted; fuel controls, weighting and county aggregation are unchanged. All 30
+years per period are required. The old available-year policy cannot be used with this contract.
+This choice improves reproduction of the FEMA archive; it does not identify FEMA’s original inputs.
 
 `gamma` is the coefficient on log historical FWI in a county regression of log wildfire
 expected annual loss, controlling for fuel shares and log burnable share. The least-squares

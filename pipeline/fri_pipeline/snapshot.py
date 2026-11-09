@@ -64,12 +64,10 @@ class Snapshot:
         self.root = self.path.parent
         self.manifest = json.loads(self.path.read_text())
         self.analysis = self.manifest.get("analysis")
-        if self.analysis is not None and (not analysis or self.analysis != FWI_ANALYSIS):
+        if analysis or self.analysis is not None:
             raise ValueError(
-                "Available-year analysis requires explicit opt-in and the pinned policy"
+                "The legacy MME75 available-year analysis cannot use the MME50 contract"
             )
-        if analysis and self.analysis != FWI_ANALYSIS:
-            raise ValueError("Expected the pinned available-year analysis policy")
         if (
             self.manifest.get("methodology") != CONTRACT["id"]
             or self.manifest.get("rebuildCommit") != CONTRACT["rebuildCommit"]
@@ -190,8 +188,8 @@ class Snapshot:
         return values, months
 
     def fwi(self, scenario: str, period: str, variable: str, ensemble: str):
-        if variable != "FWI_P95" or ensemble != "MME75":
-            raise ValueError("Frozen wildfire method requires FWI_P95 / MME75")
+        if variable != "FWI" or ensemble != "MME50":
+            raise ValueError("Frozen wildfire method requires FWI / MME50")
         with np.load(self.file(f"fwi_{scenario}_{period}"), allow_pickle=False) as data:
             values, years = data["values"], data["years"]
         expected = fwi_years(scenario, period, analysis=self.analysis is not None)
