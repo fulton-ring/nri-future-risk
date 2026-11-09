@@ -132,47 +132,27 @@ def test_missing_fwi_years_fail_before_projection(tmp_path):
     spec["sha256"] = hashlib.sha256(artifact.read_bytes()).hexdigest()
     path.write_text(json.dumps(data))
     with pytest.raises(ValueError, match="missing years"):
-        Snapshot(path).fwi("historical", "historical", "FWI_P95", "MME75")
+        Snapshot(path).fwi("historical", "historical", "FWI", "MME50")
 
 
-def test_available_year_analysis_is_explicit_and_rejects_additional_gaps(tmp_path):
-    from fri_pipeline.snapshot import FWI_ANALYSIS, fwi_years
-
+def test_legacy_wildfire_snapshot_is_rejected(tmp_path):
     path = prepared_snapshot(tmp_path / "inputs")
     data = json.loads(path.read_text())
-    data["analysis"] = FWI_ANALYSIS
-    for scenario, period, count in [
-        ("historical", "historical", 26),
-        ("ssp245", "MID", 25),
-        ("ssp245", "LATE", 25),
-        ("ssp585", "MID", 28),
-        ("ssp585", "LATE", 27),
-    ]:
-        years = fwi_years(scenario, period, analysis=True)
-        assert len(years) == count
-        spec = data["artifacts"][f"fwi_{scenario}_{period}"]
-        artifact = path.parent / spec["path"]
-        np.savez(artifact, values=np.ones((count, 1)), years=years)
-        spec["sha256"] = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    data["methodology"] = "fema-2024-county-area-weighted-v1"
     path.write_text(json.dumps(data))
-    with pytest.raises(ValueError, match="analysis"):
+    with pytest.raises(ValueError, match="frozen contract"):
         Snapshot(path)
-    assert Snapshot(path, analysis=True).fwi(
-        "historical", "historical", "FWI_P95", "MME75"
-    ).shape == (26, 1)
-    from fri_pipeline.analysis import run_analysis
 
-    result = run_analysis(path, tmp_path / "analysis", "available-year-test", "a" * 40)
-    assert result["publishable"] is False
-    assert result["wildfireCoverage"][0]["usedYears"] == 26
-    assert not (tmp_path / "analysis/candidate.json").exists()
-    assert (tmp_path / "analysis/multipliers.csv").is_file()
-    assert "Unequal year coverage" in (tmp_path / "analysis/report.md").read_text()
-    years = fwi_years("historical", "historical", analysis=True)[1:]
-    spec = data["artifacts"]["fwi_historical_historical"]
-    artifact = path.parent / spec["path"]
-    np.savez(artifact, values=np.ones((len(years), 1)), years=years)
-    spec["sha256"] = hashlib.sha256(artifact.read_bytes()).hexdigest()
+
+def test_wildfire_method_is_pinned_and_legacy_analysis_cannot_be_reused(tmp_path):
+    path = prepared_snapshot(tmp_path / "inputs")
+    assert Snapshot(path).fwi("historical", "historical", "FWI", "MME50").shape == (30, 1)
+    with pytest.raises(ValueError, match="Frozen wildfire"):
+        Snapshot(path).fwi("historical", "historical", "FWI_P95", "MME75")
+    from fri_pipeline.snapshot import FWI_ANALYSIS
+
+    data = json.loads(path.read_text())
+    data["analysis"] = FWI_ANALYSIS
     path.write_text(json.dumps(data))
-    with pytest.raises(ValueError, match="missing years"):
-        Snapshot(path, analysis=True).fwi("historical", "historical", "FWI_P95", "MME75")
+    with pytest.raises(ValueError, match="legacy"):
+        Snapshot(path, analysis=True)

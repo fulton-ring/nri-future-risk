@@ -5,7 +5,8 @@
 
 FRI Technical Documentation, Section 8: HM = (FWI_scenario / FWI_historic) ** gamma, where gamma
 is the coefficient on log historic FWI in a log-log regression of NRI county EAL on FWI with
-fuel-type shares as controls. The agent loop settled the open choices (see program.md).
+fuel-type shares as controls. MME50 / annual mean follows the controlled FWI-choice spike;
+the fuel-controlled regression and county aggregation remain unchanged.
 """
 
 import numpy as np
@@ -15,8 +16,8 @@ from scipy import sparse
 from .snapshot import Snapshot
 
 PERIODS = ("MID", "LATE")
-ENSEMBLE = "MME75"
-VARIABLE = "FWI_P95"
+ENSEMBLE = "MME50"
+VARIABLE = "FWI"
 
 
 def area_mean(values: np.ndarray, weights: sparse.csr_matrix) -> np.ndarray:

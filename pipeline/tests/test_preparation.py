@@ -138,3 +138,54 @@ def test_source_fingerprint_is_real_and_rejects_changed_payload(tmp_path):
 
 def test_vendored_reference_hashes_are_checked_before_import():
     verify_reference(Path(__file__).resolve().parents[1] / "vendor" / "fri_rebuild")
+
+
+def test_fwi_preparation_extracts_mean_and_keeps_ensemble_in_paths(tmp_path, monkeypatch):
+    import sys
+    from contextlib import nullcontext
+    from types import SimpleNamespace
+
+    import numpy as np
+
+    from fri_pipeline import prepare
+
+    def cache(*parts):
+        path = tmp_path.joinpath(*parts)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        return path
+
+    np.savez(cache("nex", "grid.npz"), lat=[35.0], lon=[-100.0])
+    calls = []
+
+    def download(url, path):
+        calls.append((url, path.name))
+        path.write_bytes(b"source")
+        return path
+
+    monkeypatch.setattr(prepare, "download_raw", download)
+    monkeypatch.setitem(
+        sys.modules,
+        "h5py",
+        SimpleNamespace(
+            File=lambda _: nullcontext(
+                {
+                    "lat": np.array([35.0]),
+                    "lon": np.array([-100.0]),
+                    "FWI": np.array([[2.0]]),
+                    "FWI_P95": np.array([[99.0]]),
+                }
+            )
+        ),
+    )
+    data = SimpleNamespace(
+        cache=cache,
+        fwi_path=lambda ensemble, scenario, year: cache("fwi", f"{ensemble}_{scenario}_{year}.npz"),
+        FWI="https://example.org/{ensemble}_{scenario}_{year}.nc",
+        HEAT_YEARS={"historical": [1976]},
+        box_slices=lambda *_: (slice(None), slice(None)),
+    )
+    prepare.prepare_fwi(data, SimpleNamespace(county_fuel_shares=lambda: None), 1)
+    with np.load(data.fwi_path("MME50", "historical", 1976)) as result:
+        assert result.files == ["FWI"]
+        np.testing.assert_array_equal(result["FWI"], [[2.0]])
+    assert calls == [("https://example.org/MME50_historical_1976.nc", "MME50_historical_1976.nc")]
