@@ -24,12 +24,16 @@ The four legacy `hifld-next-fri-*` buckets were retired after verifying all 5,04
 Historical evidence retains its original URLs; replace the old inputs bucket with experiments,
 and use `legacy-candidates/` in experiments for old candidate paths.
 
-The available-year Batch analysis `fri-analysis-20261025140637` succeeded: 3,108 CONUS counties
-were updated and scores calculated for the 3,231-county frozen baseline. All 310,176 archive
-regression comparisons passed. This remains **non-publishable analysis**, because 19 required
-wildfire years are absent from NASA's catalog. See the [analysis report](evidence/2026-10-25-available-year-analysis.md)
-and [run evidence](evidence/2026-10-25-available-year-analysis.json). Nothing has been published.
-The original source archiving job is separate from that completed numerical analysis.
+The full-year MME50/annual-mean update `fri-mme50-20261109195422-score` succeeded in
+Cloud Batch and is public as version `v20261109T201655Z`. It updates 3,108 CONUS counties,
+retains the 3,231-county scoring baseline and passes all 310,176 archive regression checks.
+All 150 required wildfire files and all 637 original sources are archived; Zarr and exact
+prepared inputs accompany the county GeoParquet. See the [comparison report](evidence/2026-11-09-mme50-results.md)
+and [run verification](evidence/2026-11-09-mme50-results.json).
+
+The October available-year MME75/P95 analysis remains available as a historical, non-publishable
+version. Its 19 missing-year exception cannot be used with the v2 full-year MME50 contract.
+Public results do not automatically stage or activate a production release.
 
 ## Verify locally
 

@@ -1,0 +1,95 @@
+{
+  "runId": "fri-mme50-20261109195422",
+  "codeRevision": "36b0df6f2856c2978b8d96324691b1cb38d8e6b3",
+  "image": "us-central1-docker.pkg.dev/hifld-next/fri/preparation@sha256:925b5f8ec50033e297f876543b6bf678f4b53199ce3c99ebb0f3279f495c6390",
+  "resumeUri": "gs://future-risk-index-experiments/real/acquisitions/fri-analysis-20261025140637/checkpoint-loca2.json",
+  "resumeSha256": "01d0e9d9b4f03e222e074b9291f4e6e15ca11fbc7aba565a12919e956e0bbf34",
+  "preparation": {
+    "runId": "fri-mme50-20261109195422",
+    "snapshotUri": "gs://future-risk-index-experiments/real/snapshots/fri-mme50-20261109195422/snapshot.json",
+    "snapshotSha256": "bf66f32383d48870d26646c47a68f6f4e9440ccdd96ec31ad4ed6a5935a94553",
+    "sourceCount": 637,
+    "methodology": "fema-2024-county-area-weighted-v2"
+  },
+  "scoringJob": "fri-mme50-20261109195422-score",
+  "outputUri": "gs://future-risk-index-experiments/runs/fri-mme50-20261109195422-score",
+  "version": "v20261109T201655Z",
+  "results": {
+    "collection": "future-risk-index",
+    "version": "v20261109T201655Z",
+    "publishable": true,
+    "resultsUri": "gs://future-risk-index-results",
+    "manifestUri": "gs://future-risk-index-results/_releases/v20261109T201655Z.json",
+    "manifestSha256": "148d098e37aef53281ebed64dbd2942f3081a82a383a0ce48702b6b474a128c0",
+    "sourceRunSha256": "78cd74a38b4745213bb9f6b287056ef15d6391657f088e6d94cf45d739654381"
+  },
+  "verifiedAt": "2026-11-09T20:28:23.760252+00:00",
+  "publicManifestSha256": "148d098e37aef53281ebed64dbd2942f3081a82a383a0ce48702b6b474a128c0",
+  "wildfireParameters": {
+    "wildfireElasticity": 1.2740255688133486,
+    "wildfireEnsemble": "MME50",
+    "wildfireVariable": "FWI"
+  },
+  "sourceCount": 637,
+  "wildfireAnnualFiles": 150,
+  "netcdfFiles": 631,
+  "anonymousNetcdfRangeVerified": true,
+  "fullYearFwiZarrMetadataVerified": true,
+  "mappedCounties": 3218,
+  "unchangedNonWildfireMultipliers": true,
+  "wildfireComparisonToArchive": [
+    {
+      "scenario": "MID_LOWER",
+      "counties": 3108,
+      "newLogMAE": 0.015073125093310009,
+      "previousLogMAE": 0.05054206901136679,
+      "minimumHM": 1.0377882613964382,
+      "maximumHM": 1.9318528937283748
+    },
+    {
+      "scenario": "MID_HIGHER",
+      "counties": 3108,
+      "newLogMAE": 0.023967881404335097,
+      "previousLogMAE": 0.060028842254541935,
+      "minimumHM": 1.0943407804470229,
+      "maximumHM": 2.3526994965533228
+    },
+    {
+      "scenario": "LATE_LOWER",
+      "counties": 3108,
+      "newLogMAE": 0.028623637697764326,
+      "previousLogMAE": 0.06288683477992205,
+      "minimumHM": 1.0869859721901847,
+      "maximumHM": 2.3354730296595028
+    },
+    {
+      "scenario": "LATE_HIGHER",
+      "counties": 3108,
+      "newLogMAE": 0.08475407330043976,
+      "previousLogMAE": 0.08720371611386153,
+      "minimumHM": 1.1651093217348834,
+      "maximumHM": 3.9733551750030536
+    }
+  ],
+  "dataUrl": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261109T201655Z/geoparquet/counties.parquet",
+  "batchStates": {
+    "preparation": "SUCCEEDED",
+    "scoringAndPackaging": "SUCCEEDED"
+  },
+  "archiveRegression": {
+    "comparisons": 310176,
+    "mismatches": 0
+  },
+  "localChecks": {
+    "pipelineTests": 47,
+    "uiTests": 18,
+    "previewBuild": "passed",
+    "publicNetcdfRange": 206,
+    "unchangedNonWildfireMultipliers": true
+  },
+  "meanWildfireLogMAE": {
+    "new": 0.038104679373962294,
+    "previous": 0.06516536553992308,
+    "relativeReduction": 0.4152617873275376
+  }
+}
