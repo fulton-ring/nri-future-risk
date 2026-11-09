@@ -1,4 +1,4 @@
-"""Render a hash-pinned analysis GeoParquet into review-only map assets; no hazard computation."""
+"""Render a hash-pinned Batch GeoParquet into review-only map assets; no hazard computation."""
 
 import argparse
 import hashlib
@@ -30,9 +30,9 @@ def main():
     if digest(args.manifest) != args.manifest_sha256:
         raise ValueError("Results manifest hash mismatch")
     manifest = json.loads(args.manifest.read_text())
-    if manifest["collection"] != "future-risk-index" or manifest["publishable"]:
+    if manifest["collection"] != "future-risk-index":
         raise ValueError(
-            "This builder is only for the explicitly selected analysis preview"
+            "Expected the Future Risk Index results collection"
         )
     key = f"future-risk-index/fri/counties/{manifest['version']}/geoparquet/counties.parquet"
     source_sha = digest(args.geoparquet)
@@ -116,8 +116,9 @@ def main():
         shutil.copyfile(source, output / name)
     release = {
         "id": manifest["analysisId"],
-        "title": "Available-year analysis preview",
-        "date": "2026-10-25",
+        "title": "Recomputed risk preview" if manifest["publishable"] else "Available-year analysis preview",
+        "date": f"{manifest['version'][1:5]}-{manifest['version'][5:7]}-{manifest['version'][7:9]}",
+        "resultsVersion": manifest["version"],
         "baseline": "NRI v1.19",
         "status": "analysis",
         "sourceSha256": source_sha,

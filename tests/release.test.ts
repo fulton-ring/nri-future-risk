@@ -7,7 +7,7 @@ test('analysis data is opt-in and shared links use its own identity', () => {
   assert.equal(selectRelease('archive').status, 'archive');
   const preview = selectRelease('analysis-preview');
   assert.equal(preview.status, 'analysis');
-  assert.equal(preview.id, 'fri-analysis-20261025140637');
+  assert.equal(preview.id, 'fri-mme50-20261109195422-score');
   assert.notEqual(preview.assets['counties.pmtiles'].path, selectRelease('archive').assets['counties.pmtiles'].path);
   assert.throws(() => selectRelease('unknown'), /Unknown data release/);
 });
@@ -39,7 +39,7 @@ test('the preview tile contains the new scores and fits Pages', async () => {
 
 test('a selected version in a shared URL overrides the deployment default', () => {
   assert.equal(selectRelease('analysis-preview', 'fema-2024-12-05').status, 'archive');
-  assert.equal(selectRelease('archive', 'fri-analysis-20261025140637').status, 'analysis');
+  assert.equal(selectRelease('archive', 'fri-mme50-20261109195422-score').status, 'analysis');
   assert.equal(selectRelease('archive', 'unavailable-version').status, 'archive');
 });
 
@@ -53,4 +53,29 @@ test('analysis controls and shared URLs only expose recalculated series', async 
   assert.equal(readState('?hazard=HRCN&model=N99', 'analysis').hazard, 'WFIR');
   assert.equal(readState('?hazard=EXHT&model=N99', 'analysis').model, 'L95');
   assert.equal(readState('?hazard=HRCN&model=N99', 'archive').hazard, 'HRCN');
+});
+
+
+test('the recomputed preview uses complete MME50 annual-mean inputs', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const provenance = JSON.parse(await readFile(new URL('../public/preview/provenance.json', import.meta.url), 'utf8'));
+  assert.equal(provenance.parameters.wildfireEnsemble, 'MME50');
+  assert.equal(provenance.parameters.wildfireVariable, 'FWI');
+  assert.ok(Number.isFinite(provenance.parameters.wildfireElasticity));
+  assert.equal(provenance.inputSnapshot.methodology, 'fema-2024-county-area-weighted-v2');
+  assert.equal(provenance.inputSnapshot.analysis, undefined);
+  const files = provenance.inputSnapshot.sources.filter((item: {url: string}) => item.url.includes('/gddpimpact/FWI/'));
+  assert.equal(files.length, 150);
+  assert.ok(files.every((item: {url: string}) => item.url.includes('/MME/MME50_')));
+});
+
+
+test('October shared links retain their original P95 data', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { createHash } = await import('node:crypto');
+  const previous = selectRelease('analysis-preview', 'fri-analysis-20261025140637');
+  assert.equal(previous.id, 'fri-analysis-20261025140637');
+  assert.notEqual(previous.assets['counties.pmtiles'].path, selectRelease('analysis-preview').assets['counties.pmtiles'].path);
+  const tile = await readFile(`public/${previous.assets['counties.pmtiles'].path}`);
+  assert.equal(createHash('sha256').update(tile).digest('hex'), '5d49262218febbc4fe6025eaf180f48539bd75137f8d08253d4af22fa41dd6ee');
 });

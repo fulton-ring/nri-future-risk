@@ -19,7 +19,7 @@ await writeFile('dist/_headers', '/*\n  X-Robots-Tag: noindex, nofollow\n/previe
 
 const { readFile } = await import('node:fs/promises');
 const tiles = {};
-const releaseFiles = (await readdir('src/data')).filter(name => ['release.json', 'analysis-preview.json'].includes(name));
+const releaseFiles = (await readdir('src/data')).filter(name => ['release.json', 'analysis-2026-10.json', 'analysis-preview.json'].includes(name));
 for (const name of releaseFiles) {
   const release = JSON.parse(await readFile(join('src/data', name), 'utf8'));
   const asset = release.assets['counties.pmtiles'];

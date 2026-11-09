@@ -1,7 +1,8 @@
 import archive from './release.json';
 import analysis from './analysis-preview.json';
+import previous from './analysis-2026-10.json';
 
-export const releases = [archive, analysis];
+export const releases = [archive, previous, analysis];
 
 export function selectRelease(mode?: string, requestedId?: string | null) {
   const requested = releases.find((item) => item.id === requestedId);

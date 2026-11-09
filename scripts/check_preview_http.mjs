@@ -15,7 +15,7 @@ async function fetchReady(url, options) {
     await setTimeout(5000);
   }
 }
-const releaseFiles = (await readdir('src/data')).filter(name => ['release.json', 'analysis-preview.json'].includes(name));
+const releaseFiles = (await readdir('src/data')).filter(name => ['release.json', 'analysis-2026-10.json', 'analysis-preview.json'].includes(name));
 for (const name of releaseFiles) {
   const release = JSON.parse(await readFile(`src/data/${name}`, 'utf8'));
   const path = release.assets['counties.pmtiles'].path;
@@ -37,7 +37,7 @@ for (const name of releaseFiles) {
     assert.ok(body.includes(`<h1>${page==='data'?'Data':'Methodology'}</h1>`));
   }
   if (release.status==='analysis') {
-    const response=await fetchReady(new URL('/preview/counties.parquet',base),{headers});
+    const response=await fetchReady(new URL(`/${path.replace(/counties\.pmtiles$/, 'counties.parquet')}`,base),{headers});
     assert.equal(response.status,200);
     assert.equal(createHash('sha256').update(Buffer.from(await response.arrayBuffer())).digest('hex'),release.sourceSha256);
   }
