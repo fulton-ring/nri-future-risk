@@ -1,4 +1,6 @@
 import { release, isAnalysis } from "../../data/releases";
+import CalculationDetails from "./CalculationDetails";
+import { countyCalculation, formatDollars, formatNumber } from "../../lib/calculations";
 import { Download, X } from "lucide-react";
 import {
   changeLabel,
@@ -34,6 +36,8 @@ export default function CountyPanel({ county, view, onClear }: Props) {
   });
   const rows = (["base", "mid", "late"] as Period[]).map((period) => ({
     period,
+    lowerNumbers: countyCalculation(county.values, {...view, period, emissions:"lower"}),
+    higherNumbers: countyCalculation(county.values, {...view, period, emissions:"higher"}),
     lower: metricValue(county.values, {
       ...view,
       period,
@@ -140,6 +144,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
             Annual loss: <strong>{changeLabel(multiplier)}</strong>
           </p>
         )}
+        <CalculationDetails county={county} view={view} />
         <section className="comparison" aria-labelledby="comparison-title">
           <div className="section-heading">
             <h3 id="comparison-title">Annual loss change</h3>
@@ -209,6 +214,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
                     </th>
                     <td colSpan={row.period === "base" ? 2 : 1}>
                       {describeValue(row.lower, view.metric)}
+                      <small>{view.metric === "loss" || (row.period === "base" && view.metric === "multiplier") ? `${formatDollars(row.lowerNumbers.annualLoss)}/year` : view.metric === "risk" ? `${formatNumber(row.lowerNumbers.riskScore,4)} / 100` : `${formatNumber(row.lowerNumbers.multiplier)}×`}</small>
                     </td>
                     {row.period !== "base" && (
                       <td>{describeValue(row.higher, view.metric)}</td>

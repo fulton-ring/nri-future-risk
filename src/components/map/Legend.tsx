@@ -1,3 +1,4 @@
+import RatingBins from "../counties/RatingBins";
 import {
   colorFor,
   lossRanges,
@@ -31,6 +32,7 @@ export default function Legend({ view }: { view: ViewState }) {
           ))}
         </div>
       )}
+      <RatingBins view={view} />
       <div className="legend-missing">
         {[null, "No Rating", "Not Applicable", "No Expected Annual Losses"].map(
           (value, i) => (
