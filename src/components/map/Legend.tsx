@@ -24,7 +24,7 @@ export default function Legend({ view }: { view: ViewState }) {
         ))}
       </div>
       {view.metric === "loss" && (
-        <div className="legend-ranges">
+        <div className="legend-ranges" aria-label="Rounded annual-loss ranges" title="Rounded labels; expand exact bins below.">
           {lossRanges[view.hazard].map((range, i) => (
             <span key={range} title={ratingNames[i]}>
               {range}

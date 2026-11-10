@@ -1,5 +1,5 @@
 import bins from '../../pipeline/reference/rating-bins.json';
-import { multiplierStops, ratingNames, scenarioKey, type Hazard, type Metric, type Values, type ViewState } from './risk';
+import { multiplierStops, ratingNames, scenarioKey, metricValue, type Hazard, type Metric, type Values, type ViewState } from './risk';
 
 export type RatingInterval = { label: string; lower: number | null; upper: number | null };
 const numeric = (value: unknown): number | null => typeof value === 'number' && Number.isFinite(value) ? value : null;
@@ -7,7 +7,7 @@ export function countyCalculation(values: Values, view: ViewState) {
   const key = scenarioKey(view), baseline = view.period === 'base';
   const baselineLoss = numeric(values[`${view.hazard}_EALT`]);
   const baselineRiskValue = numeric(values[`${view.hazard}_RISKV`]);
-  const multiplier = baseline ? 1 : numeric(values[`${key}_HM`]);
+  const multiplier = baseline ? 1 : numeric(metricValue(values,{...view,metric:"multiplier"}));
   const publishedLoss = numeric(values[`${key}_PALT`]);
   const product = (value: number | null) => value !== null && multiplier !== null ? value * multiplier : null;
   return {
