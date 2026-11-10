@@ -1444,3 +1444,25 @@ th small {
   font-family: var(--font-serif);
   font-size: 28px;
 }
+
+/* County values and source calculations share the existing details/table structure. */
+.county-numbers { margin: 16px 0; display: grid; gap: 12px; }
+.county-numbers > div, .calculation-inputs > div { display: flex; justify-content: space-between; gap: 14px; }
+.county-numbers dt, .calculation-inputs dt { font-size: 11px; color: var(--muted-foreground); }
+.county-numbers dd, .calculation-inputs dd { margin: 0; text-align: right; font-size: 13px; font-variant-numeric: tabular-nums; }
+.county-numbers dd small { display: block; margin-top: 3px; font-size: 10px; color: var(--muted-foreground); }
+.calculation-inputs { display: grid; gap: 10px; }
+.calculation-inputs dd { font-size: 11px; overflow-wrap: anywhere; }
+.calculation-equation { font-variant-numeric: tabular-nums; }
+.bin-details { font-variant-numeric: tabular-nums; }
+.bin-details td { overflow-wrap: anywhere; }
+.bin-swatch { display: inline-block; width: 8px; height: 8px; margin-right: 5px; border: 1px solid #0002; }
+.active-bin { background: var(--secondary); }
+.nri-county-link { display: block; margin-top: 16px; font-size: 12px; }
+.nri-baseline-note { margin-top: 4px; }
+.map-legend .bin-details { max-height: min(42vh, 320px); overflow-y: auto; margin-top: 10px; padding-top: 8px; }
+.map-legend .bin-details summary { font-size: 11px; }
+.map-legend .bin-details td, .map-legend .bin-details th { padding: 6px 3px; }
+
+.county-numbers dt small { display: block; margin-top: 3px; font-size: 10px; }
+td small { display: block; margin-top: 4px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }

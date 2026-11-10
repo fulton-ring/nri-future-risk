@@ -41,5 +41,14 @@ for (const name of releaseFiles) {
     assert.equal(response.status,200);
     assert.equal(createHash('sha256').update(Buffer.from(await response.arrayBuffer())).digest('hex'),release.sourceSha256);
   }
+  if (release.heatCalculations) {
+    const response=await fetchReady(new URL(`/${release.heatCalculations.path}`,base),{headers});
+    assert.equal(response.status,200);
+    const bytes=Buffer.from(await response.arrayBuffer());
+    assert.equal(createHash('sha256').update(bytes).digest('hex'),release.heatCalculations.sha256);
+    const details=JSON.parse(bytes.toString());
+    assert.equal(details.snapshotSha256,release.heatCalculations.snapshotSha256);
+    assert.equal(details.verifiedCountyScenarios,24864);
+  }
   console.log(`Verified hosted PMTiles bytes and available version documents/data: ${release.id}`);
 }

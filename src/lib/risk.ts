@@ -164,6 +164,7 @@ export function periodLabel(period: Period): string {
 }
 export function changeLabel(value: Value): string {
   if (typeof value !== "number") return describeValue(value, "multiplier");
+  if (value === 1) return "No increase applied";
   const change = (value - 1) * 100;
   return `${Math.abs(change).toLocaleString("en-US", { maximumFractionDigits: 1 })}% ${change < 0 ? "less" : "more"} than baseline`;
 }
