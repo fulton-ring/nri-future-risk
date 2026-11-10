@@ -288,3 +288,18 @@ remain in the catalog and reports, and the normal staging gates still reject it.
 [Public-access verification](evidence/2026-10-27-public-results.json) records anonymous
 catalog/listing/download/range checks, the GeoParquet checksum, private-bucket denials
 and the clean post-apply Terraform plan.
+
+## County explanation sidecars
+
+`fri_pipeline.explain` reads an immutable snapshot and exports historical/future heat event-day
+counts, raw ratios and applied multipliers without changing published scores. Run it in the
+preparation image on Batch, passing the snapshot URI/hash, published multiplier CSV URI/hash,
+and a new experiments output URI. All county/scenario applied multipliers must match the
+published CSV before the explanation file is written.
+
+The November explanation job `fri-explain-20261110203329` succeeded and checked all 24,864
+heat county/scenario values. [Evidence](evidence/2026-11-10-county-calculations.json) pins the
+snapshot, published multipliers, worker image and explanation digest. The combined preview
+serves this separate file with its own hash in the selected version manifest. The primary
+Portolan release inventory and scientific scores remain unchanged. Archive versions do not
+claim raw diagnostic inputs that their source data do not contain.

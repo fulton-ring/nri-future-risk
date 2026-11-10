@@ -160,6 +160,8 @@ then reports 1.0. This is a methodological floor, not proof of no warming or a m
 fallback. Keep the raw ratio and both event-day counts visible when verified diagnostics
 are available. Archived FEMA inputs do not contain these diagnostic fields; do not infer them.
 
-County report links use `https://hazards.fema.gov/nri/report/viewer?dataLOD=Counties&dataIDs=C`
-followed by the five-digit county FIPS, including independent cities. FEMA's live NRI can use
-a newer baseline than this tool's frozen v1.19 data.
+FEMA's old NRI county-report viewer redirects to a general RAPT page and loses county
+selection. County links instead open the current official RAPT experience, select the NRI
+county layer by `NRI_ID = 'C' + five-digit FIPS`, and zoom to that feature. Independent cities
+retain their own FIPS. This link was browser-verified against the November 2026 RAPT app;
+FEMA's live NRI v1.20 can differ from this tool's frozen v1.19 baseline.
