@@ -168,6 +168,9 @@ FEMA's live NRI v1.20 can differ from this tool's frozen v1.19 baseline.
 
 Interface values are rounded to at most three significant digits, with compact K/M/B labels
 for large amounts. Classification always uses the original unrounded values. Interactive
-category bars reveal exact bounds on hover, keyboard focus or selection; their expanding
-widths indicate interaction rather than a quantitative scale. Source downloads, thresholds,
+vertical category range bars use a linear value axis and reveal exact bounds on hover,
+keyboard focus or selection. The highest category has an open-ended arrow. Expanding
+widths indicate interaction; heights show the category ranges. Below-one heat ratios appear
+beside the applied multiplier, for example “1× (floored to 1 from 0.657)”; the displayed
+ratio comes from that county’s verified inputs. Source downloads, thresholds,
 calculation sidecars and scientific output hashes retain full precision.
