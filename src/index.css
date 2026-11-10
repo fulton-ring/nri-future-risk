@@ -1457,7 +1457,7 @@ th small {
 .bin-details { font-variant-numeric: tabular-nums; }
 .bin-details td { overflow-wrap: anywhere; }
 .bin-swatch { display: inline-block; width: 8px; height: 8px; margin-right: 5px; border: 1px solid #0002; }
-.active-bin { background: var(--secondary); }
+.active-bin { background: var(--muted); }
 .nri-county-link { display: block; margin-top: 16px; font-size: 12px; }
 .nri-baseline-note { margin-top: 4px; }
 .map-legend .bin-details { max-height: min(42vh, 320px); overflow-y: auto; margin-top: 10px; padding-top: 8px; }
