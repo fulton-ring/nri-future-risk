@@ -6,7 +6,7 @@ export default function RatingBins({view, value}: {view: ViewState; value?: numb
   const current=value === null || value === undefined ? -1 : binIndex(value,intervals);
   return <details className="data-details bin-details">
     <summary>Exact {view.metric === 'loss' ? 'annual-loss' : view.metric === 'risk' ? 'risk-rating' : 'map multiplier'} bins</summary>
-    <p>{view.metric === 'risk' ? 'Ratings use risk value, not percentile score. The 0–100 score has no fixed category cutoffs.' : view.metric === 'loss' ? 'Fixed NRI v1.19 thresholds, in dollars per year. Loss totals are not per person.' : 'Fixed display intervals for this map; these are not FEMA risk-rating categories.'} Exact upper boundaries stay in the lower bin.</p>
+    <p>{view.metric === 'risk' ? 'Ratings use baseline risk-value cutoffs, not percentile score. The 0–100 score has no fixed category cutoffs.' : view.metric === 'loss' ? 'Cutoffs recovered from the full NRI v1.19 baseline, in dollars per year. Loss totals are not per person.' : 'Fixed display intervals for this map; these are not FEMA risk-rating categories.'} Exact upper boundaries stay in the lower bin.</p>
     {current >= 0 && <p>Selected value: <strong>{view.metric === 'loss' ? '$' : ''}{formatNumber(value!,10)}{view.metric === 'multiplier' ? '×' : ''}</strong></p>}
     <table>
       <thead><tr><th scope="col">{view.metric === 'multiplier' ? 'Map color' : 'Rating'}</th><th scope="col">{view.metric === 'loss' ? 'Annual loss ($/year)' : view.metric === 'risk' ? 'Risk value' : 'Applied multiplier'}</th></tr></thead>

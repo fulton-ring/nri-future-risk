@@ -33,3 +33,12 @@ test('NRI county links retain leading zeros and independent-city FIPS', () => {
 test('a published 1x does not claim an absence of warming',()=>{
   assert.equal(changeLabel(1),'No increase applied');
 });
+
+test('archive No Rating multipliers do not fabricate zero projected losses',()=>{
+  const hurricane={...view,hazard:'HRCN'} as typeof view;
+  const row=countyCalculation({HRCN_EALT:4012702.354,HRCN_RISKV:5000000,HRCN_MID_LOWER_HM:0,HRCN_MID_LOWER_DELTAR:'No Rating',HRCN_MID_LOWER_PRISKS:50},hurricane);
+  assert.equal(row.multiplier,null);
+  assert.equal(row.annualLoss,null);
+  assert.equal(row.riskValue,null);
+  assert.equal(row.riskScore,50);
+});
