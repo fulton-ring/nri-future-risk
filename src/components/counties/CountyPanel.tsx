@@ -3,7 +3,6 @@ import CalculationDetails from "./CalculationDetails";
 import { countyCalculation, formatDollars, formatNumber } from "../../lib/calculations";
 import { Download, X } from "lucide-react";
 import {
-  changeLabel,
   colorFor,
   describeValue,
   hazards,
@@ -24,11 +23,6 @@ export default function CountyPanel({ county, view, onClear }: Props) {
       </div>
     );
   const value = metricValue(county.values, view);
-  const multiplier = metricValue(county.values, {
-    ...view,
-    metric: "multiplier",
-    period: view.period === "base" ? "mid" : view.period,
-  });
   const baseline = metricValue(county.values, {
     ...view,
     period: "base",
@@ -120,16 +114,10 @@ export default function CountyPanel({ county, view, onClear }: Props) {
           {view.period !== "base" &&
             ` · ${pathwayLabel(view.hazard, view.emissions)}`}
         </div>
-        <div className="result-value">
-          <span
-            className="result-dot"
-            style={{ background: colorFor(value, view.metric) }}
-          />
-          {describeValue(value, view.metric)}
-        </div>
-        {view.metric === "multiplier" && (
-          <p className="result-explanation">{changeLabel(value)}</p>
-        )}
+        {view.metric !== "multiplier" && <div className="result-value">
+          <span className="result-dot" style={{background:colorFor(value,view.metric)}} />
+          {describeValue(value,view.metric)}
+        </div>}
         <div className="baseline-row">
           <span>Baseline · NRI v1.19</span>
           <strong>
@@ -139,11 +127,6 @@ export default function CountyPanel({ county, view, onClear }: Props) {
             )}
           </strong>
         </div>
-        {view.period !== "base" && view.metric !== "multiplier" && (
-          <p className="change-note">
-            Annual loss: <strong>{changeLabel(multiplier)}</strong>
-          </p>
-        )}
         <CalculationDetails county={county} view={view} />
         <section className="comparison" aria-labelledby="comparison-title">
           <div className="section-heading">

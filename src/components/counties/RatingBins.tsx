@@ -2,46 +2,69 @@ import { useState } from 'react';
 import { binIndex, formatDollars, formatExactNumber, formatNumber, intervalLabel, ratingIntervals } from '../../lib/calculations';
 import { palette, type ViewState } from '../../lib/risk';
 
-type Props = {view: ViewState; value?: number | null; inline?: boolean};
-const ratingLabels=['Very low','Low','Moderate','High','Very high'];
+type Props = {view: ViewState; value?: number | null};
+const categoryLabels=['Very low','Low','Moderate','High','Very high'];
 const multiplierLabels=['≤1×','1–1.5×','1.5–2×','2–4×','>4×'];
 
-function BinChart({view,value,inline}:Props) {
+function BinChart({view,value}:Props) {
   const intervals=ratingIntervals(view.hazard,view.metric);
-  const labels=view.metric === 'multiplier' ? multiplierLabels : ratingLabels;
+  const labels=view.metric === 'multiplier' ? multiplierLabels : categoryLabels;
   const current=value === null || value === undefined ? -1 : binIndex(value,intervals);
   const [pinned,setPinned]=useState<number|null>(null);
   const [hovered,setHovered]=useState<number|null>(null);
-  const active=hovered ?? pinned ?? (!inline && current >= 0 ? current : null);
+  const active=hovered ?? pinned;
   const selected=active === null ? null : intervals[active];
-  return <div className={`bin-explorer${inline ? " is-inline" : ""}`} onKeyDown={event=>{if(event.key==='Escape'){setPinned(null);setHovered(null);}}}>
-    {current >= 0 && <p className="bin-county-value">County value: <strong title={formatExactNumber(value!)}>{view.metric === 'loss' ? formatDollars(value!) : `${formatNumber(value!)}${view.metric === 'multiplier' ? '×' : ''}`}</strong></p>}
-    <div className="bin-bars" role="group" aria-label={`${view.metric === 'loss' ? 'Annual loss' : view.metric === 'risk' ? 'Risk value' : 'Map multiplier'} bins`}>
-      {intervals.map((interval,i)=><button key={i} type="button"
-        className={`bin-bar${i === active ? ' is-expanded' : ''}${i === current ? ' is-county' : ''}`}
-        style={{background:palette[i],flexGrow:i === active ? 2.8 : 1}}
-        aria-label={`${labels[i]}: ${intervalLabel(interval,view.metric)}${i === current ? '. Selected county' : ''}`}
-        aria-pressed={pinned === i} title={intervalLabel(interval,view.metric)}
-        onPointerEnter={()=>setHovered(i)} onPointerLeave={()=>setHovered(null)}
-        onFocus={()=>setHovered(i)} onBlur={()=>setHovered(null)}
-        onClick={()=>setPinned(pinned === i ? null : i)}>
-        <span>{labels[i]}</span>{i === current && <small>County</small>}
-      </button>)}
+  const target=Math.max(intervals[3].upper! * 1.25,(value ?? 0) * 1.1);
+  const power=10 ** Math.floor(Math.log10(target / 5));
+  const step=([1,2,2.5,5,10].find(n=>n >= target / 5 / power) ?? 10) * power;
+  const ceiling=Math.ceil(target / step) * step;
+  const left=60, top=18, plotWidth=330, plotHeight=112, bottom=top+plotHeight, column=plotWidth/5;
+  const y=(amount:number)=>bottom-amount/ceiling*plotHeight;
+  const tick=(amount:number)=>view.metric === 'loss' ? formatDollars(amount) : `${formatNumber(amount)}${view.metric === 'multiplier' ? '×' : ''}`;
+  return <div className="bin-explorer" onKeyDown={event=>{if(event.key==='Escape'){setPinned(null);setHovered(null);}}}>
+    <div className="range-chart">
+      <svg viewBox="0 0 400 173" role="img" aria-label={`${view.metric === 'loss' ? 'Annual loss in dollars per year' : view.metric === 'risk' ? 'Risk value' : 'Multiplier'} on the left axis; five categories on the bottom. Bars show each category’s range. The highest range has no upper limit.`}>
+        <text x={left} y={10} className="range-axis-title">{view.metric === 'loss' ? 'Annual loss ($ / year)' : view.metric === 'risk' ? 'Risk value' : 'Multiplier'}</text>
+        {Array.from({length:Math.round(ceiling/step)+1},(_,i)=>i*step).map(amount=><g key={amount}>
+          <line x1={left} x2={left+plotWidth} y1={y(amount)} y2={y(amount)} className="range-grid" />
+          <text x={left-7} y={y(amount)+3} textAnchor="end" className="range-tick">{tick(amount)}</text>
+        </g>)}
+        {intervals.map((interval,i)=>{
+          const center=left+column*(i+0.5), width=column*(i === active ? 0.7 : 0.48);
+          const low=interval.lower ?? 0, high=interval.upper ?? ceiling;
+          return <g key={i}>
+            {i === active && <rect x={left+column*i+2} y={top} width={column-4} height={plotHeight} className="range-column-highlight" />}
+            {interval.upper === null
+              ? <path d={`M${center-width/2},${y(low)} V${top+8} L${center},${top} L${center+width/2},${top+8} V${y(low)} Z`} fill={palette[i]} className="range-bar" />
+              : <rect x={center-width/2} y={y(high)} width={width} height={Math.max(0,y(low)-y(high))} fill={palette[i]} className="range-bar" />}
+            {interval.upper !== null && <line x1={center-width/2} x2={center+width/2} y1={y(high)} y2={y(high)} className="range-bar-cap" />}
+            {i === current && value !== null && value !== undefined && <circle cx={center} cy={y(value)} r={3} className="range-county-marker"><title>Selected county: {tick(value)} ({formatExactNumber(value)})</title></circle>}
+            <text x={center} y={bottom+15} textAnchor="middle" className={`range-category${i === current ? ' is-county' : ''}`}>{labels[i]}</text>
+            {i === current && <text x={center} y={bottom+26} textAnchor="middle" className="range-county-label">County</text>}
+          </g>;
+        })}
+        <line x1={left} x2={left} y1={top} y2={bottom} className="range-axis" />
+        <line x1={left} x2={left+plotWidth} y1={bottom} y2={bottom} className="range-axis" />
+        <text x={left+plotWidth/2} y={169} textAnchor="middle" className="range-axis-title">Category</text>
+      </svg>
+      <div className="range-chart-targets" role="group" aria-label="Inspect category ranges">
+        {intervals.map((interval,i)=><button key={i} type="button" className="range-target"
+          aria-label={`${labels[i]}: ${intervalLabel(interval,view.metric)}${i === current ? '. Selected county' : ''}`}
+          aria-pressed={pinned === i} title={intervalLabel(interval,view.metric)}
+          onPointerEnter={()=>setHovered(i)} onPointerLeave={()=>setHovered(null)}
+          onFocus={()=>setHovered(i)} onBlur={()=>setHovered(null)}
+          onClick={()=>setPinned(pinned === i ? null : i)} />)}
+      </div>
     </div>
-    {selected ? <div className="bin-inspection" role="status" aria-live="polite">
+    {selected && <div className="bin-inspection" role="status" aria-live="polite">
       <strong>{view.metric === 'multiplier' ? 'Map interval' : selected.label}</strong>
       <span>{intervalLabel(selected,view.metric)}{view.metric === 'loss' ? ' / year' : ''}</span>
       <small>{selected.upper === null ? 'No upper limit' : 'Upper bound included'} · click to pin · Esc to reset</small>
-    </div> : null}
-    {(inline || !selected) && <p className="bin-hint">{selected ? "Click to pin · Esc to reset" : "Hover or select a band for its exact range."}</p>}
-    <p className="bin-caption">{view.metric === 'risk' ? 'Categories use risk value, not the 0–100 percentile score.' : view.metric === 'loss' ? 'Total county loss per year · frozen NRI v1.19 cutoffs.' : 'Fixed map display intervals, not FEMA risk categories.'} Bands are categorical, not proportional.</p>
+    </div>}
+    <p className="bin-hint">{selected ? 'Click to pin · Esc to reset' : 'Hover or select a bar for the exact range.'}</p>
+    {view.metric === 'risk' && <p className="bin-caption">Categories use risk value, not the 0–100 percentile.</p>}
   </div>;
 }
-
 export default function RatingBins(props:Props) {
-  const chart=<BinChart key={`${props.view.hazard}-${props.view.metric}-${props.value ?? 'all'}`} {...props} />;
-  return props.inline ? chart : <details className="data-details bin-details">
-    <summary>{props.view.metric === 'loss' ? 'Annual-loss' : props.view.metric === 'risk' ? 'Risk-rating' : 'Map multiplier'} bins</summary>
-    {chart}
-  </details>;
+  return <BinChart key={`${props.view.hazard}-${props.view.metric}-${props.value ?? 'all'}`} {...props} />;
 }
