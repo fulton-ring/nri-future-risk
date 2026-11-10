@@ -246,7 +246,7 @@ export default function App() {
                 <Maximize2 size={15} />
                 US extent
               </button>
-              <Legend view={view} />
+              <Legend view={view} county={county} />
             </div>
           ) : (
             <div className="results-table">

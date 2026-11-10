@@ -42,3 +42,14 @@ test('archive No Rating multipliers do not fabricate zero projected losses',()=>
   assert.equal(row.riskValue,null);
   assert.equal(row.riskScore,50);
 });
+
+test('display values use three significant digits while bin limits retain their precision', async()=>{
+  const {formatDollars,formatNumber,intervalLabel}=await import('../src/lib/calculations.ts');
+  assert.equal(formatDollars(192187.6093),'$192K');
+  assert.equal(formatDollars(1873469.748),'$1.87M');
+  assert.equal(formatDollars(0),'$0');
+  assert.equal(formatNumber(0.5907061067),'0.591');
+  assert.equal(formatNumber(64.05),'64.1');
+  assert.equal(formatNumber(null),'Unavailable');
+  assert.equal(intervalLabel(ratingIntervals('EXHT','loss')[1],'loss'),'> $10,855.88871 to ≤ $241,379.1141');
+});

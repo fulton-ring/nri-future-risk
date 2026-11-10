@@ -39,7 +39,7 @@ test("zero, missing and no-rating multipliers stay distinct", () => {
   assert.equal(metricValue({ WFIR_MID_LOWER_HM: 0 }, state), 0);
   assert.equal(metricValue({}, state), null);
   assert.notEqual(colorFor(0, "multiplier"), colorFor(null, "multiplier"));
-  assert.equal(describeValue(0, "multiplier"), "0.00×");
+  assert.equal(describeValue(0, "multiplier"), "0×");
 });
 test("baseline heat uses shared EXHT fields and future heat uses model fields", () => {
   const values = {

@@ -214,7 +214,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
                     </th>
                     <td colSpan={row.period === "base" ? 2 : 1}>
                       {describeValue(row.lower, view.metric)}
-                      <small>{view.metric === "loss" || (row.period === "base" && view.metric === "multiplier") ? `${formatDollars(row.lowerNumbers.annualLoss)}/year` : view.metric === "risk" ? `${formatNumber(row.lowerNumbers.riskScore,4)} / 100` : `${formatNumber(row.lowerNumbers.multiplier)}×`}</small>
+                      <small>{view.metric === "loss" || (row.period === "base" && view.metric === "multiplier") ? `${formatDollars(row.lowerNumbers.annualLoss)}/year` : view.metric === "risk" ? `${formatNumber(row.lowerNumbers.riskScore)} / 100` : `${formatNumber(row.lowerNumbers.multiplier)}×`}</small>
                     </td>
                     {row.period !== "base" && (
                       <td>{describeValue(row.higher, view.metric)}</td>
