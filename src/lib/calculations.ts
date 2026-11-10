@@ -29,6 +29,21 @@ export function ratingIntervals(hazard: Hazard, metric: Metric): RatingInterval[
 export function binIndex(value: number, intervals: RatingInterval[]) {
   return intervals.findIndex(interval => interval.upper === null || value <= interval.upper);
 }
+export function ratingChartScale(intervals: RatingInterval[], value: number | null, metric: Metric) {
+  const target=Math.max(intervals[3].upper! * 1.25,(value ?? 0) * 1.1);
+  if (metric !== 'multiplier') {
+    // A smooth log scale retains zero while separating the small dollar/risk bins.
+    const unit=10 ** Math.floor(Math.log10(intervals[0].upper! / 100));
+    const ceiling=10 ** Math.ceil(Math.log10(target));
+    const ticks=[0];
+    for(let tick=unit*10;tick<=ceiling;tick*=10) ticks.push(tick);
+    return {ceiling,ticks,position:(amount:number)=>Math.log1p(amount/unit)/Math.log1p(ceiling/unit)};
+  }
+  const power=10 ** Math.floor(Math.log10(target / 5));
+  const step=([1,2,2.5,5,10].find(n=>n >= target / 5 / power) ?? 10) * power;
+  const ceiling=Math.ceil(target / step) * step;
+  return {ceiling,ticks:Array.from({length:Math.round(ceiling/step)+1},(_,i)=>i*step),position:(amount:number)=>amount/ceiling};
+}
 export function nriCountyUrl(fips: string) {
   if (!/^\d{5}$/.test(fips)) throw new Error('Expected a five-digit county FIPS');
   // FEMA retired the report viewer; RAPT supports selecting the current NRI county by ID.

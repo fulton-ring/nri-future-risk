@@ -1473,12 +1473,12 @@ td small { display: block; margin-top: 4px; color: var(--muted-foreground); font
 .range-category { fill: var(--foreground); font: 8px var(--font-sans); }
 .range-category.is-county { font-weight: 700; }
 .range-county-label { fill: var(--foreground); font: 7px var(--font-sans); }
-.range-column-highlight { fill: var(--muted); }
 .range-bar { transition: all 150ms ease; }
 .range-bar-cap { stroke: var(--muted-foreground); stroke-width: 0.8; }
 .range-county-marker { fill: var(--foreground); stroke: var(--card); stroke-width: 1; }
 .range-chart-targets { position: absolute; left: 15%; right: 2.5%; top: 10.4%; bottom: 8%; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); }
 .range-target { min-width: 0; border: 0; background: transparent; cursor: pointer; }
+.range-target:hover:not(:disabled) { background: transparent; }
 .range-target:focus-visible { outline: 2px solid var(--foreground); outline-offset: -2px; }
 .bin-inspection { position: absolute; bottom: calc(100% + 8px); left: 0; right: 0; padding: 10px 12px; background: var(--card); border: 1px solid var(--border); z-index: 4; display: grid; gap: 5px; font-size: 11px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .bin-inspection small { font-size: 9px; color: var(--muted-foreground); }

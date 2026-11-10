@@ -53,3 +53,21 @@ test('display values use three significant digits while bin limits retain their 
   assert.equal(formatNumber(null),'Unavailable');
   assert.equal(intervalLabel(ratingIntervals('EXHT','loss')[1],'loss'),'> $10,855.88871 to ≤ $241,379.1141');
 });
+
+test('dollar category charts keep low bins visible, include zero and preserve ordered exact values', async () => {
+  const { ratingChartScale } = await import('../src/lib/calculations.ts');
+  for (const hazard of ['EXHT','WFIR','DRGT','CFLD','HRCN'] as const) {
+    const intervals=ratingIntervals(hazard,'loss');
+    const scale=ratingChartScale(intervals,null,'loss');
+    assert.equal(scale.position(0),0);
+    assert.equal(scale.position(scale.ceiling),1);
+    assert.ok(scale.position(intervals[0].upper!) >= 0.12,`${hazard}: first category must be readable`);
+    assert.ok(scale.position(intervals[3].upper!) < 0.95);
+    assert.ok(scale.ticks.every((n,i,a)=>i === 0 || n > a[i-1]));
+    assert.ok(scale.ticks.every(n=>n >= 0 && n <= scale.ceiling));
+    assert.ok(scale.position(intervals[1].upper!) > scale.position(intervals[0].upper!));
+  }
+  const multiplier=ratingChartScale(ratingIntervals('EXHT','multiplier'),100,'multiplier');
+  assert.equal(multiplier.position(2),2/multiplier.ceiling);
+  assert.ok(multiplier.ceiling >= 100);
+});
