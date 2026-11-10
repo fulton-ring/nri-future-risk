@@ -18,5 +18,15 @@
       "sha256": "b2e5221d668db8bc163693c722594cdae550dd734bfbdf0ca14f96161108f063"
     }
   },
-  "sourceLayer": "counties"
+  "sourceLayer": "counties",
+  "heatCalculations": {
+    "path": "preview/calculations.json",
+    "sha256": "b1b591c5ab9e54a9c240d876cd9be92463f07eb832df3be4a267d49fb5c2e019",
+    "snapshotSha256": "bf66f32383d48870d26646c47a68f6f4e9440ccdd96ec31ad4ed6a5935a94553"
+  },
+  "parameters": {
+    "wildfireElasticity": 1.2740255688133486,
+    "wildfireEnsemble": "MME50",
+    "wildfireVariable": "FWI"
+  }
 }

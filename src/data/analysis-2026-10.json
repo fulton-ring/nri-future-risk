@@ -18,5 +18,10 @@
     }
   },
   "sourceLayer": "counties",
-  "resultsVersion": "v20261025T140637Z"
+  "resultsVersion": "v20261025T140637Z",
+  "parameters": {
+    "wildfireElasticity": 1.5180275773076561,
+    "wildfireEnsemble": "MME75",
+    "wildfireVariable": "FWI_P95"
+  }
 }

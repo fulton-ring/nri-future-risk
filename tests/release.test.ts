@@ -79,3 +79,26 @@ test('October shared links retain their original P95 data', async () => {
   const tile = await readFile(`public/${previous.assets['counties.pmtiles'].path}`);
   assert.equal(createHash('sha256').update(tile).digest('hex'), '5d49262218febbc4fe6025eaf180f48539bd75137f8d08253d4af22fa41dd6ee');
 });
+
+test('heat explanations are bound to this snapshot and match every published county multiplier', async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const {createHash}=await import('node:crypto');
+  const current=selectRelease('analysis-preview');
+  const asset=('heatCalculations' in current ? current.heatCalculations : null) as {path:string;sha256:string;snapshotSha256:string} | null;
+  assert.ok(asset);
+  const bytes=await readFile(`public/${asset.path}`);
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),asset.sha256);
+  const details=JSON.parse(bytes.toString());
+  assert.equal(details.snapshotSha256,asset.snapshotSha256);
+  const counties=JSON.parse(await readFile(`public/${current.assets['counties.json'].path}`,'utf8'));
+  const byId=new Map(counties.counties.map((c:{id:string;values:number[]})=>[c.id,c.values]));
+  let comparisons=0;
+  for(const [fips,values] of Object.entries(details.counties))for(const [key,row] of Object.entries(values as Record<string,{rawMultiplier:number;appliedMultiplier:number}>)){
+    const actual=(byId.get(fips) as number[])[counties.columns.indexOf(`${key}_HM`)];
+    assert.ok(Math.abs(actual-row.appliedMultiplier)<1e-12);
+    assert.equal(row.appliedMultiplier,Math.max(1,row.rawMultiplier));
+    comparisons++;
+  }
+  assert.equal(comparisons,24864);
+  assert.ok(Math.abs(details.counties['51683'].EXHT_L95_MID_LOWER.rawMultiplier-0.5907061067256821)<1e-12);
+});
