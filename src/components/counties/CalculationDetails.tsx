@@ -3,7 +3,6 @@ import { assetUrl } from '../../clients/api';
 import { release } from '../../data/releases';
 import { countyCalculation, formatDollars, formatNumber, formatExactNumber, nriCountyUrl, ratingIntervals, binIndex } from '../../lib/calculations';
 import { scenarioKey, metricValue, ratingNames, type County, type ViewState } from '../../lib/risk';
-import RatingBins from './RatingBins';
 
 type HeatDetails = {historicalDaysPerYear:number; futureDaysPerYear:number; rawMultiplier:number; appliedMultiplier:number};
 type HeatAsset = {path:string; sha256:string; snapshotSha256:string};
@@ -37,8 +36,7 @@ export default function CalculationDetails({county,view}: {county:County;view:Vi
     <dl className="county-numbers">
       <div><dt>Annual loss</dt><dd title={values.annualLoss === null ? undefined : `$${formatExactNumber(values.annualLoss)}/year`}>{formatDollars(values.annualLoss)}<small>per year</small></dd></div>
       <div><dt>Risk score</dt><dd title={formatExactNumber(values.riskScore)}>{formatNumber(values.riskScore)}<small>national percentile · 0–100</small></dd></div>
-      {future && <div><dt>{rebuilt ? 'Applied multiplier' : 'Published multiplier'}</dt><dd title={`${formatExactNumber(values.multiplier)}×`}>{formatNumber(values.multiplier)}{values.multiplier !== null && '×'}</dd></div>}
-      {heat && <div><dt>Raw heat ratio<small>before the 1× floor</small></dt><dd title={`${formatExactNumber(heat.rawMultiplier)}×`}>{formatNumber(heat.rawMultiplier)}×</dd></div>}
+      {future && <div><dt>{rebuilt ? 'Applied multiplier' : 'Published multiplier'}</dt><dd title={`${formatExactNumber(values.multiplier)}×`}>{formatNumber(values.multiplier)}{values.multiplier !== null && '×'}{heat && heat.rawMultiplier < 1 && heat.appliedMultiplier === 1 && <span className="multiplier-floor"> (floored to 1 from {formatNumber(heat.rawMultiplier)})</span>}</dd></div>}
     </dl>
     <details className="data-details calculation-details">
       <summary>How this county is calculated</summary>
@@ -69,7 +67,6 @@ export default function CalculationDetails({county,view}: {county:County;view:Vi
       <a href={assetUrl(`versions/${release.id}/methodology.html`)}>Methodology for this version</a>
       <a href={assetUrl(`versions/${release.id}/data.html`)}>Data and provenance for this version</a>
     </details>
-    <RatingBins view={view} value={selected} />
     <a className="nri-county-link" href={nriCountyUrl(county.id)} target="_blank" rel="noreferrer">View {county.name} in FEMA NRI / RAPT</a>
     <p className="caption nri-baseline-note">FEMA’s current report may use a newer baseline.</p>
   </section>;

@@ -3,6 +3,7 @@ import RatingBins from "../counties/RatingBins";
 import {
   colorFor,
   metrics,
+  metricValue,
   multiplierStops,
   ratingNames,
   type ViewState,
@@ -11,9 +12,11 @@ import {
 export default function Legend({ view, county }: { view: ViewState; county?: County }) {
   const values=county ? countyCalculation(county.values,view) : null;
   const value=values ? view.metric === "loss" ? values.annualLoss : view.metric === "risk" ? values.riskValue : values.multiplier : null;
+  const source=county ? metricValue(county.values,view) : null;
+  const hasBin=typeof source === "number" || (typeof source === "string" && ratingNames.some(name=>source.startsWith(name)));
   return (
     <div className="map-legend" aria-label={`${metrics[view.metric]} legend`}>
-      <RatingBins view={view} value={value} inline />
+      <RatingBins view={view} value={hasBin ? value : null} />
       <div className="legend-missing">
         {[null, "No Rating", "Not Applicable", "No Expected Annual Losses"].map(
           (value, i) => (

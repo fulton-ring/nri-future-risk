@@ -1463,20 +1463,26 @@ th small {
 .county-numbers dt small { display: block; margin-top: 3px; font-size: 10px; }
 td small { display: block; margin-top: 4px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
 
-.bin-bars { display: flex; gap: 3px; width: 100%; }
-.bin-bar { min-width: 0; min-height: 44px; flex-basis: 0; border: 1px solid transparent; padding: 7px 3px; color: #27251f; cursor: pointer; transition: flex-grow 160ms ease; text-align: center; }
-.bin-bar span { display: block; font-size: 10px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; }
-.bin-bar small { display: block; margin-top: 4px; font-size: 9px; font-weight: 650; }
-.bin-bar.is-county { border-bottom: 3px solid var(--foreground); }
-.bin-bar.is-expanded { outline: 1px solid var(--foreground); outline-offset: -1px; }
-.bin-bar:focus-visible { outline: 2px solid var(--foreground); outline-offset: 2px; }
-.bin-bar:last-child { color: #fffdf6; }
-.bin-inspection { display: grid; gap: 5px; margin-top: 10px; font-size: 11px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
-.bin-inspection small { font-size: 9px; color: var(--muted-foreground); }
-.bin-details .bin-county-value { margin-bottom: 10px; }
-.bin-explorer .bin-hint, .bin-explorer .bin-caption { font-size: 10px; line-height: 1.45; color: var(--muted-foreground); margin: 8px 0 0; }
-.bin-details .bin-explorer { padding-top: 10px; }
-@media (prefers-reduced-motion: reduce) { .bin-bar { transition: none; } }
 
 .bin-explorer { position: relative; }
-.bin-explorer.is-inline .bin-inspection { position: absolute; bottom: calc(100% + 8px); left: 0; right: 0; padding: 10px 12px; margin: 0; background: var(--card); border: 1px solid var(--border); z-index: 4; }
+.range-chart { position: relative; }
+.range-chart svg { display: block; width: 100%; overflow: visible; }
+.range-grid { stroke: var(--border); stroke-width: 0.5; }
+.range-axis { stroke: var(--muted-foreground); stroke-width: 0.7; }
+.range-tick, .range-axis-title { fill: var(--muted-foreground); font: 8px var(--font-sans); }
+.range-category { fill: var(--foreground); font: 8px var(--font-sans); }
+.range-category.is-county { font-weight: 700; }
+.range-county-label { fill: var(--foreground); font: 7px var(--font-sans); }
+.range-column-highlight { fill: var(--muted); }
+.range-bar { transition: all 150ms ease; }
+.range-bar-cap { stroke: var(--muted-foreground); stroke-width: 0.8; }
+.range-county-marker { fill: var(--foreground); stroke: var(--card); stroke-width: 1; }
+.range-chart-targets { position: absolute; left: 15%; right: 2.5%; top: 10.4%; bottom: 8%; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); }
+.range-target { min-width: 0; border: 0; background: transparent; cursor: pointer; }
+.range-target:focus-visible { outline: 2px solid var(--foreground); outline-offset: -2px; }
+.bin-inspection { position: absolute; bottom: calc(100% + 8px); left: 0; right: 0; padding: 10px 12px; background: var(--card); border: 1px solid var(--border); z-index: 4; display: grid; gap: 5px; font-size: 11px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.bin-inspection small { font-size: 9px; color: var(--muted-foreground); }
+.bin-explorer .bin-hint, .bin-explorer .bin-caption { font-size: 10px; line-height: 1.45; color: var(--muted-foreground); margin: 5px 0 0; }
+@media (prefers-reduced-motion: reduce) { .range-bar { transition: none; } }
+
+.multiplier-floor { font-size: 10px; color: var(--muted-foreground); }
