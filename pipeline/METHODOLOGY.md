@@ -165,3 +165,9 @@ selection. County links instead open the current official RAPT experience, selec
 county layer by `NRI_ID = 'C' + five-digit FIPS`, and zoom to that feature. Independent cities
 retain their own FIPS. This link was browser-verified against the November 2026 RAPT app;
 FEMA's live NRI v1.20 can differ from this tool's frozen v1.19 baseline.
+
+Interface values are rounded to at most three significant digits, with compact K/M/B labels
+for large amounts. Classification always uses the original unrounded values. Interactive
+category bars reveal exact bounds on hover, keyboard focus or selection; their expanding
+widths indicate interaction rather than a quantitative scale. Source downloads, thresholds,
+calculation sidecars and scientific output hashes retain full precision.
