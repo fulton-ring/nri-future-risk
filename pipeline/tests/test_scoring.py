@@ -36,3 +36,24 @@ def test_special_statuses_survive_projection():
 def test_thresholds_require_the_complete_baseline():
     with pytest.raises(ValueError, match="threshold"):
         thresholds(pd.Series([1, 2]), pd.Series(["Very Low", "Relatively Low"]))
+
+
+def test_rating_bin_reference_matches_the_entire_frozen_baseline():
+    import json
+
+    from fri_pipeline.scoring import thresholds
+    from fri_pipeline.snapshot import CONTRACT, ROOT, read_master
+
+    reference = json.loads((ROOT / "pipeline/reference/rating-bins.json").read_text())
+    master = read_master()
+    assert reference["workbookSha256"] == CONTRACT["workbookSha256"]
+    assert reference["population"] == len(master) == 3231
+    for hazard, bins in reference["hazards"].items():
+        assert (
+            bins["annualLoss"]
+            == thresholds(master[f"{hazard}_EALT"], master[f"{hazard}_EALR"]).tolist()
+        )
+        assert (
+            bins["riskValue"]
+            == thresholds(master[f"{hazard}_RISKV"], master[f"{hazard}_RISKR"]).tolist()
+        )

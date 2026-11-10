@@ -139,3 +139,27 @@ Candidate review PRs include a deterministic numerical report, validation, prove
 and a hash-pinned results pointer. Merging an eligible candidate authorizes checksum-verified
 copying to the existing staging bucket. Downstream transforms, catalog publication and map
 activation remain separate. The current analysis is not eligible for that approval path.
+
+## County calculation transparency
+
+`reference/rating-bins.json` retains the exact annual-loss and risk-value cutoffs recovered
+from the full frozen 3,231-county baseline. Values exactly on a cutoff stay in the lower
+category. Loss cutoffs use dollars per year. Risk-rating cutoffs use the adjusted risk value;
+they are not percentile-score cutoffs. Future risk scores are separate scenario-specific
+percentile ranks, including average ranks for ties.
+
+`python -m fri_pipeline.explain --help` exports a read-only heat explanation sidecar from
+an immutable snapshot. It records county historical/future event days per year, the raw
+ratio and the applied multiplier, then checks all 24,864 county/scenario multipliers against
+the hash-pinned published multiplier file. It does not change the result version or scores.
+
+For LOCA2 heat, the historical denominator counts days above its percentile alone, while
+future event days must also exceed the 23.07°C minimum-temperature screen. Consequently,
+the raw ratio may be below one even as temperatures rise. The published `max(1, ratio)`
+then reports 1.0. This is a methodological floor, not proof of no warming or a missing-data
+fallback. Keep the raw ratio and both event-day counts visible when verified diagnostics
+are available. Archived FEMA inputs do not contain these diagnostic fields; do not infer them.
+
+County report links use `https://hazards.fema.gov/nri/report/viewer?dataLOD=Counties&dataIDs=C`
+followed by the five-digit county FIPS, including independent cities. FEMA's live NRI can use
+a newer baseline than this tool's frozen v1.19 data.
