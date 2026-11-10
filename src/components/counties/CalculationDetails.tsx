@@ -1,7 +1,7 @@
 import useSWR from 'swr';
 import { assetUrl } from '../../clients/api';
 import { release } from '../../data/releases';
-import { countyCalculation, formatDollars, formatNumber, nriCountyUrl, ratingIntervals, binIndex } from '../../lib/calculations';
+import { countyCalculation, formatDollars, formatNumber, formatExactNumber, nriCountyUrl, ratingIntervals, binIndex } from '../../lib/calculations';
 import { scenarioKey, metricValue, ratingNames, type County, type ViewState } from '../../lib/risk';
 import RatingBins from './RatingBins';
 
@@ -35,16 +35,17 @@ export default function CalculationDetails({county,view}: {county:County;view:Vi
   const mismatch=!rebuilt && computedRating && typeof publishedRating === 'string' && ratingNames.some(label=>publishedRating.startsWith(label)) && !publishedRating.startsWith(computedRating);
   return <section className="county-calculations" aria-label="County values and calculations">
     <dl className="county-numbers">
-      <div><dt>Annual loss</dt><dd>{formatDollars(values.annualLoss)}<small>per year</small></dd></div>
-      <div><dt>Risk score</dt><dd>{formatNumber(values.riskScore,4)}<small>national percentile · 0–100</small></dd></div>
-      {future && <div><dt>{rebuilt ? 'Applied multiplier' : 'Published multiplier'}</dt><dd>{formatNumber(values.multiplier)}{values.multiplier !== null && '×'}</dd></div>}
-      {heat && <div><dt>Raw heat ratio<small>before the 1× floor</small></dt><dd>{formatNumber(heat.rawMultiplier)}×</dd></div>}
+      <div><dt>Annual loss</dt><dd title={values.annualLoss === null ? undefined : `$${formatExactNumber(values.annualLoss)}/year`}>{formatDollars(values.annualLoss)}<small>per year</small></dd></div>
+      <div><dt>Risk score</dt><dd title={formatExactNumber(values.riskScore)}>{formatNumber(values.riskScore)}<small>national percentile · 0–100</small></dd></div>
+      {future && <div><dt>{rebuilt ? 'Applied multiplier' : 'Published multiplier'}</dt><dd title={`${formatExactNumber(values.multiplier)}×`}>{formatNumber(values.multiplier)}{values.multiplier !== null && '×'}</dd></div>}
+      {heat && <div><dt>Raw heat ratio<small>before the 1× floor</small></dt><dd title={`${formatExactNumber(heat.rawMultiplier)}×`}>{formatNumber(heat.rawMultiplier)}×</dd></div>}
     </dl>
     <details className="data-details calculation-details">
       <summary>How this county is calculated</summary>
+      <p>Shown to three significant digits; source downloads retain exact values.</p>
       {future ? <>
-        {values.annualLoss !== null && values.multiplier !== null ? <p className="calculation-equation">Annual loss = {formatDollars(values.baselineLoss)} × {formatNumber(values.multiplier)} = <strong>{formatDollars(values.annualLoss)}/year</strong>.</p> : <p>This archived record has no usable multiplier for deriving annual loss. Its published rating and score remain available; an unavailable multiplier is not zero losses.</p>}
-        {values.riskValue !== null && <p>Risk value = {formatNumber(values.baselineRiskValue)} × {formatNumber(values.multiplier)} = <strong>{formatNumber(values.riskValue)}</strong>. Its percentile rank is the risk score; its value determines the risk category.</p>}
+        {values.annualLoss !== null && values.multiplier !== null ? <p className="calculation-equation">Annual loss ≈ {formatDollars(values.baselineLoss)} × {formatNumber(values.multiplier)} ≈ <strong>{formatDollars(values.annualLoss)}/year</strong>.</p> : <p>This archived record has no usable multiplier for deriving annual loss. Its published rating and score remain available; an unavailable multiplier is not zero losses.</p>}
+        {values.riskValue !== null && <p>Risk value ≈ {formatNumber(values.baselineRiskValue)} × {formatNumber(values.multiplier)} ≈ <strong>{formatNumber(values.riskValue)}</strong>. Its percentile rank is the risk score; its value determines the risk category.</p>}
         {mismatch && <p className="calculation-warning">Archive discrepancy: the published category is {String(publishedRating)}, while the multiplier-derived value falls in {computedRating}. The original category is retained; review the source fields before using this derived value.</p>}
         {!rebuilt && <p>The multiplier is from FEMA’s archive. {updatedSeries ? 'Its risk percentile is recomputed across the selected scenario’s full county population.' : 'The risk score is also archived.'} {values.derivedLoss && 'The dollar loss shown here is calculated from the archived multiplier and baseline loss.'} Underlying climate ratios are not included in the archive.</p>}
         {updatedSeries && <p>Risk scores rank all 3,231 baseline counties separately for this scenario. A score can change when other counties change, even if this county’s loss stays constant. Baseline exposure and social conditions stay fixed.</p>}
@@ -52,7 +53,7 @@ export default function CalculationDetails({county,view}: {county:County;view:Vi
           {heat && <dl className="calculation-inputs">
             <div><dt>Historical percentile days/year</dt><dd>{formatNumber(heat.historicalDaysPerYear)}</dd></div>
             <div><dt>Future qualifying days/year</dt><dd>{formatNumber(heat.futureDaysPerYear)}</dd></div>
-            <div><dt>Raw heat ratio</dt><dd>{formatNumber(heat.futureDaysPerYear)} ÷ {formatNumber(heat.historicalDaysPerYear)} = {formatNumber(heat.rawMultiplier)}×</dd></div>
+            <div><dt>Raw heat ratio</dt><dd>{formatNumber(heat.futureDaysPerYear)} ÷ {formatNumber(heat.historicalDaysPerYear)} ≈ {formatNumber(heat.rawMultiplier)}×</dd></div>
             <div><dt>Applied heat multiplier</dt><dd>max(1, {formatNumber(heat.rawMultiplier)}) = {formatNumber(heat.appliedMultiplier)}×</dd></div>
           </dl>}
           {isLoading && <p role="status">Loading verified heat inputs…</p>}
@@ -62,7 +63,7 @@ export default function CalculationDetails({county,view}: {county:County;view:Vi
           {asset && <a href={assetUrl(asset.path)}>Verified heat inputs and raw ratios</a>}
           <p>Heat multiplier = max(1, future days ÷ historical days). The temperature screen applies to future days; the historical denominator uses the percentile alone. A 1× floor can hide a raw ratio below one and does not establish no warming.</p>
         </>}
-        {rebuilt && view.hazard === 'WFIR' && <p>Wildfire multiplier = (future county-mean FWI ÷ historical county-mean FWI)<sup>γ</sup>. {extras.parameters?.wildfireEnsemble || 'NASA ensemble'} {extras.parameters?.wildfireVariable === 'FWI' ? 'annual mean FWI' : extras.parameters?.wildfireVariable || 'FWI'}; γ {typeof gamma === 'number' ? `= ${formatNumber(gamma,10)}` : 'is fitted for this version'} using baseline wildfire loss, fuel shares and burnable-share weighting.</p>}
+        {rebuilt && view.hazard === 'WFIR' && <p>Wildfire multiplier = (future county-mean FWI ÷ historical county-mean FWI)<sup>γ</sup>. {extras.parameters?.wildfireEnsemble || 'NASA ensemble'} {extras.parameters?.wildfireVariable === 'FWI' ? 'annual mean FWI' : extras.parameters?.wildfireVariable || 'FWI'}; γ {typeof gamma === 'number' ? `= ${formatNumber(gamma)}` : 'is fitted for this version'} using baseline wildfire loss, fuel shares and burnable-share weighting.</p>}
         {rebuilt && view.hazard === 'DRGT' && <p>Drought multiplier = max(1, county area-weighted future/historical drought-frequency ratio). SPEI-3 ≤ −1.6 marks drought months; all days in those months count. Historical drought-day denominators are floored at 15 days across the entire 1985–2014 baseline, not 15 days per year.</p>}
       </> : <p>Baseline values are from FEMA’s frozen NRI v1.19 data. Annual loss is the expected total economic loss per year; the risk value also reflects social vulnerability and community resilience. The score is a national percentile, not a probability.</p>}
       <a href={assetUrl(`versions/${release.id}/methodology.html`)}>Methodology for this version</a>

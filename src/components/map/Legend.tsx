@@ -1,38 +1,19 @@
+import { countyCalculation } from "../../lib/calculations";
 import RatingBins from "../counties/RatingBins";
 import {
   colorFor,
-  lossRanges,
   metrics,
   multiplierStops,
-  palette,
   ratingNames,
   type ViewState,
+  type County,
 } from "../../lib/risk";
-export default function Legend({ view }: { view: ViewState }) {
+export default function Legend({ view, county }: { view: ViewState; county?: County }) {
+  const values=county ? countyCalculation(county.values,view) : null;
+  const value=values ? view.metric === "loss" ? values.annualLoss : view.metric === "risk" ? values.riskValue : values.multiplier : null;
   return (
     <div className="map-legend" aria-label={`${metrics[view.metric]} legend`}>
-      <div className="legend-scale">
-        {palette.map((color, i) => (
-          <div key={color}>
-            <i style={{ background: color }} />
-            <span>
-              {view.metric === "multiplier"
-                ? ["≤1×", ">1–1.5×", ">1.5–2×", ">2–4×", ">4×"][i]
-                : ["Very low", "Low", "Moderate", "High", "Very high"][i]}
-            </span>
-          </div>
-        ))}
-      </div>
-      {view.metric === "loss" && (
-        <div className="legend-ranges" aria-label="Rounded annual-loss ranges" title="Rounded labels; expand exact bins below.">
-          {lossRanges[view.hazard].map((range, i) => (
-            <span key={range} title={ratingNames[i]}>
-              {range}
-            </span>
-          ))}
-        </div>
-      )}
-      <RatingBins view={view} />
+      <RatingBins view={view} value={value} inline />
       <div className="legend-missing">
         {[null, "No Rating", "Not Applicable", "No Expected Annual Losses"].map(
           (value, i) => (

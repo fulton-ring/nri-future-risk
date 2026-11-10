@@ -1,3 +1,4 @@
+import { formatNumber } from './format';
 import { release } from "../data/releases";
 export const RELEASE = release.id;
 export const hazards = {
@@ -46,13 +47,6 @@ export const ratingNames = [
 ];
 export const palette = ["#edf0c8", "#c6dba0", "#eab76b", "#cd7753", "#97433f"];
 export const multiplierStops = [1, 1.5, 2, 4];
-export const lossRanges: Record<Hazard, string[]> = {
-  WFIR: ["<$85.9K", "$85.9K–842K", "$842K–5.88M", "$5.88M–49.5M", ">$49.5M"],
-  DRGT: ["<$21.9K", "$21.9K–292K", "$292K–2.74M", "$2.74M–25.1M", ">$25.1M"],
-  EXHT: ["<$10.9K", "$10.9K–241K", "$241K–1.87M", "$1.87M–17.3M", ">$17.3M"],
-  CFLD: ["<$55K", "$55K–932K", "$932K–5.96M", "$5.96M–29.4M", ">$29.4M"],
-  HRCN: ["<$625K", "$625K–7.36M", "$7.36M–43M", "$43M–191M", ">$191M"],
-};
 export function releaseHazards(status = release.status): Hazard[] {
   return status === "analysis" ? ["WFIR", "DRGT", "EXHT"] : Object.keys(hazards) as Hazard[];
 }
@@ -151,8 +145,8 @@ export function describeValue(value: Value, metric: Metric): string {
   if (value === null) return "Data unavailable";
   if (typeof value === "number")
     return metric === "multiplier"
-      ? `${value.toFixed(2)}×`
-      : value.toLocaleString("en-US");
+      ? `${formatNumber(value)}×`
+      : formatNumber(value);
   return value;
 }
 export function periodLabel(period: Period): string {
@@ -166,7 +160,7 @@ export function changeLabel(value: Value): string {
   if (typeof value !== "number") return describeValue(value, "multiplier");
   if (value === 1) return "No increase applied";
   const change = (value - 1) * 100;
-  return `${Math.abs(change).toLocaleString("en-US", { maximumFractionDigits: 1 })}% ${change < 0 ? "less" : "more"} than baseline`;
+  return `${Math.abs(change).toLocaleString("en-US", { maximumSignificantDigits: 3 })}% ${change < 0 ? "less" : "more"} than baseline`;
 }
 
 export function pathwayLabel(

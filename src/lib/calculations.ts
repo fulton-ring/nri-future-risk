@@ -1,3 +1,5 @@
+import { formatExactNumber } from './format';
+export { formatNumber, formatDollars, formatExactNumber } from './format';
 import bins from '../../pipeline/reference/rating-bins.json';
 import { multiplierStops, ratingNames, scenarioKey, metricValue, type Hazard, type Metric, type Values, type ViewState } from './risk';
 
@@ -33,10 +35,8 @@ export function nriCountyUrl(fips: string) {
   const selection = `NRI_ID%3D%27C${fips}%27`;
   return `https://experience.arcgis.com/experience/b702d290fee84bdf93cc398172b37058/page/RAPT-Standard?views=Data-Views%2CNRI%2CView#data_s=where:dataSource_12-a8b034164184436dbadb4c6d1b423d5b:${selection}&zoom_to_selection=true`;
 }
-export const formatDollars = (value: number | null) => value === null ? 'Unavailable' : new Intl.NumberFormat('en-US', {style:'currency',currency:'USD',maximumFractionDigits:2}).format(value);
-export const formatNumber = (value: number | null, digits = 6) => value === null ? 'Unavailable' : new Intl.NumberFormat('en-US', {maximumFractionDigits:digits}).format(value);
 export function intervalLabel(interval: RatingInterval, metric: Metric) {
-  const number = (value: number) => (metric === 'loss' ? '$' : '') + formatNumber(value, 10) + (metric === 'multiplier' ? '×' : '');
+  const number = (value: number) => (metric === 'loss' ? '$' : '') + formatExactNumber(value) + (metric === 'multiplier' ? '×' : '');
   if (interval.lower === null) return `≤ ${number(interval.upper!)}`;
   if (interval.upper === null) return `> ${number(interval.lower)}`;
   return `> ${number(interval.lower)} to ≤ ${number(interval.upper)}`;
