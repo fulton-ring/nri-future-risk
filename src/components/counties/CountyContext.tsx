@@ -1,13 +1,12 @@
 import useSWR from "swr";
 import { assetUrl } from "../../clients/api";
-import type { County, Hazard } from "../../lib/risk";
+import type { County } from "../../lib/risk";
 
 type CountyContextData = {
   description: string;
   sources: { title: string; url: string }[];
   attribution?: string;
   sourceNote?: string;
-  riskContext?: Partial<Record<Hazard, {text: string; sources: {title: string; url: string}[]}>>;
 };
 
 type ContextAsset = {
@@ -30,7 +29,7 @@ async function fetchCountyContext(): Promise<ContextAsset> {
   return data;
 }
 
-export default function CountyContext({ county, hazard }: { county: County; hazard: Hazard }) {
+export default function CountyContext({ county }: { county: County }) {
   const { data } = useSWR<ContextAsset>(contextAssetUrl, fetchCountyContext, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
@@ -41,9 +40,8 @@ export default function CountyContext({ county, hazard }: { county: County; haza
   if (!context || typeof context.description !== "string" || !context.description.trim())
     return null;
 
-  const riskContext = context.riskContext?.[hazard];
   const sources = Array.isArray(context.sources)
-    ? [...new Map([...context.sources, ...(riskContext?.sources ?? [])].map(source=>[source.url,source])).values()].filter(
+    ? [...new Map(context.sources.map(source=>[source.url,source])).values()].filter(
         (source) =>
           typeof source?.title === "string" &&
           typeof source.url === "string" &&
@@ -54,7 +52,6 @@ export default function CountyContext({ county, hazard }: { county: County; haza
   return (
     <section className="county-context" aria-label={`${county.name} context`}>
       <p>{context.description}</p>
-      {riskContext && <p>{riskContext.text}</p>}
       {sources.length > 0 && (
         <details>
           <summary>Sources</summary>
@@ -68,7 +65,6 @@ export default function CountyContext({ county, hazard }: { county: County; haza
             ))}
           </ul>
           {context.sourceNote && <p>{context.sourceNote}</p>}
-          <p>Context figures do not change the risk version’s baseline exposure.</p>
           <p className="county-context-attribution">{context.attribution ?? 'Adapted from Wikipedia by AI; wording changed.'} {sources.some(source=>source.url.includes('en.wikipedia.org/')) && <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer">CC BY-SA 4.0</a>}</p>
         </details>
       )}

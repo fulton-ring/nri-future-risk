@@ -1,50 +1,60 @@
-# County context
+# County risk context
 
-The county panel describes population and local economic activity for all 3,218
-selectable counties and county equivalents. It sits immediately below the score
-overview. These figures provide context; they do not change the selected risk
-version's population, exposure or scientific inputs.
+The county panel contains individually researched 1–2 sentence narratives for all
+3,218 selectable counties and county equivalents. They sit below the score
+overview and synthesize local economy, demographics and relevant geography with
+actual FEMA baseline results. They are not population-and-industry templates.
 
-Census population estimates cover every selectable FIPS. Most use July 1, 2025;
-the eight legacy Connecticut counties use explicitly dated 2020 estimates because
-Census now publishes planning regions. Boundaries are never silently remapped.
+The exact writing brief is in `docs/prompts/county-risk-context.md`. Source links,
+short supporting evidence and structured comparisons are retained in
+`scripts/county-context-research.json`. The public `context/counties.json` asset
+contains the reviewed prose and comparison proofs. It is fetched once and cached;
+visitors make no LLM or external-source requests.
 
-For 3,087 exact-matching BEA geographies, the economic evidence is CAINC5N earnings
-by place of work: wages, supplements and proprietor income. The prose selects up
-to three positive, disclosed industry categories and says they were *included* in
-local earnings. It does not claim a complete industry ranking, count jobs or
-resident workers, or substitute GDP for earnings. All 21 nonoverlapping categories
-are parsed, including farming, forestry/fishing, manufacturing, retail and
-transportation. Suppressed values stay unavailable.
+## What the comparisons mean
 
-The 131 gaps—including Puerto Rico, some Virginia county/city combinations and
-two Hawaii counties—use reviewed locality-specific descriptions and quotations
-in `scripts/county-economy-overrides.json`. Four additional example counties have
-more specific economic descriptions there. Combined economic regions are never
-assigned to an individual city. Geography appears only in selected hazard notes
-where it adds relevant context, such as irrigation dependence for Yakima drought.
+Risk comparisons explicitly refer to the archived NRI v1.19 baseline, which is
+identical across the current archive and analysis releases. The narrative does
+not assert that a fixed projected rank applies to every hazard/filter/scenario.
+FEMA risk percentiles are distinct from dollar loss, published rating categories,
+and probabilities. Computed loss percentiles compare the 3,218 mapped counties;
+FEMA's published national risk percentiles retain their original universe.
 
-`public/context/counties.json` stores the prose, supporting facts, dates and source
-links. It is loaded once on county selection and cached; visitors make no model
-or external-source requests. **Sources** explains the measures and attributes
-Wikipedia-derived text under CC BY-SA 4.0 where applicable. The code's license is
-unchanged.
+A valid score is required before making a low/high-risk comparison. Unrated
+Puerto Rico cases use sourced local exposure context and do not imply safety.
+Drought comparisons concern agricultural losses; a manufacturing earnings share
+is not a modeled drought loss. Coastal flooding is not river flooding. Context
+is not a causal attribution or a change to the model's baseline inputs.
 
-## Refresh
+## Sources and refresh
 
-1. Run `python scripts/collect_county_population.py` and
-   `python scripts/collect_county_economy.py`. These download public bulk files
-   without API keys and write working data under `/tmp/fri-county-economy`.
-2. Review boundary gaps and refresh the locality-specific prose, source links and
-   supporting quotations in `scripts/county-economy-overrides.json`. Add no facts
-   from geographic stereotypes or historical industries without current evidence.
-3. Run `python scripts/update_county_economy_context.py`. It requires complete
-   FIPS coverage, preserves dates and suppression, and adds no model calls.
-4. Run `npm test`, `npm run lint`, and `VITE_BASE_PATH=/ npm run build`.
-   Check short and long descriptions and hazard notes in the panel. Cloudflare
-   packaging retains `context`; the preview HTTP check compares hosted data with
-   the build.
+1. Collect public evidence with `collect_county_context.py`,
+   `collect_county_population.py`, and `collect_county_economy.py` in `scripts/`.
+   Current Census population estimates cover every mapped FIPS, with dated legacy
+   Connecticut estimates rather than remapping planning regions. BEA workplace
+   earnings are not worker counts or GDP; suppression is preserved. Locality
+   research covers combined-region gaps without assigning region totals to cities.
+2. Supplement farm/crop context with USDA's 2022 Ag Census Web Maps workbook:
+   `https://www.nass.usda.gov/sites/default/files/publications/agcensus/2022/Online_Resources/Ag_Census_Web_Maps/Data_download/NASSAgCensusDownload2022_175maps_Links.xlsx`.
+   Save it as `/tmp/fri-county-research/agriculture.xlsx`, then run
+   `python scripts/collect_county_agriculture_context.py`. Preserve metric dates
+   and denominators; harvested cropland and orchard percentages are not county
+   land shares. Suppressed/missing values are not zero. This extraction excludes
+   Alaska, Virginia and Puerto Rico to avoid ambiguous agricultural geographies.
+3. Run `python scripts/prepare_county_context_research.py` from the repository
+   root. It uses cached Wikipedia/BEA/Census evidence under `/tmp`, verifies
+   baseline loss equality across archive/analysis, and prepares bounded per-county
+   dossiers plus eight assignments under `/tmp/fri-county-research`.
+4. Give research agents the full brief, dossiers, full pinned articles and USDA
+   facts. Require original prose, citations, claim evidence and structured
+   comparison proofs. Inspect thin profiles and factual/causal language. Do not
+   generate sector-list templates or infer local characteristics from state names.
+5. Run `python scripts/assemble_county_risk_context.py --check-only` and then
+   `python scripts/assemble_county_risk_context.py`. Publication requires all
+   FIPS, source links, exact comparison values, valid percentile thresholds and
+   explicit baseline language. The asset is bound to its baseline file hash.
+6. Run tests, lint and the static build; check the browser and preview HTTP checks.
 
-The earlier Wikipedia collector/assembler remain available for new editorial
-research, but normal refreshes use the population/economy path above. Never
-silently replace descriptions by refreshing source evidence alone.
+The old economy-template updater refuses to overwrite reviewed research. Refreshing
+source evidence alone must not silently replace the prose. Sources in the panel
+attribute Wikipedia-derived text under CC BY-SA 4.0; the code license is unchanged.

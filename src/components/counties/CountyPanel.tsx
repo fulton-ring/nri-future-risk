@@ -129,7 +129,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
           </strong>
         </div>
         <CalculationDetails county={county} view={view}>
-          <CountyContext county={county} hazard={view.hazard} />
+          <CountyContext county={county} />
         </CalculationDetails>
         <section className="comparison" aria-labelledby="comparison-title">
           <div className="section-heading">
