@@ -171,3 +171,32 @@ def test_augmentation_rejects_diagnostics_for_a_different_source(tmp_path):
     with pytest.raises(ValueError, match="source"):
         module.augment(tmp_path / "diagnostics", tmp_path / "display", releases)
     assert releases.read_bytes() == before
+
+
+def test_execute_checks_public_receipt_against_exact_source_manifest(tmp_path, monkeypatch):
+    from fri_pipeline import current_explain, current_run, current_stage, storage
+
+    package = {"version": "v20261111T211638Z", "resultsUri": "gs://results", "sourceManifestUri": "gs://experiments/runs/run/result-manifest.json", "sourceManifestSha256": "a" * 64, "provenance": {"contract": current_run.CONTRACT, "climateSnapshot": "pinned"}}
+    checked = []
+
+    def download(uri, path, digest):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(package) if uri.endswith('/_releases/v20261111T211638Z.json') else '{}')
+        checked.append((uri, digest))
+
+    def validate(source, receipt, origin):
+        assert source.read_text() == '{}'
+        assert json.loads(receipt.read_text()) == package
+        assert origin == 'gs://results'
+        checked.append('validated')
+
+    def climate(*args):
+        assert checked[-1] == 'validated'
+        raise RuntimeError('reached climate after verification')
+
+    monkeypatch.setattr(storage, 'download', download)
+    monkeypatch.setattr(current_stage, 'validate_approval', validate)
+    monkeypatch.setattr(current_run, 'climate_inputs', climate)
+    with pytest.raises(RuntimeError, match='after verification'):
+        current_explain.execute('gs://results', package['version'], 'b' * 64, tmp_path)
+    assert checked[1] == (package['sourceManifestUri'], 'a' * 64)

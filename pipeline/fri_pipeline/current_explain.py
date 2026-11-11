@@ -88,7 +88,7 @@ def explain_current(verified, weights, ids, expected, unsupported_ids, contract_
 def execute(results_uri, version, manifest_sha256, work):
     from google.cloud import storage
 
-    from .current_publish import validate_inventory
+    from .current_stage import validate_approval
     from .current_results import validate_version
     from .current_run import CONTRACT, climate_inputs
     from .results_cloud import put_file
@@ -101,7 +101,9 @@ def execute(results_uri, version, manifest_sha256, work):
     receipt_path = work / "public-review.json"
     download(receipt_uri, receipt_path, manifest_sha256)
     package = json.loads(receipt_path.read_text())
-    validate_inventory(package)
+    source_path = work / "result-manifest.json"
+    download(package["sourceManifestUri"], source_path, package["sourceManifestSha256"])
+    validate_approval(source_path, receipt_path, origin)
     if package["version"] != version or package["resultsUri"].rstrip("/") != origin:
         raise ValueError("Public receipt identity mismatch")
     if package["provenance"]["contract"] != CONTRACT:
