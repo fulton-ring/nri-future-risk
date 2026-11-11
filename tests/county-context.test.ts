@@ -53,7 +53,7 @@ test('researched county context uses source-matched baseline comparisons rather 
         const valid:Record<string,boolean>={top10:n>=90,top25:n>=75,aboveMedian:n>=50,belowMedian:n<50,bottom25:n<=25,bottom10:n<=10};
         assert.ok(valid[comparison.relation],`${county.id}: unsupported percentile claim`);
       }
-      if(comparison.kind !== 'populationPercentile') assert.match(entry.description,/baseline/i,county.id);
+      if(comparison.kind !== 'populationPercentile' && entry.languageStyle !== 'plain-place-context') assert.match(entry.description,/baseline/i,county.id);
     }
     assert.doesNotMatch(entry.description,/^Census estimated about/,county.id);
     assert.equal(entry.riskContext,undefined,'Researched paragraphs must not acquire an unrelated third sentence');
@@ -70,7 +70,7 @@ test('all nine Connecticut planning regions have sourced native-v1.20 context', 
     const entry=context.counties[id], evidence=research.regions[id];
     assert.equal(entry.baseline,'NRI v1.20');
     assert.ok(entry.description.length>=120 && entry.description.length<=700,id);
-    assert.match(entry.description,/baseline/i,id);
+    if(entry.languageStyle !== 'plain-place-context') assert.match(entry.description,/baseline/i,id);
     assert.doesNotMatch(entry.description,/v1\.19|archived/i,id);
     assert.ok(entry.population.value>0 && entry.population.year===2025,id);
     assert.equal(entry.population.value,evidence.population.value,id);
@@ -95,4 +95,17 @@ test('tract context resolves the containing county equivalent, including Connect
   assert.equal(countyContextId('09110'),'09110');
   assert.equal(countyContextId('09001'),'09001');
   for(const id of ['', '0911', '0911053520', '091105352001', '09110invalid']) assert.equal(countyContextId(id),null);
+});
+
+
+test('plain county and region descriptions avoid academic ranking jargon', () => {
+  for(const filename of ['counties.json','planning-regions.json']) {
+    const context=JSON.parse(readFileSync(`public/context/${filename}`,'utf8'));
+    if(context.languageStyle!=='plain-place-context') continue;
+    for(const [id,entry] of Object.entries(context.counties) as [string,{description:string;languageStyle:string}][]) {
+      assert.equal(entry.languageStyle,'plain-place-context',id);
+      assert.ok(entry.description.length>=80 && entry.description.length<=500,id);
+      assert.doesNotMatch(entry.description,/percentile|earnings base|aggregate exposure|national (?:upper|lower) quarter|frames? (?:its |their )?exposure|FEMA[’']s baseline/i,id);
+    }
+  }
 });
