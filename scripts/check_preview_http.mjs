@@ -16,6 +16,10 @@ async function fetchReady(url, options) {
   }
 }
 const releaseFiles = (await readdir('src/data')).filter(name => ['release.json', 'analysis-preview.json'].includes(name));
+const contextResponse=await fetchReady(new URL('/context/counties.json',base),{headers});
+assert.equal(contextResponse.status,200,'County context must survive preview packaging');
+const contextBytes=Buffer.from(await contextResponse.arrayBuffer());
+assert.deepEqual(contextBytes,await readFile('public/context/counties.json'),'Hosted county descriptions must match this build');
 for (const name of releaseFiles) {
   const release = JSON.parse(await readFile(`src/data/${name}`, 'utf8'));
   const path = release.assets['counties.pmtiles'].path;

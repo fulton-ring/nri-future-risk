@@ -1,4 +1,5 @@
 import useSWR from 'swr';
+import type { ReactNode } from 'react';
 import { assetUrl } from '../../clients/api';
 import { release } from '../../data/releases';
 import { countyCalculation, formatDollars, formatNumber, formatExactNumber, nriCountyUrl, ratingIntervals, binIndex } from '../../lib/calculations';
@@ -20,7 +21,7 @@ async function loadHeat(asset:HeatAsset):Promise<Explanation> {
   return result;
 }
 
-export default function CalculationDetails({county,view}: {county:County;view:ViewState}) {
+export default function CalculationDetails({county,view,children}: {county:County;view:ViewState;children?:ReactNode}) {
   const values=countyCalculation(county.values,view), future=view.period !== 'base';
   const updatedSeries=release.status === 'analysis' && (view.hazard === 'DRGT' || view.hazard === 'WFIR' || (view.hazard === 'EXHT' && ['L95','L99'].includes(view.model)));
   const rebuilt=updatedSeries && county.vintage !== 'FEMA archive';
@@ -38,6 +39,7 @@ export default function CalculationDetails({county,view}: {county:County;view:Vi
       <div><dt>Risk score</dt><dd title={formatExactNumber(values.riskScore)}>{formatNumber(values.riskScore)}<small>national percentile · 0–100</small></dd></div>
       {future && <div><dt>{rebuilt ? 'Applied multiplier' : 'Published multiplier'}</dt><dd title={`${formatExactNumber(values.multiplier)}×`}>{formatNumber(values.multiplier)}{values.multiplier !== null && '×'}{heat && heat.rawMultiplier < 1 && heat.appliedMultiplier === 1 && <span className="multiplier-floor"> (floored to 1 from {formatNumber(heat.rawMultiplier)})</span>}</dd></div>}
     </dl>
+    {children}
     <details className="data-details calculation-details">
       <summary>How this county is calculated</summary>
       <p>Shown to three significant digits; source downloads retain exact values.</p>

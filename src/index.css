@@ -623,6 +623,34 @@ summary {
 .county-body {
   padding: 22px;
 }
+.county-context {
+  margin: 16px 0;
+  padding-left: 11px;
+  border-left: 2px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.county-context p {
+  margin: 0;
+}
+.county-context details {
+  margin-top: 5px;
+  font-size: 11px;
+}
+.county-context summary {
+  width: fit-content;
+  cursor: pointer;
+}
+.county-context ul {
+  margin: 5px 0 0;
+  padding-left: 16px;
+}
+.county-context a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 .result-context {
   color: var(--muted-foreground);
   font-size: 11px;
