@@ -51,7 +51,7 @@ def validate_receipt(receipt: dict, candidate: dict, candidate_sha: str, bucket:
             raise ValueError("Publisher changed the approved attribute table or provenance")
 
 
-def verify_tiles(path: Path, attributes: dict) -> None:
+def verify_tiles(path: Path, attributes: dict, *, source_layer: str = "counties") -> None:
     expected = {
         c["id"]: {
             key: value
@@ -65,17 +65,17 @@ def verify_tiles(path: Path, attributes: dict) -> None:
         source = MmapSource(handle)
         reader = Reader(source)
         header, metadata = reader.header(), reader.metadata()
-        if metadata.get("vector_layers", [{}])[0].get("id") != "counties":
-            raise ValueError("PMTiles source layer must be counties")
+        if metadata.get("vector_layers", [{}])[0].get("id") != source_layer:
+            raise ValueError(f"PMTiles source layer must be {source_layer}")
         for _, data in all_tiles(source):
             if header["tile_compression"] == Compression.GZIP:
                 data = gzip.decompress(data)
             elif header["tile_compression"] != Compression.NONE:
                 raise ValueError("Unsupported PMTiles tile compression")
             layers = mapbox_vector_tile.decode(data)
-            if set(layers) != {"counties"}:
+            if set(layers) != {source_layer}:
                 raise ValueError("Unexpected PMTiles layers")
-            for feature in layers["counties"]["features"]:
+            for feature in layers[source_layer]["features"]:
                 props = feature["properties"]
                 fips = props.get("fips")
                 if fips not in expected or feature["id"] != int(fips):
