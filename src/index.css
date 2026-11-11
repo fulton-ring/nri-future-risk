@@ -1515,3 +1515,12 @@ td small { display: block; margin-top: 4px; color: var(--muted-foreground); font
 @media (prefers-reduced-motion: reduce) { .range-bar { transition: none; } }
 
 .multiplier-floor { font-size: 10px; color: var(--muted-foreground); }
+
+/* Match the explorer background while its client bundle starts. */
+.explorer-loading {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
