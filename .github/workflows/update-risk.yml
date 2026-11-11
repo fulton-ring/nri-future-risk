@@ -29,6 +29,7 @@ jobs:
       REGISTRY: ${{ vars.FRI_IMAGE_REPOSITORY }}
       WORKER_SA: ${{ vars.FRI_BATCH_SERVICE_ACCOUNT }}
       EXPERIMENTS_BUCKET: ${{ vars.FRI_EXPERIMENTS_BUCKET }}
+      RESULTS_BUCKET: ${{ vars.FRI_RESULTS_BUCKET }}
       SNAPSHOT_URI: ${{ inputs.snapshot_uri }}
       SNAPSHOT_SHA: ${{ inputs.snapshot_sha256 }}
       RELEASE_ID: fri-v120-${{ github.run_id }}-${{ github.run_attempt }}
@@ -38,7 +39,7 @@ jobs:
         env:
           PR_TOKEN: ${{ secrets.FRI_PR_TOKEN }}
         run: |
-          for name in PROJECT REGION NETWORK SUBNETWORK REGISTRY WORKER_SA EXPERIMENTS_BUCKET PR_TOKEN; do
+          for name in PROJECT REGION NETWORK SUBNETWORK REGISTRY WORKER_SA EXPERIMENTS_BUCKET RESULTS_BUCKET PR_TOKEN; do
             test -n "${!name}" || { echo "Missing configuration: $name"; exit 1; }
           done
       - uses: astral-sh/setup-uv@v5
@@ -75,7 +76,7 @@ jobs:
             --service-account "$WORKER_SA" --run-id "$RELEASE_ID" \
             --version "$RESULTS_VERSION" --code-revision "$GITHUB_SHA" \
             --output "gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID" \
-            "${SNAPSHOT_ARGS[@]}" --submit
+            --results-uri "gs://$RESULTS_BUCKET" "${SNAPSHOT_ARGS[@]}" --submit
           for attempt in $(seq 1 720); do
             STATE=$(gcloud batch jobs describe "$RELEASE_ID" --project "$PROJECT" \
               --location "$REGION" --format='value(status.state)')
@@ -94,7 +95,8 @@ jobs:
           gcloud storage cp "gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID/report.md" "$TARGET/"
           cat "$TARGET/report.md" >> "$GITHUB_STEP_SUMMARY"
           cp "$TARGET/report.md" /tmp/pr-body.md
-          echo "Immutable review artifacts: gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID" >> /tmp/pr-body.md
+          echo "Public review catalog: https://storage.googleapis.com/$RESULTS_BUCKET/future-risk-index/catalog.json ($RESULTS_VERSION)" >> /tmp/pr-body.md
+          echo "Immutable source artifacts: gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID" >> /tmp/pr-body.md
           echo "This PR does not activate a release or promote files to staging." >> /tmp/pr-body.md
       - uses: actions/upload-artifact@v4
         with:

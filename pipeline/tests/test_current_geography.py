@@ -146,3 +146,42 @@ def test_missing_boundary_error_reports_count_and_native_id_sample(tmp_path):
     baseline.attrs["geography"] = "tract"
     with pytest.raises(ValueError, match="1 native NRI IDs.*12057980100"):
         load_geography([path], baseline)
+
+
+def test_tract_structural_no_coverage_is_reported_and_county_remains_strict(capsys):
+    class Verified:
+        SSP = {"LOWER": "ssp245"}
+
+        def monthly(self, variable, scenario):
+            return np.array([[2.0, np.nan], [3.0, np.nan]]), pd.date_range("2000-01-01", periods=2)
+
+    baseline = pd.DataFrame(
+        {"STATEABBRV": ["FL", "FL"]}, index=pd.Index(["12057000100", "12057980100"])
+    )
+    baseline.attrs["geography"] = "tract"
+    target = GeographySnapshot(Verified(), baseline, sparse.eye(2), sparse.eye(2))
+    target.monthly("tas", "ssp245")
+    diag = target.coverage_diagnostics["nex-monthly"]
+    assert diag["unsupportedAreaIds"] == ["12057980100"]
+    assert diag["unsupportedAreaCount"] == 1
+    assert "12057980100" in capsys.readouterr().out
+    with pytest.raises(ValueError, match="mask changes"):
+        target._record("nex-monthly", np.array([True, True]), sparse.eye(2).tocsr())
+    baseline.attrs["geography"] = "county"
+    county = GeographySnapshot(Verified(), baseline, sparse.eye(2), sparse.eye(2))
+    with pytest.raises(ValueError, match="coverage"):
+        county.monthly("tas", "ssp245")
+
+
+def test_tract_temporal_gaps_are_never_structural_missing_coverage():
+    class Verified:
+        SSP = {"LOWER": "ssp245"}
+
+        def monthly(self, variable, scenario):
+            return np.array([[2.0], [np.nan]]), pd.date_range("2000-01-01", periods=2)
+
+    baseline = pd.DataFrame({"STATEABBRV": ["FL"]}, index=pd.Index(["12057980100"]))
+    baseline.attrs["geography"] = "tract"
+    target = GeographySnapshot(Verified(), baseline, sparse.eye(1), sparse.eye(1))
+    with pytest.raises(ValueError, match="Temporal gaps"):
+        target.monthly("tas", "ssp245")

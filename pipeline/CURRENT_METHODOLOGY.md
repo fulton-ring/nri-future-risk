@@ -61,7 +61,10 @@ For each supported area and scenario:
 
 Baseline risk scores retain FEMA's national population. Future comparisons cover
 3,109 CONUS county equivalents and 83,481 CONUS tracts, subject to native missing
-baseline values. Outside CONUS, future multipliers, projections and scores remain
+baseline values and valid climate coverage. A tract with no structurally valid
+climate cells keeps its baseline but has no projection for that affected hazard;
+unsupported IDs and per-hazard projected/ranked counts are recorded. Outside CONUS,
+future multipliers, projections and scores remain
 unavailable; native baseline values remain accessible. No multiplier of one is
 invented to fill absent climate coverage. Coastal flooding, hurricane and NEX heat
 future projections are not recalculated by this version.
@@ -82,6 +85,7 @@ packaged with separate county and tract GeoParquet files.
 The catalog layout is `future-risk-index/<dataset>/<file>/<version>/`:
 `fri/counties/<version>/`, `fri/tracts/<version>/`, and native baseline datasets
 `nri/counties/<version>/`, `nri/tracts/<version>/`. Existing releases are immutable.
-A calculation writes only to its run-specific experiments prefix. Results require
-review before promotion to the public results bucket, staging conversion, or an
-approved map release. Running the workflow does not activate publication.
+A calculation writes an immutable source package to its run-specific experiments
+prefix. An optional verified copy makes review artifacts public in the results
+bucket, preserving existing catalog versions. Public review is separate from
+staging conversion or an approved map release. Running the workflow does not activate publication.

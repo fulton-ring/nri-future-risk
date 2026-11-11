@@ -316,7 +316,8 @@ def execute(
         "Wildfire elasticity is fitted using county NRI losses and fuel shares, then shared "
         "with tracts. No tract-level regression is fitted.",
         "Future values are unavailable outside CONUS. Projected percentiles rank supported "
-        "CONUS areas, separately for counties and tracts. Baseline ratings remain native NRI.",
+        "CONUS areas with valid coverage, separately for counties and tracts. "
+        "Unsupported tract hazards remain null; baseline ratings remain native NRI.",
         "",
         "## Validation",
         "",
@@ -344,6 +345,7 @@ def main():
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--code-revision", required=True)
     parser.add_argument("--output-gcs", default="")
+    parser.add_argument("--results-uri", default="")
     parser.add_argument("--snapshot", default="")
     parser.add_argument("--snapshot-sha256", default="")
     args = parser.parse_args()
@@ -352,16 +354,32 @@ def main():
     spec = {"url": args.snapshot, "sha256": args.snapshot_sha256} if args.snapshot else None
     package = execute(args.work, args.output, args.version, args.run_id, args.code_revision, spec)
     if args.output_gcs:
-        from .storage import split_uri, upload
+        from google.cloud import storage
+
+        from .results_cloud import put_file
+        from .storage import split_uri
 
         split_uri(args.output_gcs)
+        client = storage.Client()
         # Upload only to an immutable experiment prefix. Promotion is a separate review step.
         for path in sorted(args.output.rglob("*")):
             if path.is_file():
-                upload(
+                put_file(
+                    client,
                     path,
                     f"{args.output_gcs.rstrip('/')}/{path.relative_to(args.output).as_posix()}",
                 )
+    if args.results_uri:
+        if not args.output_gcs:
+            parser.error("Public review results require experiment outputs")
+        from .current_publish import publish
+
+        receipt = publish(
+            f"{args.output_gcs.rstrip('/')}/result-manifest.json",
+            sha256(args.output / "result-manifest.json"),
+            args.results_uri,
+        )
+        print(json.dumps(receipt), flush=True)
     print(
         json.dumps(
             {"version": package["version"], "files": len(package["files"]), "publishable": False}

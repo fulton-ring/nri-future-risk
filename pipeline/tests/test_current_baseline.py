@@ -112,3 +112,42 @@ def test_tract_population_requires_complete_national_and_conus_inventory():
         cb.normalize_baseline(wrong_conus, "tract")
     sample = cb.normalize_baseline(raw.iloc[:9], "tract", validate_population=False)
     assert sample.index.tolist() == ids[:9]
+
+
+def test_only_diagnosed_structural_missing_hazard_is_withheld():
+    master = baseline()
+    master.attrs["geography"] = "tract"
+    missing_id = master.index[0]
+    updates = pd.DataFrame(2.0, index=master.index[:-1], columns=cf.HM_COLUMNS)
+    columns = [f"DRGT_{s}_HM" for s in SCENARIOS]
+    updates.loc[missing_id, columns] = np.nan
+    with pytest.raises(ValueError, match="missing"):
+        cf.complete_multipliers(master, updates)
+    allowed = {"DRGT": {missing_id}}
+    hm = cf.complete_multipliers(master, updates, allowed_missing=allowed)
+    scored, _, validation = cf.score_geography(master, hm)
+    assert scored.loc[missing_id, [c for c in scored if c.startswith("DRGT_")]].isna().all()
+    assert scored.loc[missing_id, "WFIR_MID_LOWER_PALT"] == 2
+    assert scored.DRGT_MID_LOWER_PRISKS.iloc[1] == 25
+    assert validation["projectionCoverage"]["DRGT"]["projectedAreaCount"] == 4
+    assert validation["projectionCoverage"]["DRGT"]["rankedAreaCount"] == 4
+    assert master.loc[missing_id, "DRGT_EALT"] == 1
+    updates.loc[master.index[1], "WFIR_MID_LOWER_HM"] = np.nan
+    with pytest.raises(ValueError, match="missing"):
+        cf.complete_multipliers(master, updates, allowed_missing=allowed)
+    updates.loc[master.index[1], "WFIR_MID_LOWER_HM"] = np.inf
+    with pytest.raises(ValueError, match="finite"):
+        cf.complete_multipliers(master, updates, allowed_missing=allowed)
+
+
+def test_entire_hazard_without_tract_coverage_keeps_native_bins_and_null_futures():
+    master = baseline()
+    master.attrs["geography"] = "tract"
+    updates = pd.DataFrame(2.0, index=master.index[:-1], columns=cf.HM_COLUMNS)
+    updates.loc[:, [f"DRGT_{s}_HM" for s in SCENARIOS]] = np.nan
+    hm = cf.complete_multipliers(master, updates, allowed_missing={"DRGT": set(updates.index)})
+    scored, bins, validation = cf.score_geography(master, hm)
+    assert scored.filter(regex="^DRGT_").isna().all().all()
+    assert bins["DRGT"]["hm"] == [None] * 4
+    assert bins["DRGT"]["eal"] == [1.0, 2.0, 3.0, 4.0]
+    assert validation["projectionCoverage"]["DRGT"]["rankedAreaCount"] == 0

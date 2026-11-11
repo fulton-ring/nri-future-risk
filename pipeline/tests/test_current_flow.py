@@ -1,12 +1,16 @@
 import numpy as np
 import pandas as pd
+import pytest
 from scipy import sparse
 
 from fri_pipeline import current_flow
 from fri_pipeline.scoring import BANDS
 
 
-def test_hamilton_uses_single_county_gamma_and_separate_national_rankings(monkeypatch):
+@pytest.mark.parametrize("missing_tract", [False, True])
+def test_hamilton_uses_single_county_gamma_and_separate_national_rankings(
+    monkeypatch, missing_tract
+):
     class Inputs(current_flow.GeographySnapshot):
         def __init__(self, geography):
             self.full_baseline = pd.DataFrame(
@@ -25,6 +29,10 @@ def test_hamilton_uses_single_county_gamma_and_separate_national_rankings(monkey
             return sparse.eye(5).tocsr(), self.full_baseline.index[:5]
 
     counties, tracts = Inputs("county"), Inputs("tract")
+    if missing_tract:
+        tracts.coverage_diagnostics = {
+            "nex-monthly": {"unsupportedAreaIds": [tracts.full_baseline.index[0]]}
+        }
     calls = []
 
     def fit(historic, inputs):
@@ -34,11 +42,14 @@ def test_hamilton_uses_single_county_gamma_and_separate_national_rankings(monkey
     def hm(inputs, variants, gamma=None):
         if gamma is not None:
             assert gamma == 2.0
-        return pd.DataFrame(
+        result = pd.DataFrame(
             2.0,
             index=inputs.full_baseline.index[:5],
             columns=[f"{v}_{s}_HM" for v in variants for s in current_flow.SCENARIOS],
         )
+        if missing_tract and inputs is tracts and variants == ["DRGT"]:
+            result.iloc[0] = np.nan
+        return result
 
     monkeypatch.setattr(current_flow.wildfire, "period_fwi", lambda *args: np.ones(5))
     monkeypatch.setattr(current_flow.wildfire, "elasticity", fit)
@@ -57,4 +68,10 @@ def test_hamilton_uses_single_county_gamma_and_separate_national_rankings(monkey
     assert calls == ["county"]
     assert result["parameters"]["wildfireElasticity"] == 2
     assert len(result["tracts"]["scored"]) == 6
-    assert result["tracts"]["scored"].DRGT_MID_LOWER_PRISKS.iloc[0] == 20
+    if missing_tract:
+        assert result["tracts"]["scored"].DRGT_MID_LOWER_PRISKS.iloc[1] == 25
+        assert (
+            result["tracts"]["validation"]["projectionCoverage"]["DRGT"]["projectedAreaCount"] == 4
+        )
+    else:
+        assert result["tracts"]["scored"].DRGT_MID_LOWER_PRISKS.iloc[0] == 20

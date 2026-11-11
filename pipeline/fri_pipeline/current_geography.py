@@ -202,7 +202,27 @@ class GeographySnapshot:
     def _record(self, family, valid, weights):
         if len(valid) != weights.shape[1]:
             raise ValueError("Climate coordinate/target weight support mismatch")
-        Snapshot.record_domain(self, family, valid, weights)
+        previous = self._domain_masks.get(family)
+        if previous is not None and not np.array_equal(previous, valid):
+            raise ValueError(f"Source domain mask changes across variables/scenarios: {family}")
+        covered = np.asarray(weights @ valid.astype(float)).ravel()
+        unsupported = self._ids[covered <= 0].tolist()
+        if previous is None and unsupported:
+            print(f"Climate coverage {family}: unsupportedAreaIds={unsupported}", flush=True)
+        if unsupported and self.full_baseline.attrs.get("geography") != "tract":
+            raise ValueError(f"Missing valid climate coverage for {family}: {unsupported}")
+        fraction = covered / np.asarray(weights.sum(axis=1)).ravel()
+        self._domain_masks[family] = valid.copy()
+        self.coverage_diagnostics[family] = {
+            "weightedCells": len(valid),
+            "structuralNoDataCells": int((~valid).sum()),
+            "areas": len(self._ids),
+            "minimumAreaCoverage": float(fraction.min()),
+            "medianAreaCoverage": float(np.median(fraction)),
+            "areasWithPartialCoverage": int(((fraction > 0) & (fraction < 1 - 1e-10)).sum()),
+            "unsupportedAreaIds": unsupported,
+            "unsupportedAreaCount": len(unsupported),
+        }
 
     def monthly(self, variable, scenario):
         values, months = self.verified.monthly(variable, scenario)

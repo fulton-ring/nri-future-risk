@@ -24,6 +24,7 @@ def job_config(
     output,
     snapshot="",
     snapshot_sha="",
+    results_uri="",
 ):
     validate_version(version)
     bucket, key = split_uri(output)
@@ -60,6 +61,11 @@ def job_config(
         if not snapshot.startswith(("https://", "gs://")):
             raise ValueError("Snapshot must use HTTPS or GCS")
         commands += ["--snapshot", snapshot, "--snapshot-sha256", snapshot_sha]
+    if results_uri:
+        from .storage import split_prefix
+
+        split_prefix(results_uri)
+        commands += ["--results-uri", results_uri]
     task = config["taskGroups"][0]["taskSpec"]
     task["runnables"][0]["container"].update(
         entrypoint="/app/pipeline/.venv/bin/python", commands=commands
@@ -92,6 +98,7 @@ def main():
     parser.add_argument("--snapshot-sha256", default="")
     parser.add_argument("--config-output", type=Path)
     parser.add_argument("--submit", action="store_true")
+    parser.add_argument("--results-uri", default="")
     args = parser.parse_args()
     config = job_config(
         image=args.image,
@@ -104,6 +111,7 @@ def main():
         output=args.output,
         snapshot=args.snapshot,
         snapshot_sha=args.snapshot_sha256,
+        results_uri=args.results_uri,
     )
     path = args.config_output or Path("/tmp/fri-current-batch-job.json")
     path.write_text(json.dumps(config, indent=2) + "\n")
