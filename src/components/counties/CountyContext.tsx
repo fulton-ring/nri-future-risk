@@ -11,6 +11,7 @@ type CountyContextData = {
   attribution?: string;
   sourceNote?: string;
   baseline?: string;
+  languageStyle?: string;
 };
 
 type ContextAsset = {
@@ -58,7 +59,7 @@ export default function CountyContext({ county }: { county: County }) {
   return (
     <section className="county-context" aria-label={`${name} context`}>
       {tract && <h3>{contextId?.startsWith("091") ? "Planning region" : "County"} context · {name}</h3>}
-      {release.baseline === 'NRI v1.20' && context.baseline !== 'NRI v1.20' && <p className="caption">County context compares archived NRI v1.19 values.</p>}
+      {release.baseline === 'NRI v1.20' && context.baseline !== 'NRI v1.20' && context.languageStyle !== 'plain-place-context' && <p className="caption">County context compares archived NRI v1.19 values.</p>}
       <p>{context.description}</p>
       {sources.length > 0 && (
         <details>

@@ -23,10 +23,14 @@ def format_percentages(text):
 
 def validate(record, dossier):
     text = record['description']
+    plain = record.get('languageStyle') == 'plain-place-context'
     assert isinstance(text, str) and 80 <= len(text) <= 750, 'description length'
     assert not re.search(r'\[\[|\]\]|\{\{|\}\}|<ref|\|', text), 'source markup leaked into prose'
     assert record.get('sources') and record.get('evidence'), 'sources and supporting evidence required'
     assert 'Census estimated about' not in text, 'old template was retained'
+    if plain:
+        assert len(text) <= 500, 'plain description is too long'
+        assert not re.search(r'percentile|earnings base|aggregate exposure|national (?:upper|lower) quarter|FEMA[’\']s baseline', text, re.I), 'academic ranking language in plain context'
     for source in record['sources']:
         url = urlparse(source['url'])
         assert url.scheme == 'https' and url.hostname, 'source must use HTTPS'
@@ -57,7 +61,7 @@ def validate(record, dossier):
             assert (county_value > peer_value if comparison['relation'] == 'above' else county_value < peer_value), 'peer comparison direction'
         else:
             raise AssertionError(f'Unsupported comparison: {kind}')
-        if kind != 'populationPercentile':
+        if kind != 'populationPercentile' and not plain:
             assert 'baseline' in text.lower(), 'baseline comparison must be explicit in prose'
     if any(v['nationalRiskScore'] is not None for v in dossier['baselineNRIv119'].values()):
         assert any(c['kind'] != 'populationPercentile' for c in comparisons), 'actual-risk comparison missing'
@@ -95,6 +99,9 @@ def main():
     assert hashlib.sha256((ROOT/basis['baselineFile']).read_bytes()).hexdigest() == basis['baselineSha256'], 'Baseline data changed; regenerate comparisons'
     research = {'schemaVersion': 1, 'generatedAt': datetime.datetime.now(datetime.timezone.utc).isoformat(),
                 'prompt': 'docs/prompts/county-risk-context.md', 'baseline': basis, 'counties': dict(sorted(records.items()))}
+    plain = all(record.get('languageStyle') == 'plain-place-context' for record in records.values())
+    if plain:
+        research['languageStyle'] = 'plain-place-context'
     destination = ROOT/'scripts/county-context-research.json'
     destination.write_text(json.dumps(research, ensure_ascii=False, indent=2)+'\n')
     asset_path = ROOT/'public/context/counties.json'
@@ -102,6 +109,8 @@ def main():
     for fips, record in records.items():
         entry = asset['counties'][fips]
         entry['description'] = record['description']
+        if record.get('languageStyle'):
+            entry['languageStyle'] = record['languageStyle']
         sources = list(record['sources'])
         if any(c['kind'] != 'populationPercentile' for c in record.get('comparisons', [])):
             sources.append({'title': 'Archived FEMA baseline results used for these comparisons', 'url': basis['riskSourceUrl']})
@@ -110,10 +119,12 @@ def main():
         entry['researchComparisons'] = record.get('comparisons', [])
         entry['sourceNote'] = 'Risk comparisons refer to the archived FEMA NRI v1.19 baseline, not a fixed future scenario. Population, economic and geographic facts provide context; they do not establish what caused a score or replace the model’s baseline inputs.'
         entry['attribution'] = 'Researched and written by AI from the cited public sources; Wikipedia-derived wording has been changed.'
+    if plain:
+        asset['languageStyle'] = 'plain-place-context'
     asset['generatedAt'] = research['generatedAt']
     asset['authoringMethod'] = 'researched-risk-context'
     asset['researchBaseline'] = basis
-    asset['contextMethod'] = 'Individually researched county narratives with source-checked baseline comparisons; shared across versions and filters.'
+    asset['contextMethod'] = ('Plain explanations of local hazards, retaining checked source evidence and reference risk data.' if plain else 'Individually researched county narratives with source-checked baseline comparisons; shared across versions and filters.')
     asset_path.write_text(json.dumps(asset, ensure_ascii=False, indent=2)+'\n')
     print(f'Published {len(records)} researched county narratives')
 
