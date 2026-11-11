@@ -27,7 +27,13 @@ def validate_inventory(package):
             or spec["bytes"] < 0
         ):
             raise ValueError("Invalid result inventory path or digest")
-        if name in ("catalog.json", "report.md"):
+        if name in ("catalog.json", "report.md", "README.md", "AGENTS.md"):
+            continue
+        if (
+            path.name in ("README.md", "AGENTS.md")
+            and len(path.parts) <= 4
+            and path.parts[0] == "future-risk-index"
+        ):
             continue
         if not name.startswith("future-risk-index/"):
             raise ValueError("Unexpected collection path")
@@ -51,6 +57,17 @@ def merge_catalog(prior, current):
         "links": [link for link in current.get("links", []) if link["rel"] != "child"]
         + [children[key] for key in sorted(children)],
     }
+    versions = [href for href in children if re.fullmatch(r"v[0-9A-Za-z-]+/collection\.json", href)]
+    if versions:
+        merged["links"] = [link for link in merged["links"] if link["rel"] != "latest-version"]
+        merged["links"].append(
+            {
+                "rel": "latest-version",
+                "href": max(versions),
+                "type": "application/json",
+                "title": "Latest version",
+            }
+        )
     merged["description"] = (
         "Future Risk Index results and reproducibility assets. "
         "Each version documents its own baseline and methodology."
@@ -95,7 +112,17 @@ def publish(source_manifest, source_sha, results_uri):
             return blob
 
         mutable = [name for name in package["files"] if name.endswith("catalog.json")]
-        immutable = [(name, spec) for name, spec in package["files"].items() if name not in mutable]
+        support = [
+            name
+            for name in package["files"]
+            if PurePosixPath(name).name in ("README.md", "AGENTS.md")
+            and len(PurePosixPath(name).parts) <= 4
+        ]
+        immutable = [
+            (name, spec)
+            for name, spec in package["files"].items()
+            if name not in mutable and name not in support
+        ]
 
         def copy(item):
             name, spec = item
@@ -127,6 +154,11 @@ def publish(source_manifest, source_sha, results_uri):
 
         with ThreadPoolExecutor(6) as pool:
             public_files = dict(pool.map(copy, immutable))
+        # Existing shared guidance is retained; create-only compute credentials cannot replace it.
+        for name in support:
+            bucket, key = split_uri(target_uri(name))
+            if client.bucket(bucket).get_blob(key) is None:
+                copy((name, package["files"][name]))
         # Catalogs are merged only after every immutable asset is verified and present.
         for name in sorted(mutable, key=lambda value: -len(PurePosixPath(value).parts)):
             spec = package["files"][name]

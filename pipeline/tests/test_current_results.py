@@ -51,3 +51,26 @@ def test_county_and_tract_files_share_dataset_but_have_own_version(tmp_path):
         assert record["file"] == level
         with pytest.raises(ValueError, match="immutable"):
             package_geography(tmp_path, version, level, geometry, baseline, scores, {}, {})
+
+
+def test_every_catalog_conforms_to_official_portolan_schema_and_links_resolve(tmp_path):
+    from pathlib import Path
+
+    import jsonschema
+
+    from fri_pipeline.current_results import write_catalog
+
+    write_catalog(
+        tmp_path,
+        "v20261111",
+        {("fri", "tracts"): {"title": "Tract results", "bbox": [-125, 24, -66, 50], "assets": {}}},
+    )
+    schema = json.loads(
+        (Path(__file__).parents[1] / "reference/portolan-v0.2.0.schema.json").read_text()
+    )
+    for path in [*tmp_path.rglob("catalog.json"), *tmp_path.rglob("collection.json")]:
+        value = json.loads(path.read_text())
+        jsonschema.validate(value, schema)
+        for link in value["links"]:
+            if "://" not in link["href"]:
+                assert (path.parent / link["href"]).resolve().is_file(), link

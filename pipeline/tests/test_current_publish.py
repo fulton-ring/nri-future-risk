@@ -27,6 +27,10 @@ def test_review_catalog_keeps_prior_datasets_versions_and_updates_latest():
     assert [x["href"] for x in merged["links"] if x["rel"] == "latest-version"] == [
         "v20261111/collection.json"
     ]
+    reverse = merge_catalog(current, prior)
+    assert [link["href"] for link in reverse["links"] if link["rel"] == "latest-version"] == [
+        "v20261111/collection.json"
+    ]
     with pytest.raises(ValueError):
         merge_catalog({"id": "different"}, current)
 

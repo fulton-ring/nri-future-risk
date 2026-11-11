@@ -1,5 +1,6 @@
 """Immutable review files for NRI v1.20 projections, with one version per file."""
 
+import json
 import re
 from pathlib import Path
 
@@ -67,6 +68,21 @@ def package_geography(root, version, level, geometry, baseline, scores, bins, va
             )
         },
         "bbox": frame.total_bounds.tolist(),
+        "columns": [
+            {
+                "name": name,
+                "type": "binary"
+                if name == "geometry"
+                else "integer"
+                if pd.api.types.is_integer_dtype(frame[name])
+                else "number"
+                if pd.api.types.is_numeric_dtype(frame[name])
+                else "string",
+                "nullable": bool(frame[name].isna().any()),
+                "is_geometry": name == "geometry",
+            }
+            for name in frame.columns
+        ],
     }
     for name, title in [
         ("rating-bins.json", "Version-specific rating thresholds"),
@@ -79,19 +95,55 @@ def package_geography(root, version, level, geometry, baseline, scores, bins, va
 
 
 def write_catalog(root: Path, version: str, records: dict):
-    """Create a review catalog with dataset / file / version navigation."""
-    from .results import FILE_EXTENSION, PORTOLAN, VERSION_EXTENSION
+    """Create schema-conformant dataset / file / version catalogs."""
+    import os
+
+    from .results import FILE_EXTENSION, PORTOLAN, TABLE_EXTENSION, VERSION_EXTENSION
 
     validate_version(version)
+    root = Path(root).resolve()
     collection = root / "future-risk-index"
     description = (
-        "Recreated Future Risk Index using NRI v1.20. Review results; "
-        "no approved release is activated by this catalog. "
-        "Produced by Public Environmental Data Partners and Fulton Ring."
+        "Future Risk Index results and reproducibility assets. "
+        "Each version documents its baseline and methodology."
     )
 
-    def catalog(path, identity, title, children):
+    def links(path, title):
         path.parent.mkdir(parents=True, exist_ok=True)
+        for name in ("README.md", "AGENTS.md"):
+            (path.parent / name).write_text(
+                f"# {title}\n\n{description}\n\n"
+                "Read catalog.json or collection.json for versioned assets and provenance. "
+                "Review status is distinct from an approved map release.\n"
+            )
+        result = [
+            {"rel": "self", "href": path.name, "type": "application/json"},
+            {
+                "rel": "root",
+                "href": os.path.relpath(root / "catalog.json", path.parent),
+                "type": "application/json",
+            },
+            {"rel": "agents", "href": "AGENTS.md", "type": "text/markdown"},
+            {"rel": "describedby", "href": "README.md", "type": "text/markdown"},
+        ]
+        if path.parent != root:
+            result.append({"rel": "parent", "href": "../catalog.json", "type": "application/json"})
+        return result
+
+    def catalog(path, identity, title, children):
+        navigation = links(path, title)
+        navigation += [
+            {"rel": "child", "href": href, "title": label, "type": "application/json"}
+            for href, label in children
+        ]
+        if identity.count("/") == 2:
+            navigation.append(
+                {
+                    "rel": "latest-version",
+                    "href": f"{version}/collection.json",
+                    "type": "application/json",
+                }
+            )
         write_json(
             path,
             {
@@ -101,10 +153,7 @@ def write_catalog(root: Path, version: str, records: dict):
                 "id": identity,
                 "title": title,
                 "description": description,
-                "links": [
-                    {"rel": "self", "href": "catalog.json"},
-                    *[{"rel": "child", "href": href, "title": label} for href, label in children],
-                ],
+                "links": navigation,
             },
         )
 
@@ -112,31 +161,60 @@ def write_catalog(root: Path, version: str, records: dict):
     for (dataset, file), record in records.items():
         datasets.setdefault(dataset, []).append((file, record))
         folder = collection / dataset / file / version
-        folder.mkdir(parents=True, exist_ok=True)
-        write_json(
-            folder / "collection.json",
-            {
-                "stac_version": "1.1.0",
-                "stac_extensions": [PORTOLAN, FILE_EXTENSION, VERSION_EXTENSION],
-                "type": "Collection",
-                "id": f"future-risk-index/{dataset}/{file}/{version}",
-                "title": record["title"],
-                "description": description,
-                "license": "other",
-                "version": version,
-                "fri:publication_status": "analysis",
-                "extent": {
-                    "spatial": {"bbox": [record["bbox"]]},
-                    "temporal": {"interval": [[None, None]]},
-                },
-                "assets": record["assets"],
-                "links": [
-                    {"rel": "self", "href": "collection.json"},
-                    {"rel": "parent", "href": "../catalog.json"},
-                    {"rel": "root", "href": "../../../../catalog.json"},
-                ],
-            },
+        path = folder / "collection.json"
+        navigation = links(path, record["title"])
+        (folder / "LICENSE.md").write_text(
+            "# Source data rights\n\nOriginal source files retain their upstream terms. "
+            "Original ZIPs, source URLs and hashes accompany these results. "
+            "Derived results credit FEMA, Public Environmental Data Partners and Fulton Ring.\n"
         )
+        navigation.append({"rel": "license", "href": "LICENSE.md", "type": "text/markdown"})
+        producer = (
+            {"name": "FEMA", "url": "https://www.fema.gov"}
+            if dataset == "nri"
+            else {"name": "US Census Bureau", "url": "https://www.census.gov"}
+            if dataset == "census-boundaries"
+            else {
+                "name": "Public Environmental Data Partners",
+                "url": "https://publicenvirodata.org",
+            }
+        )
+        value = {
+            "stac_version": "1.1.0",
+            "stac_extensions": [PORTOLAN, FILE_EXTENSION, VERSION_EXTENSION],
+            "type": "Collection",
+            "id": f"future-risk-index/{dataset}/{file}/{version}",
+            "title": record["title"],
+            "description": "NRI v1.20 review results. " + description,
+            "license": "other",
+            "version": version,
+            "fri:publication_status": "analysis",
+            "extent": {
+                "spatial": {"bbox": [record["bbox"]]},
+                "temporal": {"interval": [[None, None]]},
+            },
+            "providers": [
+                {**producer, "roles": ["producer"]},
+                {
+                    "name": "Fulton Ring",
+                    "url": "https://fultonring.com",
+                    "roles": ["processor", "host"],
+                },
+            ],
+            "assets": record["assets"],
+            "links": navigation,
+        }
+        if dataset == "fri" and record.get("columns"):
+            value["stac_extensions"].append(TABLE_EXTENSION)
+            value.update(
+                {
+                    "table:columns": record["columns"],
+                    "hifld:feature_id_column": "area_id",
+                    "hifld:geometry_column": "geometry",
+                    "hifld:spatial_status": "spatial",
+                }
+            )
+        write_json(path, value)
         catalog(
             folder.parent / "catalog.json",
             f"future-risk-index/{dataset}/{file}",
@@ -162,6 +240,33 @@ def write_catalog(root: Path, version: str, records: dict):
         "Future Risk Index results",
         [("future-risk-index/catalog.json", "Future Risk Index")],
     )
+    validate_catalog_tree(root)
+
+
+def validate_catalog_tree(root: Path):
+    """Validate the pinned official schema and every local navigation/asset target."""
+    import jsonschema
+
+    from .snapshot import ROOT
+
+    root = Path(root).resolve()
+    schema_path = ROOT / "pipeline/reference/portolan-v0.2.0.schema.json"
+    contract = json.loads((ROOT / "pipeline/reference/current-contract.json").read_text())
+    if sha256(schema_path) != contract["portolanSchemaSha256"]:
+        raise ValueError("Portolan schema checksum mismatch")
+    schema = json.loads(schema_path.read_text())
+    validator = jsonschema.validators.validator_for(schema)(schema)
+    paths = [*root.rglob("catalog.json"), *root.rglob("collection.json")]
+    for path in paths:
+        value = json.loads(path.read_text())
+        validator.validate(value)
+        for reference in [*value["links"], *value.get("assets", {}).values()]:
+            href = reference["href"]
+            if "://" not in href:
+                target = (path.parent / href).resolve()
+                if not target.is_relative_to(root) or not target.is_file():
+                    raise ValueError(f"Catalog target does not resolve: {path}: {href}")
+    return len(paths)
 
 
 def manifest(root: Path, version: str, provenance: dict) -> dict:

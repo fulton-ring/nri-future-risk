@@ -47,5 +47,6 @@
       "url": "https://www2.census.gov/geo/tiger/TIGER2024/TRACT/tl_2024_12_tract.zip",
       "sha256": "dd178ccb9c5324492c22ef82c78bfbfe95ebf5248463eeb85d54b00983d85b3c"
     }
-  }
+  },
+  "portolanSchemaSha256": "8aabde871a72dcee711dc57d439e0f47dc29b30883513571128125c666723a7a"
 }
