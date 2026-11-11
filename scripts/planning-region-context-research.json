@@ -1,0 +1,303 @@
+{
+  "brief": "Research each planning region’s economy, population and relevant geography alongside its native NRI v1.20 baseline; write 1–2 sourced sentences interpreting risk relative to other areas without claiming causal attribution.",
+  "baseline": {
+    "baseline": "NRI v1.20",
+    "geography": "counties",
+    "sourceUrl": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261111T211638Z/geoparquet/counties.parquet",
+    "sourceSha256": "191e86bb56174c3d9973ee55ee282f03be3dd80aaed5b709cff5eb38527da17b"
+  },
+  "populationSource": {
+    "url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv",
+    "sha256": "4f5a499d851e2cb48fd7a5405e5a9235453a8a66933657aacd10df0e264f35d5"
+  },
+  "regions": {
+    "09110": {
+      "population": {
+        "value": 994115,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "economy": {
+        "sourceUrl": "https://crcogct.org/comprehensive-economic-development-strategy-ceds/",
+        "support": "Insurance/finance and advanced manufacturing are regional priority sectors."
+      },
+      "baselineRiskScores": {
+        "DRGT": 52.767175572519086,
+        "WFIR": 56.93384223918575,
+        "EXHT": 96.40333975594089
+      },
+      "description": "Home to about 994,000 people (2025 estimate), the Capitol region combines Hartford’s insurance and finance businesses with an advanced-manufacturing economy. FEMA’s v1.20 baseline places its extreme-heat risk in the national top tenth, while wildfire risk is only slightly above the median.",
+      "comparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 96.40333975594089,
+          "relation": "top10"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 56.93384223918575,
+          "relation": "aboveMedian"
+        }
+      ]
+    },
+    "09120": {
+      "population": {
+        "value": 337697,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "economy": {
+        "sourceUrl": "https://choosegreaterbridgeport.com/target-industries.php",
+        "support": "Healthcare, aerospace manufacturing in Stratford and Bridgeport port activity."
+      },
+      "baselineRiskScores": {
+        "DRGT": 18.479643765903308,
+        "WFIR": 23.918575063613236,
+        "EXHT": 77.61721258831086
+      },
+      "description": "Greater Bridgeport’s roughly 338,000 residents (2025 estimate) share an economy built around healthcare, manufacturing and services, with aerospace production in Stratford and a working port in Bridgeport. Its v1.20 baseline extreme-heat risk is in the national upper quarter, while wildfire risk is in the lowest quarter.",
+      "comparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 77.61721258831086,
+          "relation": "top25"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 23.918575063613236,
+          "relation": "bottom25"
+        }
+      ]
+    },
+    "09130": {
+      "population": {
+        "value": 177311,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "economy": {
+        "sourceUrl": "https://easthamptonct.gov/DocumentCenter/View/495/River-COG-Existing-Conditions-Report-2021-2031-PDF",
+        "support": "Manufacturing, tourism and small businesses; Middletown is the primary employment center."
+      },
+      "baselineRiskScores": {
+        "DRGT": 35.273536895674305,
+        "WFIR": 43.63867684478372,
+        "EXHT": 42.19653179190752
+      },
+      "description": "The Lower Connecticut River Valley has about 177,000 residents (2025 estimate), with manufacturing, tourism and small businesses supporting an economy whose principal employment center is Middletown. Its v1.20 baseline heat and wildfire risk both fall below the national median, unlike the much larger Capitol region’s top-tenth heat risk.",
+      "comparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 42.19653179190752,
+          "relation": "belowMedian"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 43.63867684478372,
+          "relation": "belowMedian"
+        }
+      ]
+    },
+    "09140": {
+      "population": {
+        "value": 463349,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "economy": {
+        "sourceUrl": "https://nvcogct.gov/wp-content/uploads/2023/02/2022-NVC-EDD-CEDS-Report.pdf",
+        "support": "Healthcare/social assistance and manufacturing are the two largest listed employment clusters (2019 data)."
+      },
+      "baselineRiskScores": {
+        "DRGT": 50.222646310432566,
+        "WFIR": 47.70992366412214,
+        "EXHT": 80.73217726396916
+      },
+      "description": "The Naugatuck Valley’s roughly 463,000 residents (2025 estimate) live in a region shaped by industrial towns, with healthcare and manufacturing among its largest employment clusters. FEMA’s v1.20 baseline places heat risk in the national upper quarter but wildfire risk below the median.",
+      "comparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 80.73217726396916,
+          "relation": "top25"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 47.70992366412214,
+          "relation": "belowMedian"
+        }
+      ]
+    },
+    "09150": {
+      "population": {
+        "value": 98096,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "economy": {
+        "sourceUrl": "https://nectchamber.com/business-industry/",
+        "support": "Manufacturing includes metal products and food; I-395 access supports distribution centers."
+      },
+      "baselineRiskScores": {
+        "DRGT": 27.162849872773535,
+        "WFIR": 22.900763358778622,
+        "EXHT": 49.67886962106615
+      },
+      "description": "Northeastern Connecticut has about 98,100 residents (2025 estimate), with a manufacturing base ranging from metal products to food production and distribution businesses along the I-395 corridor. Its v1.20 baseline heat risk sits close to the national median and wildfire risk in the lowest quarter.",
+      "comparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 49.67886962106615,
+          "relation": "belowMedian"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 22.900763358778622,
+          "relation": "bottom25"
+        }
+      ]
+    },
+    "09160": {
+      "population": {
+        "value": 114690,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "economy": {
+        "sourceUrl": "https://www.nhcogct.gov/_files/ugd/0bc5be_56ba00f00cbc4711a524c2d2df9bd93c.pdf",
+        "support": "Regional industry employment includes healthcare/social assistance and manufacturing (2022 QCEW data)."
+      },
+      "baselineRiskScores": {
+        "DRGT": 40.90330788804072,
+        "WFIR": 39.94910941475826,
+        "EXHT": 30.82851637764932
+      },
+      "description": "Northwest Hills has about 115,000 residents (2025 estimate), with healthcare and manufacturing important to its employment base. Its v1.20 baseline heat and wildfire risk both fall below the national median, contrasting with the upper-quarter heat risk in the more populous Naugatuck Valley.",
+      "comparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 30.82851637764932,
+          "relation": "belowMedian"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 39.94910941475826,
+          "relation": "belowMedian"
+        }
+      ]
+    },
+    "09170": {
+      "population": {
+        "value": 578741,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "economy": {
+        "sourceUrl": "https://www.edcnewhaven.com/key-sectors/manufacturing",
+        "support": "Healthcare, higher education and life sciences are larger than New Haven manufacturing."
+      },
+      "baselineRiskScores": {
+        "DRGT": 23.823155216284988,
+        "WFIR": 41.221374045801525,
+        "EXHT": 85.38856775850995
+      },
+      "description": "South Central Connecticut’s roughly 579,000 residents (2025 estimate) live in an economy where New Haven’s healthcare, higher education and life-science research are major anchors. Its v1.20 baseline heat risk is in the national upper quarter while wildfire risk is below the median.",
+      "comparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 85.38856775850995,
+          "relation": "top25"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 41.221374045801525,
+          "relation": "belowMedian"
+        }
+      ]
+    },
+    "09180": {
+      "population": {
+        "value": 284015,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "economy": {
+        "sourceUrl": "https://seccog.org/wp-content/uploads/2020/08/SCCOG_RWMP_final_adopted_071719.pdf",
+        "support": "Regional employers include Electric Boat, the casinos and tourism/healthcare institutions."
+      },
+      "baselineRiskScores": {
+        "DRGT": 32.410941475826974,
+        "WFIR": 39.3765903307888,
+        "EXHT": 71.25883108542068
+      },
+      "description": "Southeastern Connecticut has about 284,000 residents (2025 estimate), with submarine construction, naval activity, casinos and tourism supporting a distinctive mix of industrial and visitor-serving jobs. Its v1.20 baseline heat risk ranks above the national median while wildfire risk ranks below it.",
+      "comparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 71.25883108542068,
+          "relation": "aboveMedian"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 39.3765903307888,
+          "relation": "belowMedian"
+        }
+      ]
+    },
+    "09190": {
+      "population": {
+        "value": 640482,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "economy": {
+        "sourceUrl": "https://westcog.org/wp-content/uploads/2020/07/ADOPTED_-2020-2030-WESTCOGPOCD.pdf",
+        "support": "Major regional employment sectors include education/healthcare, professional services and finance/insurance/real estate (2017 data)."
+      },
+      "baselineRiskScores": {
+        "DRGT": 49.90458015267176,
+        "WFIR": 46.24681933842239,
+        "EXHT": 84.00770712909441
+      },
+      "description": "Western Connecticut has about 640,000 residents (2025 estimate), with finance, professional services, education and healthcare forming much of its employment base. Its v1.20 baseline heat risk is in the national upper quarter but wildfire risk is below the median.",
+      "comparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 84.00770712909441,
+          "relation": "top25"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 46.24681933842239,
+          "relation": "belowMedian"
+        }
+      ]
+    }
+  }
+}

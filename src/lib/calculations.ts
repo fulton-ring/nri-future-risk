@@ -1,6 +1,7 @@
 import { formatExactNumber } from './format';
 export { formatNumber, formatDollars, formatExactNumber } from './format';
 import bins from '../../pipeline/reference/rating-bins.json';
+import { release, type RatingBins } from '../data/releases';
 import { multiplierStops, ratingNames, scenarioKey, metricValue, type Hazard, type Metric, type Values, type ViewState } from './risk';
 
 export type RatingInterval = { label: string; lower: number | null; upper: number | null };
@@ -22,8 +23,9 @@ export function countyCalculation(values: Values, view: ViewState) {
     derivedLoss: !baseline && publishedLoss === null,
   };
 }
-export function ratingIntervals(hazard: Hazard, metric: Metric): RatingInterval[] {
-  const edges = metric === 'multiplier' ? multiplierStops : bins.hazards[hazard][metric === 'loss' ? 'annualLoss' : 'riskValue'];
+export function ratingIntervals(hazard: Hazard, metric: Metric, selectedBins: RatingBins = release.bins ?? bins): RatingInterval[] {
+  const edges = metric === 'multiplier' ? multiplierStops : selectedBins.hazards[hazard]?.[metric === 'loss' ? 'annualLoss' : 'riskValue'];
+  if (!edges || edges.length !== 4) throw new Error('Rating thresholds unavailable for this release');
   return ratingNames.map((label, i) => ({label, lower: i === 0 ? null : edges[i - 1], upper: i === 4 ? null : edges[i]}));
 }
 export function binIndex(value: number, intervals: RatingInterval[]) {
@@ -45,10 +47,11 @@ export function ratingChartScale(intervals: RatingInterval[], value: number | nu
   return {ceiling,ticks:Array.from({length:Math.round(ceiling/step)+1},(_,i)=>i*step),position:(amount:number)=>amount/ceiling};
 }
 export function nriCountyUrl(fips: string) {
-  if (!/^\d{5}$/.test(fips)) throw new Error('Expected a five-digit county FIPS');
-  // FEMA retired the report viewer; RAPT supports selecting the current NRI county by ID.
-  const selection = `NRI_ID%3D%27C${fips}%27`;
-  return `https://experience.arcgis.com/experience/b702d290fee84bdf93cc398172b37058/page/RAPT-Standard?views=Data-Views%2CNRI%2CView#data_s=where:dataSource_12-a8b034164184436dbadb4c6d1b423d5b:${selection}&zoom_to_selection=true`;
+  if (!/^(?:\d{5}|\d{11})$/.test(fips)) throw new Error('Expected a five- or eleven-digit FIPS');
+  // RAPT uses separate NRI data sources for counties and census tracts.
+  const source = fips.length === 11 ? 'dataSource_12-d62a395a526349e5bdc9ac8064198347' : 'dataSource_12-a8b034164184436dbadb4c6d1b423d5b';
+  const selection = `NRI_ID%3D%27${fips.length === 11 ? 'T' : 'C'}${fips}%27`;
+  return `https://experience.arcgis.com/experience/b702d290fee84bdf93cc398172b37058/page/RAPT-Standard?views=Data-Views%2CNRI%2CView#data_s=where:${source}:${selection}&zoom_to_selection=true`;
 }
 export function intervalLabel(interval: RatingInterval, metric: Metric) {
   const number = (value: number) => (metric === 'loss' ? '$' : '') + formatExactNumber(value) + (metric === 'multiplier' ? '×' : '');

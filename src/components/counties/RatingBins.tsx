@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { areaLabel } from '../../data/releases';
 import { binIndex, formatDollars, formatExactNumber, formatNumber, intervalLabel, ratingIntervals, ratingChartScale } from '../../lib/calculations';
 import { palette, type ViewState } from '../../lib/risk';
 
@@ -34,9 +35,9 @@ function BinChart({view,value}:Props) {
               ? <path d={`M${center-width/2},${y(low)} V${top+8} L${center},${top} L${center+width/2},${top+8} V${y(low)} Z`} fill={palette[i]} className="range-bar" />
               : <rect x={center-width/2} y={y(high)} width={width} height={Math.max(0,y(low)-y(high))} fill={palette[i]} className="range-bar" />}
             {interval.upper !== null && <line x1={center-width/2} x2={center+width/2} y1={y(high)} y2={y(high)} className="range-bar-cap" />}
-            {i === current && value !== null && value !== undefined && <circle cx={center} cy={y(value)} r={3} className="range-county-marker"><title>Selected county: {tick(value)} ({formatExactNumber(value)})</title></circle>}
+            {i === current && value !== null && value !== undefined && <circle cx={center} cy={y(value)} r={3} className="range-county-marker"><title>Selected {areaLabel}: {tick(value)} ({formatExactNumber(value)})</title></circle>}
             <text x={center} y={bottom+15} textAnchor="middle" className={`range-category${i === current ? ' is-county' : ''}`}>{labels[i]}</text>
-            {i === current && <text x={center} y={bottom+26} textAnchor="middle" className="range-county-label">County</text>}
+            {i === current && <text x={center} y={bottom+26} textAnchor="middle" className="range-county-label">{areaLabel === 'county' ? 'County' : 'Tract'}</text>}
           </g>;
         })}
         <line x1={left} x2={left} y1={top} y2={bottom} className="range-axis" />
@@ -45,7 +46,7 @@ function BinChart({view,value}:Props) {
       </svg>
       <div className="range-chart-targets" role="group" aria-label="Inspect category ranges">
         {intervals.map((interval,i)=><button key={i} type="button" className="range-target"
-          aria-label={`${labels[i]}: ${intervalLabel(interval,view.metric)}${i === current ? '. Selected county' : ''}`}
+          aria-label={`${labels[i]}: ${intervalLabel(interval,view.metric)}${i === current ? `. Selected ${areaLabel}` : ''}`}
           aria-pressed={pinned === i} title={intervalLabel(interval,view.metric)}
           onPointerEnter={()=>setHovered(i)} onPointerLeave={()=>setHovered(null)}
           onFocus={()=>setHovered(i)} onBlur={()=>setHovered(null)}

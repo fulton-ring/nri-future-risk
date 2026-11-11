@@ -1,3 +1,5 @@
+import { areaLabel, areasLabel, release } from '../data/releases';
+
 export default function WelcomePrimer() {
   return (
     <div className="prose">
@@ -26,10 +28,10 @@ export default function WelcomePrimer() {
         models depend on the dataset being shown.
       </p>
       <p>
-        <strong>Annual loss rating</strong> shows a county’s projected average
+        <strong>Annual loss rating</strong> shows a {areaLabel}’s projected average
         yearly economic losses as a dollar range and a comparative rating.
         Why the unusual ranges? FEMA used a clustering algorithm to group
-        counties into risk tiers in the National Risk Index. The Future Risk
+        {areasLabel} into risk tiers in the National Risk Index. The Future Risk
         Index uses those same bins so you can compare baseline and future losses.
         The ranges are category thresholds, not uncertainty intervals.
       </p>
@@ -38,7 +40,7 @@ export default function WelcomePrimer() {
         community resilience, which adjust projected economic losses up or down.
         It is presented as a comparative rating rather than a dollar amount
         because future social conditions are unpredictable. A rating compares
-        counties; it is not the probability of an event.
+        {areasLabel}; it is not the probability of an event.
       </p>
       <p>
         <strong>Change in annual loss</strong> is the hazard multiplier. A
@@ -75,8 +77,8 @@ export default function WelcomePrimer() {
       <p>
         Drought, wildfire and extreme heat use mid-century (2036–2065) and
         late-century (2070–2099) projection periods. Historical reference periods
-        vary by hazard and source. Baseline refers to the archived National Risk
-        Index, not conditions today.
+        vary by hazard and source. Baseline refers to the selected {release.baseline} National Risk
+        Index release, not conditions today.
       </p>
       <h3>What’s not included?</h3>
       <p>
@@ -85,7 +87,7 @@ export default function WelcomePrimer() {
         if baseline exposure and social conditions stay the same.
       </p>
       <p>
-        Results describe entire counties. Zooming in adds geographic context,
+        Results describe entire {areasLabel}. Zooming in adds geographic context,
         not scientific resolution. Gray means unavailable, white means no rating
         and pale gray means not applicable. These are different from zero losses.
         Use local information alongside these projections when making decisions

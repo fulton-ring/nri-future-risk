@@ -19,11 +19,19 @@ await writeFile('dist/_headers', '/*\n  X-Robots-Tag: noindex, nofollow\n/previe
 
 const { readFile } = await import('node:fs/promises');
 const tiles = {};
-const releaseFiles = (await readdir('src/data')).filter(name => ['release.json', 'analysis-preview.json'].includes(name));
+const releaseFiles = (await readdir('src/data')).filter(name => ['release.json', 'analysis-2026-10.json', 'analysis-preview.json'].includes(name));
 for (const name of releaseFiles) {
   const release = JSON.parse(await readFile(join('src/data', name), 'utf8'));
   const asset = release.assets['counties.pmtiles'];
   tiles[`/${asset.path}`] = {sha256: asset.sha256, size: (await stat(join('dist', asset.path))).size};
+}
+// Large current assets are hosted directly by GCS, which supports Range + CORS.
+// If a future current release uses local assets, route it through the Pages worker too.
+for (const release of JSON.parse(await readFile('src/data/current-releases.json','utf8'))) {
+  const asset=release.assets['counties.pmtiles'];
+  if (!/^https:\/\//.test(asset.path)) {
+    tiles[`/${asset.path}`]={sha256:asset.sha256,size:(await stat(join('dist',asset.path))).size};
+  }
 }
 const worker = await readFile('cloudflare/tile-worker.mjs', 'utf8');
 await writeFile('dist/_worker.js', `const TILE_ASSETS = ${JSON.stringify(tiles)};\n${worker}`);

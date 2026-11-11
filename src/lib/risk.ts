@@ -29,6 +29,7 @@ export type ViewState = {
   terrain: boolean;
   camera?: { lat: number; lng: number; zoom: number };
 };
+export type HeatDetails = {historicalDaysPerYear:number; futureDaysPerYear:number; rawMultiplier:number; appliedMultiplier:number};
 export type County = {
   id: string;
   name: string;
@@ -36,6 +37,7 @@ export type County = {
   bounds: [number, number, number, number];
   values: Values;
   vintage?: string;
+  heatCalculations?: Record<string, HeatDetails>;
 };
 export type Value = string | number | null;
 export const ratingNames = [
@@ -69,7 +71,7 @@ export function readState(search: string, status = release.status): ViewState {
     period: period === "base" || period === "late" ? period : "mid",
     emissions: p.get("emissions") === "higher" ? "higher" : "lower",
     model: releaseModels(status).includes(model) ? model : "L95",
-    county: /^\d{5}$/.test(p.get("county") || "") ? p.get("county")! : "",
+    county: /^(?:\d{5}|\d{11})$/.test(p.get("county") || "") ? p.get("county")! : "",
     opacity:
       p.has("opacity") &&
       p.get("opacity") !== "" &&
@@ -171,4 +173,9 @@ export function pathwayLabel(
     return emissions === "lower" ? "Intermediate SLR" : "High SLR";
   if (hazard === "HRCN") return emissions === "lower" ? "RCP 4.5" : "RCP 8.5";
   return emissions === "lower" ? "SSP2-4.5" : "SSP5-8.5";
+}
+
+export function featureAreaId(properties: Record<string, unknown>): string | null {
+  const id = properties.fips ?? properties.geoid;
+  return typeof id === 'string' ? id : null;
 }
