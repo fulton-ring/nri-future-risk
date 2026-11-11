@@ -18,7 +18,7 @@ taken down:
 The atlas uses TanStack Start and Router with React, TypeScript, MapLibre GL JS and PMTiles.
 Vite builds a prerendered static site for GitHub Pages and Cloudflare Pages.
 Fonts are provided by Fontsource, and dropdowns/dialogs use shadcn components.
-The map reads archived scores and ratings directly from PMTiles properties.
+The map reads version-specific ratings and multipliers directly from PMTiles properties.
 A separate lossless attribute table supports county search, comparisons and
 the accessible national table independently of the visible tiles.
 
@@ -48,6 +48,8 @@ scores, ratings and multipliers. `public/atlas/counties.json` stores the same
 attributes in columnar JSON for county profiles and the national table.
 `src/data/release.json` records asset paths, SHA-256 hashes, the source hash and
 release identity. The archived source GeoJSON and workbooks remain available.
+Recreated NRI v1.20 county and tract releases use verified public PMTiles and
+sharded attributes recorded in `src/data/current-releases.json`.
 
 To regenerate these checked-in assets, install [tippecanoe](https://github.com/felt/tippecanoe), then run:
 
@@ -57,7 +59,8 @@ npm run assets:archive
 
 This command changes display formats only; it does not recompute the science.
 New reconstructed products must be validated before replacing the release
-manifest. All currently displayed values are labeled as the December 2024 archive.
+manifest. The original archive remains selectable alongside recreated analyses;
+each release identifies its own baseline and methodology.
 
 Shared URLs retain the release, county, hazard, measure, time period, emissions,
 heat model and map camera. Unrecognized releases produce a visible warning.
@@ -86,52 +89,33 @@ your fork's repository settings.
 
 More deployment guides to come as needed.
 
-## County update pipeline
+## Cloudflare PR previews
 
-See [pipeline/README.md](pipeline/README.md) for the independent Hamilton/Cloud Batch pipeline, Terraform configuration and publication contract.
+The Cloudflare preview workflow builds same-repository PRs and `feat/**` branches.
+Set the repository secret `CLOUDFLARE_API_TOKEN` (Cloudflare Pages Edit) and
+variable `CLOUDFLARE_ACCOUNT_ID` for the `future-risk-index-preview` Pages project.
+After deployment and hosted PMTiles checks pass, the workflow posts a preview
+link on the PR and updates that comment on subsequent builds.
 
-### Combined analysis preview
+Run `npm run build:cloudflare` to prepare a root-hosted preview locally.
+The Pages worker provides byte-range responses required by PMTiles.
 
-`feat/future-risk-preview` combines the atlas interface and county risk infrastructure branches.
-The normal build continues to show the FEMA archive. `npm run build:cloudflare` selects the
-available-year analysis explicitly and builds at `/` for the dedicated Cloudflare preview project.
+## Version information and welcome guide
 
-The Data version dropdown switches between the FEMA archive and the Batch analysis. Shared URLs carry the selected release ID and override the deployment default. The selector sits in the version disclaimer header on desktop and mobile, alongside the selected version’s status.
+The Data version header identifies the displayed dataset and links to its separate
+Methodology and Data pages. The selector includes the FEMA archive, earlier
+analyses, and the verified NRI v1.20 county and census-tract results. Cloudflare
+previews open the current county release by default. Scientific calculations and
+infrastructure are reviewed separately in the pipeline PRs.
+Shared links retain the selected release. The main header links to GitHub, and
+the help button reopens the welcome guide. The guide opens once per tab session,
+so changing versions does not show it again.
 
-The preview contains the completed Batch analysis with 3,218 county geometries. The analysis
-controls expose only recalculated drought, wildfire and LOCA2 heat. Coastal flooding, hurricane
-and NEX heat are available by selecting the FEMA archive version. Unsupported hazard/model URL
-parameters are normalized when switching versions. The source assets retain archived fields for
-reproducibility. The page identifies the analysis and its 19 missing wildfire years. It is not a
-publication candidate. The preview has no connection to the publisher staging workflow.
-
-Preview assets are checked in under `public/preview/`. Rebuild them from the immutable results
-manifest and county GeoParquet using `scripts/build_preview_assets.py --help` in the pipeline's
-`results` environment. The builder verifies the source hashes and every decoded PMTiles feature's
-hazard values. Preview tiles stop at zoom 6 and overzoom for closer views, retaining every county
-and numeric attribute while fitting Cloudflare's 25 MiB asset limit. Full source geometry remains
-in the original GeoParquet. Map assets, reports and provenance are served with the preview site;
-large legacy geometry files are excluded from the deployment. A Pages worker routes only PMTiles requests through Cloudflare’s Cache API because Pages static hosting does not supply HTTP 206 range responses. Cache keys include the asset SHA-256; the cache streams the file and serves partial responses without loading it into JavaScript memory.
-
-```bash
-npm ci
-npm test
-npm run build:cloudflare
-npx wrangler@4.152.0 pages deploy dist --project-name future-risk-index-preview \
-  --branch review-feat-fut-0dc4eaf5 --force
-```
-
-`.github/workflows/preview.yml` builds feature branches and same-repository PRs. Set the repository
-variable `CLOUDFLARE_ACCOUNT_ID` and a repository secret `CLOUDFLARE_API_TOKEN` with **Account →
-Cloudflare Pages → Edit** for the preview account to enable automatic deployment. Without the token,
-the workflow still tests/builds and uploads a review artifact. It does not reuse a personal OAuth
-session in CI. Preview branch names always start with `review-`, so they never target the Pages
-project's `main` production branch. Cloudflare's `--force` flag selects its existing Pages upload
-path rather than the newer Workers migration wrapper.
-
-Combined branch preview: https://review-feat-fut-0dc4eaf5.future-risk-index-preview.pages.dev
-
-The version header links to standalone methodology and data pages for the selected release. The general guide opens once per tab session and is available again from the help button; version switches do not reopen it. `build_version_pages.mjs` generates the version documents during every build, including links to the exact analysis GeoParquet.
+Every build generates the version pages with `scripts/build_version_pages.mjs`.
+They include version-specific methods, download links and source checksums.
+Tract PMTiles cover zooms 0–10 with generalized overview geometry, retaining exact
+map ratings and multipliers. Tract profiles show their own scores followed by
+the containing county or planning region’s sourced description.
 
 ## Rendering and static builds
 
@@ -149,3 +133,11 @@ continue to serve static files; no application server is required.
 `VITE_BASE_PATH=/` when previewing a Cloudflare build. `npm run dev` runs Start's development
 server. This migration preserves the current version selector and datasets; it does not
 add county landing pages or change any scientific values.
+
+## County update pipeline
+
+See [pipeline/README.md](pipeline/README.md) for the independent Hamilton/Cloud Batch
+pipeline, Terraform configuration and merge-approved publication contract.
+
+The combined branch preview is available at
+https://review-feat-fut-0dc4eaf5.future-risk-index-preview.pages.dev/.
