@@ -111,6 +111,47 @@ def write_attributes(frame, output, level):
     return {**result, "attributes": payload}
 
 
+def tile_columns(frame):
+    # The map needs categories and multipliers; full numeric profiles stay in JSON.
+    return [
+        name
+        for name in display_columns(frame)
+        if name.endswith(("_EALR", "_RISKR", "_PALR", "_PRISKR", "_HM"))
+    ]
+
+
+def build_tiles(frame, output, level, tile_name):
+    """Simplify display geometry by zoom; retain exact tract IDs and scores."""
+    columns = tile_columns(frame) if level == "tracts" else display_columns(frame)
+    tile_frame = frame[
+        ["geoid", "area_id", "name", "state", *columns, "geometry"]
+    ].copy()
+    tile_frame["fips"] = tile_frame.geoid
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".geojson") as handle:
+        handle.write(tile_frame.to_json(na="null", drop_id=True))
+        handle.flush()
+        subprocess.run(
+            [
+                "tippecanoe",
+                "-o",
+                str(output / tile_name),
+                "-l",
+                level,
+                "-Z0",
+                "-z10" if level == "tracts" else "-z6",
+                "--use-attribute-for-id=area_id",
+                "--no-feature-limit",
+                "--no-tile-size-limit",
+                "--detect-shared-borders",
+                "--force",
+                handle.name,
+            ],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+
 def main():
     import geopandas as gpd
     from fri_pipeline.publication import verify_tiles
@@ -161,38 +202,23 @@ def main():
         spec = write_attributes(frame, output, level)
         attributes = spec.pop("attributes")
         index_name = f"{level}.json"
-        tile_name = f"{level}.pmtiles"
+        tile_name = "tracts-z0-10.pmtiles" if level == "tracts" else "counties.pmtiles"
         if index_name != "counties.json":
             (output / "counties.json").rename(output / index_name)
-        columns = attributes["columns"]
-        tile_frame = frame[
-            ["geoid", "area_id", "name", "state", *columns, "geometry"]
-        ].copy()
-        tile_frame["fips"] = tile_frame.geoid
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".geojson") as handle:
-            handle.write(tile_frame.to_json(na="null", drop_id=True))
-            handle.flush()
-            subprocess.run(
-                [
-                    "tippecanoe",
-                    "-o",
-                    str(output / tile_name),
-                    "-l",
-                    level,
-                    "-Z5" if level == "tracts" else "-Z0",
-                    "-z10" if level == "tracts" else "-z6",
-                    "--use-attribute-for-id=area_id",
-                    "--no-feature-limit",
-                    "--no-tile-size-limit",
-                    "--detect-shared-borders",
-                    "--force",
-                    handle.name,
+        build_tiles(frame, output, level, tile_name)
+        if level == "tracts":
+            columns = tile_columns(frame)
+            positions = [attributes["columns"].index(name) for name in columns]
+            tile_attributes = {
+                "columns": columns,
+                "counties": [
+                    {"id": area["id"], "values": [area["values"][i] for i in positions]}
+                    for area in attributes["counties"]
                 ],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-        verify_tiles(output / tile_name, attributes, source_layer=level)
+            }
+        else:
+            tile_attributes = attributes
+        verify_tiles(output / tile_name, tile_attributes, source_layer=level)
         base = args.public_prefix.rstrip("/") + f"/{level}/{package['version']}/preview"
         for field in spec.get("fieldAssets", {}).values():
             field["path"] = base + "/" + field["path"]
