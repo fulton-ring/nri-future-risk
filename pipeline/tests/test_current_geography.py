@@ -101,3 +101,48 @@ def test_overlaps_equal_explicit_equal_area_intersections(tmp_path):
         for j in range(2):
             expected[i, j] = projected.geometry.iloc[i].intersection(cells.iloc[j]).area
     assert np.allclose(result.toarray(), expected)
+
+
+def test_full_resolution_2024_tiger_tracts_restore_cartographic_omission(tmp_path):
+    gpd = pytest.importorskip("geopandas")
+    from shapely.geometry import box
+
+    from fri_pipeline.current_geography import load_geography
+
+    path = tmp_path / "tl_2024_12_tract.geojson"
+    gpd.GeoDataFrame(
+        {"GEOID": ["12057980100"]}, geometry=[box(-82.8, 27.6, -82.7, 27.7)], crs=4326
+    ).to_file(path)
+    baseline = pd.DataFrame(
+        {"STATEABBRV": ["FL"]}, index=pd.Index(["12057980100"], name="TRACTFIPS")
+    )
+    baseline.attrs["geography"] = "tract"
+    result = load_geography([path], baseline, conus_only=False)
+    assert result.index.equals(baseline.index)
+    assert result.attrs["sources"][path.name]
+    assert result.attrs["boundaryVintage"] == 2024
+    assert result.attrs["fullResolutionSources"] == [path.name]
+
+    old = tmp_path / "tl_2023_12_tract.geojson"
+    old.write_bytes(path.read_bytes())
+    with pytest.raises(ValueError, match="2024"):
+        load_geography([old], baseline)
+
+
+def test_missing_boundary_error_reports_count_and_native_id_sample(tmp_path):
+    gpd = pytest.importorskip("geopandas")
+    from shapely.geometry import box
+
+    from fri_pipeline.current_geography import load_geography
+
+    path = tmp_path / "cb_2024_12_tract_500k.geojson"
+    gpd.GeoDataFrame(
+        {"GEOID": ["12057000100"]}, geometry=[box(-82.8, 27.6, -82.7, 27.7)], crs=4326
+    ).to_file(path)
+    baseline = pd.DataFrame(
+        {"STATEABBRV": ["FL", "FL"]},
+        index=pd.Index(["12057000100", "12057980100"], name="TRACTFIPS"),
+    )
+    baseline.attrs["geography"] = "tract"
+    with pytest.raises(ValueError, match="1 native NRI IDs.*12057980100"):
+        load_geography([path], baseline)

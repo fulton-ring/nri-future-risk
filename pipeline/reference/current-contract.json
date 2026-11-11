@@ -41,5 +41,11 @@
   ],
   "coverage": "CONUS multipliers only; other areas receive no future projections",
   "wildfireCalibration": "county-only NRI v1.20 expected annual losses, historic MME50 FWI, LF2022 fuel shares, burnable-share weights",
-  "approval": "Review artifacts only. No staging publication or live map activation."
+  "approval": "Review artifacts only. No staging publication or live map activation.",
+  "tractGeometryOverrides": {
+    "12": {
+      "url": "https://www2.census.gov/geo/tiger/TIGER2024/TRACT/tl_2024_12_tract.zip",
+      "sha256": "dd178ccb9c5324492c22ef82c78bfbfe95ebf5248463eeb85d54b00983d85b3c"
+    }
+  }
 }

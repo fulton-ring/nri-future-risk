@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 from pathlib import Path
 
 import numpy as np
@@ -13,16 +14,30 @@ from .snapshot import EXCLUDED, Snapshot, sha256, source_domain
 
 
 def load_geography(paths: list[Path], baseline: pd.DataFrame, *, conus_only: bool = True):
-    """Read Census 2024 cb_*_500k county or per-state tract ZIPs in baseline order."""
+    """Read native 2024 Census boundaries in baseline order.
+
+    Cartographic 500k sources omit some minimal-land tracts. An explicitly named
+    2024 TIGER/Line tract source can replace that state's cartographic source,
+    preserving every native ID without inventing or relabeling geometry.
+    """
     import geopandas as gpd
     import shapely
 
     geography = baseline.attrs["geography"]
     pieces = []
+    full_resolution_sources = []
     for path in paths:
         path = Path(path)
-        if not path.name.startswith("cb_2024_") or "_500k" not in path.name:
-            raise ValueError("Expected Census 2024 500k boundary source")
+        cartographic = bool(
+            re.fullmatch(rf"cb_2024_(?:us|\d{{2}})_{geography}_500k\.(?:zip|geojson)", path.name)
+        )
+        tiger = geography == "tract" and bool(
+            re.fullmatch(r"tl_2024_\d{2}_tract\.(?:zip|geojson)", path.name)
+        )
+        if not cartographic and not tiger:
+            raise ValueError("Expected Census 2024 500k or explicit 2024 TIGER/Line tract source")
+        if tiger:
+            full_resolution_sources.append(path.name)
         piece = gpd.read_file(path)
         if piece.crs is None or "GEOID" not in piece:
             raise ValueError("Boundary source needs CRS and native GEOID")
@@ -32,14 +47,19 @@ def load_geography(paths: list[Path], baseline: pd.DataFrame, *, conus_only: boo
     expected = (
         baseline.loc[~baseline.STATEABBRV.isin(EXCLUDED)].index if conus_only else baseline.index
     )
-    if set(expected) - set(frame.index):
-        raise ValueError("Boundary source is missing native NRI IDs")
+    missing = sorted(set(expected) - set(frame.index))
+    if missing:
+        raise ValueError(
+            f"Boundary source is missing {len(missing)} native NRI IDs; sample: {missing[:20]}"
+        )
     extras = sorted(set(frame.index) - set(baseline.index))
     frame = frame.loc[expected].copy()
     frame.index.name = baseline.index.name
     frame.geometry = shapely.make_valid(frame.geometry.to_numpy())
     if frame.geometry.is_empty.any() or frame.geometry.isna().any():
         raise ValueError("Empty native geometry")
+    frame.attrs["boundaryVintage"] = 2024
+    frame.attrs["fullResolutionSources"] = full_resolution_sources
     frame.attrs["excludedBoundaryIds"] = extras
     frame.attrs["sources"] = {str(Path(p).name): sha256(Path(p)) for p in paths}
     return frame

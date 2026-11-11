@@ -149,9 +149,10 @@ def execute(
     states = sorted(set(tables["tracts"].index.str[:2]))
 
     def tract_shape(state):
-        url = CONTRACT["tractGeometryTemplate"].format(state=state)
+        override = CONTRACT.get("tractGeometryOverrides", {}).get(state, {})
+        url = override.get("url", CONTRACT["tractGeometryTemplate"].format(state=state))
         target = work / "sources" / Path(urlparse(url).path).name
-        return target, fetch(url, target)
+        return target, fetch(url, target, override.get("sha256"))
 
     with ThreadPoolExecutor(6) as pool:
         shape_records = list(pool.map(tract_shape, states))

@@ -12,7 +12,10 @@ by SHA-256 in `reference/current-contract.json`. Their national inventories cont
 are renamed `EXHT` for compatibility with the interface; values are not transformed.
 
 Connecticut uses its nine planning regions (09110–09190), including 879 tracts.
-Census 2024 cartographic boundary files supply the matching polygons. Native
+Census 2024 cartographic boundary files supply the matching polygons, except Florida
+tracts use full-resolution 2024 TIGER/Line boundaries: the cartographic file omits
+native tract 12057980100. The full-resolution source restores that exact ID;
+no native tract is dropped or assigned another tract’s geometry. Native
 baseline rows, missing values, and status labels are retained. Source ZIPs and
 processed baseline tables accompany the results.
 
