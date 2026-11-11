@@ -8,6 +8,7 @@ type CountyContextData = {
   sources: { title: string; url: string }[];
   attribution?: string;
   sourceNote?: string;
+  baseline?: string;
 };
 
 type ContextAsset = {
@@ -17,10 +18,8 @@ type ContextAsset = {
   license: {name: string; url: string; attribution: string};
 };
 
-const contextAssetUrl = assetUrl("context/counties.json");
-
-async function fetchCountyContext(): Promise<ContextAsset> {
-  const response = await fetch(contextAssetUrl);
+async function fetchCountyContext(url: string): Promise<ContextAsset> {
+  const response = await fetch(url);
   if (!response.ok) throw new Error("County context could not be loaded.");
 
   const data: ContextAsset = await response.json();
@@ -31,6 +30,7 @@ async function fetchCountyContext(): Promise<ContextAsset> {
 }
 
 export default function CountyContext({ county }: { county: County }) {
+  const contextAssetUrl = assetUrl(/^091[1-9]0$/.test(county.id) ? "context/planning-regions.json" : "context/counties.json");
   const { data } = useSWR<ContextAsset>(contextAssetUrl, fetchCountyContext, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
@@ -52,7 +52,7 @@ export default function CountyContext({ county }: { county: County }) {
 
   return (
     <section className="county-context" aria-label={`${county.name} context`}>
-      {release.baseline === 'NRI v1.20' && <p className="caption">County context compares archived NRI v1.19 values.</p>}
+      {release.baseline === 'NRI v1.20' && context.baseline !== 'NRI v1.20' && <p className="caption">County context compares archived NRI v1.19 values.</p>}
       <p>{context.description}</p>
       {sources.length > 0 && (
         <details>

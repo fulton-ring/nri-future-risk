@@ -20,6 +20,9 @@ const contextResponse=await fetchReady(new URL('/context/counties.json',base),{h
 assert.equal(contextResponse.status,200,'County context must survive preview packaging');
 const contextBytes=Buffer.from(await contextResponse.arrayBuffer());
 assert.deepEqual(contextBytes,await readFile('public/context/counties.json'),'Hosted county descriptions must match this build');
+const regionsResponse=await fetchReady(new URL('/context/planning-regions.json',base),{headers});
+assert.equal(regionsResponse.status,200,'Planning-region context must survive preview packaging');
+assert.deepEqual(Buffer.from(await regionsResponse.arrayBuffer()),await readFile('public/context/planning-regions.json'),'Hosted region descriptions must match this build');
 for (const name of releaseFiles) {
   const release = JSON.parse(await readFile(`src/data/${name}`, 'utf8'));
   const path = release.assets['counties.pmtiles'].path;

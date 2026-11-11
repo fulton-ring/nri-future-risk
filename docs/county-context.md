@@ -58,3 +58,15 @@ is not a causal attribution or a change to the model's baseline inputs.
 The old economy-template updater refuses to overwrite reviewed research. Refreshing
 source evidence alone must not silently replace the prose. Sources in the panel
 attribute Wikipedia-derived text under CC BY-SA 4.0; the code license is unchanged.
+
+## Connecticut planning regions
+
+The nine native NRI v1.20 planning-region IDs have separate researched context in
+`public/context/planning-regions.json`. The panel loads it for 09110–09190 rather
+than assigning retired county narratives to new boundaries. Descriptions use
+Census July 2025 region population estimates, cited regional economic-development
+sources, and exact native v1.20 baseline comparisons; evidence and source hashes
+are in `scripts/planning-region-context-research.json`. They appear below the
+headline values, just like county descriptions. Tract profiles do not inherit a
+region-wide description. The archived county asset and its v1.19 comparisons stay
+unchanged.

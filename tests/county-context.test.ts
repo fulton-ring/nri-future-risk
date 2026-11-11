@@ -59,3 +59,30 @@ test('researched county context uses source-matched baseline comparisons rather 
     assert.equal(entry.riskContext,undefined,'Researched paragraphs must not acquire an unrelated third sentence');
   }
 });
+
+test('all nine Connecticut planning regions have sourced native-v1.20 context', () => {
+  const context=JSON.parse(readFileSync('public/context/planning-regions.json','utf8'));
+  const research=JSON.parse(readFileSync('scripts/planning-region-context-research.json','utf8'));
+  const expected=Array.from({length:9},(_,i)=>`091${i+1}0`);
+  assert.deepEqual(Object.keys(context.counties).sort(),expected);
+  assert.equal(context.researchBaseline.baseline,'NRI v1.20');
+  for(const id of expected) {
+    const entry=context.counties[id], evidence=research.regions[id];
+    assert.equal(entry.baseline,'NRI v1.20');
+    assert.ok(entry.description.length>=120 && entry.description.length<=700,id);
+    assert.match(entry.description,/baseline/i,id);
+    assert.doesNotMatch(entry.description,/v1\.19|archived/i,id);
+    assert.ok(entry.population.value>0 && entry.population.year===2025,id);
+    assert.equal(entry.population.value,evidence.population.value,id);
+    assert.ok(entry.sources.some((s:{url:string})=>s.url===entry.population.sourceUrl),id);
+    assert.ok(entry.sources.some((s:{url:string})=>s.url===evidence.economy.sourceUrl),id);
+    for(const comparison of entry.researchComparisons) {
+      assert.equal(comparison.value,evidence.baselineRiskScores[comparison.hazard],id);
+      assert.ok(Number.isFinite(comparison.value),id);
+      const n=comparison.value;
+      const valid:Record<string,boolean>={top10:n>=90,top25:n>=75,aboveMedian:n>=50,belowMedian:n<50,bottom25:n<=25,bottom10:n<=10};
+      assert.ok(valid[comparison.relation],id);
+    }
+    assert.ok(entry.researchComparisons.length>0,id);
+  }
+});
