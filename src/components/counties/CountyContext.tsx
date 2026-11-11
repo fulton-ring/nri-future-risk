@@ -1,12 +1,16 @@
 import useSWR from "swr";
+import { countyContextId } from "../../lib/county-context";
+import { release } from "../../data/releases";
 import { assetUrl } from "../../clients/api";
 import type { County } from "../../lib/risk";
 
 type CountyContextData = {
+  name?: string;
   description: string;
   sources: { title: string; url: string }[];
   attribution?: string;
   sourceNote?: string;
+  baseline?: string;
 };
 
 type ContextAsset = {
@@ -16,10 +20,8 @@ type ContextAsset = {
   license: {name: string; url: string; attribution: string};
 };
 
-const contextAssetUrl = assetUrl("context/counties.json");
-
-async function fetchCountyContext(): Promise<ContextAsset> {
-  const response = await fetch(contextAssetUrl);
+async function fetchCountyContext(url: string): Promise<ContextAsset> {
+  const response = await fetch(url);
   if (!response.ok) throw new Error("County context could not be loaded.");
 
   const data: ContextAsset = await response.json();
@@ -30,12 +32,15 @@ async function fetchCountyContext(): Promise<ContextAsset> {
 }
 
 export default function CountyContext({ county }: { county: County }) {
+  const contextId = countyContextId(county.id);
+  const tract = county.id.length === 11;
+  const contextAssetUrl = contextId ? assetUrl(/^091[1-9]0$/.test(contextId) ? "context/planning-regions.json" : "context/counties.json") : null;
   const { data } = useSWR<ContextAsset>(contextAssetUrl, fetchCountyContext, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     shouldRetryOnError: false,
   });
-  const context = data?.counties[county.id];
+  const context = contextId ? data?.counties[contextId] : undefined;
 
   if (!context || typeof context.description !== "string" || !context.description.trim())
     return null;
@@ -49,8 +54,11 @@ export default function CountyContext({ county }: { county: County }) {
       )
     : [];
 
+  const name = context.name ?? (tract ? county.name.split(" · ").slice(1).join(" · ") || contextId : county.name);
   return (
-    <section className="county-context" aria-label={`${county.name} context`}>
+    <section className="county-context" aria-label={`${name} context`}>
+      {tract && <h3>{contextId?.startsWith("091") ? "Planning region" : "County"} context · {name}</h3>}
+      {release.baseline === 'NRI v1.20' && context.baseline !== 'NRI v1.20' && <p className="caption">County context compares archived NRI v1.19 values.</p>}
       <p>{context.description}</p>
       {sources.length > 0 && (
         <details>

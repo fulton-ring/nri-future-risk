@@ -13,8 +13,10 @@ visitors make no LLM or external-source requests.
 
 ## What the comparisons mean
 
-Risk comparisons explicitly refer to the archived NRI v1.19 baseline, which is
-identical across the current archive and analysis releases. The narrative does
+Legacy county comparisons explicitly refer to the archived NRI v1.19 baseline,
+which is identical across the archive and v1.19 analysis releases. The v1.20 view
+labels those older comparisons; the nine new planning regions use native v1.20
+comparisons instead. The narrative does
 not assert that a fixed projected rank applies to every hazard/filter/scenario.
 FEMA risk percentiles are distinct from dollar loss, published rating categories,
 and probabilities. Computed loss percentiles compare the 3,218 mapped counties;
@@ -58,3 +60,22 @@ is not a causal attribution or a change to the model's baseline inputs.
 The old economy-template updater refuses to overwrite reviewed research. Refreshing
 source evidence alone must not silently replace the prose. Sources in the panel
 attribute Wikipedia-derived text under CC BY-SA 4.0; the code license is unchanged.
+
+## Connecticut planning regions
+
+The nine native NRI v1.20 planning-region IDs have separate researched context in
+`public/context/planning-regions.json`. The panel loads it for 09110–09190 rather
+than assigning retired county narratives to new boundaries. Descriptions use
+Census July 2025 region population estimates, cited regional economic-development
+sources, and exact native v1.20 baseline comparisons; evidence and source hashes
+are in `scripts/planning-region-context-research.json`. They appear below the
+headline values, just like county descriptions. Tract profiles show their containing county or planning region’s description,
+clearly labeled as county/region context below the tract’s own headline scores.
+The parent ID is the tract GEOID’s first five digits; no county-level narrative
+is presented as tract-specific research. The archived county asset and its v1.19 comparisons stay
+unchanged.
+
+Tract boundaries are generalized in the PMTiles overview at low zoom; detailed
+boundaries remain available as the map zooms in. Map tiles retain every rating and
+multiplier used by the controls; full exact numeric values remain in the verified
+profile assets and source GeoParquet.
