@@ -30,6 +30,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--workdir', type=Path, default=Path('/tmp/fri-county-economy'))
     args = parser.parse_args()
+    if (ROOT/'scripts/county-context-research.json').exists():
+        raise SystemExit('County context now uses researched narratives. Refresh research inputs and run assemble_county_risk_context.py; economy templates must not overwrite the reviewed prose.')
     target = ROOT/'public/context/counties.json'
     asset = json.loads(target.read_text())
     population = json.loads((args.workdir/'population.json').read_text())
