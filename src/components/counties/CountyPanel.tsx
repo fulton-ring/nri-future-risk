@@ -1,5 +1,6 @@
 import { release, isAnalysis } from "../../data/releases";
 import CalculationDetails from "./CalculationDetails";
+import CountyContext from "./CountyContext";
 import { countyCalculation, formatDollars, formatNumber } from "../../lib/calculations";
 import { Download, X } from "lucide-react";
 import {
@@ -127,7 +128,9 @@ export default function CountyPanel({ county, view, onClear }: Props) {
             )}
           </strong>
         </div>
-        <CalculationDetails county={county} view={view} />
+        <CalculationDetails county={county} view={view}>
+          <CountyContext county={county} />
+        </CalculationDetails>
         <section className="comparison" aria-labelledby="comparison-title">
           <div className="section-heading">
             <h3 id="comparison-title">Annual loss change</h3>
