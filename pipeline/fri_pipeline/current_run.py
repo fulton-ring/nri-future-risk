@@ -380,6 +380,12 @@ def main():
             args.results_uri,
         )
         print(json.dumps(receipt), flush=True)
+        from .current_explain import execute as explain_current_results
+
+        diagnostics = explain_current_results(
+            args.results_uri, args.version, receipt["manifestSha256"], args.work
+        )
+        print(json.dumps(diagnostics), flush=True)
     print(
         json.dumps(
             {"version": package["version"], "files": len(package["files"]), "publishable": False}

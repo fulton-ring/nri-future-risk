@@ -11,6 +11,7 @@ from pathlib import Path, PurePosixPath
 from .candidate import write_json
 from .current_results import validate_version
 from .results_cloud import put_file
+from .snapshot import sha256
 from .storage import download, split_prefix, split_uri
 
 
@@ -204,6 +205,7 @@ def publish(source_manifest, source_sha, results_uri):
             "resultsUri": results_uri,
             "files": len(public_files),
             "manifestUri": target_uri(f"_releases/{version}.json"),
+            "manifestSha256": sha256(path),
             "liveReleaseActivated": False,
         }
 
