@@ -1,5 +1,7 @@
 # Future Risk Index pipelines
 
+The NRI v1.20 county/tract implementation is documented in [CURRENT_METHODOLOGY.md](CURRENT_METHODOLOGY.md). It uses Connecticut’s nine planning regions and is separate from the immutable v1.19-based releases described below. `update-risk.yml` now submits this calculation for review; publication is a separate approval step.
+
 Hamilton computes county drought, wildfire and extreme heat from immutable climate snapshots.
 Google Cloud Batch performs acquisition, computation, source archiving and results packaging.
 GitHub Actions starts a run on demand and opens a review PR. Merging the PR approves the exact

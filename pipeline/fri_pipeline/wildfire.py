@@ -60,15 +60,20 @@ def elasticity(historic_fwi: pd.Series, inputs: Snapshot) -> float:
     return float(coefficients[0])
 
 
-def hazard_multipliers(inputs: Snapshot) -> pd.DataFrame:
+def hazard_multipliers(inputs: Snapshot, *, gamma: float | None = None) -> pd.DataFrame:
     """Columns WFIR_<period>_<warming>_HM indexed by county FIPS (or `areas` ids).
 
-    gamma is always fitted across counties, where NRI EAL and fuel shares exist.
+    Without an explicit gamma, fit across counties using NRI EAL and fuels.
+    Tract callers supply the separately county-fitted gamma.
     """
     county_weights, counties = inputs.county_weights()
-    gamma = elasticity(
-        pd.Series(period_fwi("historical", "historical", county_weights, inputs), counties), inputs
-    )
+    if gamma is None:
+        gamma = elasticity(
+            pd.Series(period_fwi("historical", "historical", county_weights, inputs), counties),
+            inputs,
+        )
+    if not np.isfinite(gamma):
+        raise ValueError("Wildfire elasticity must be finite")
     weights, ids = county_weights, counties
     historic = pd.Series(period_fwi("historical", "historical", weights, inputs), index=ids)
     result = {}

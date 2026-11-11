@@ -3,12 +3,12 @@ on:
   workflow_dispatch:
     inputs:
       snapshot_uri:
-        description: Immutable prepared input manifest (gs://bucket/path/snapshot.json)
-        required: true
+        description: Verified climate snapshot (leave blank to use the pinned MME50 snapshot)
+        required: false
         type: string
       snapshot_sha256:
-        description: SHA-256 of the input manifest
-        required: true
+        description: SHA-256 required when providing a snapshot
+        required: false
         type: string
 permissions:
   contents: read
@@ -20,7 +20,7 @@ jobs:
   candidate:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 400
     env:
       PROJECT: ${{ vars.FRI_GCP_PROJECT }}
       REGION: ${{ vars.FRI_GCP_REGION }}
@@ -29,23 +29,22 @@ jobs:
       REGISTRY: ${{ vars.FRI_IMAGE_REPOSITORY }}
       WORKER_SA: ${{ vars.FRI_BATCH_SERVICE_ACCOUNT }}
       EXPERIMENTS_BUCKET: ${{ vars.FRI_EXPERIMENTS_BUCKET }}
-      RESULTS_BUCKET: ${{ vars.FRI_RESULTS_BUCKET }}
       SNAPSHOT_URI: ${{ inputs.snapshot_uri }}
       SNAPSHOT_SHA: ${{ inputs.snapshot_sha256 }}
-      RELEASE_ID: fri-${{ github.run_id }}-${{ github.run_attempt }}
+      RELEASE_ID: fri-v120-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@v4
       - name: Check configuration
         env:
           PR_TOKEN: ${{ secrets.FRI_PR_TOKEN }}
         run: |
-          for name in PROJECT REGION NETWORK SUBNETWORK REGISTRY WORKER_SA EXPERIMENTS_BUCKET RESULTS_BUCKET PR_TOKEN; do
+          for name in PROJECT REGION NETWORK SUBNETWORK REGISTRY WORKER_SA EXPERIMENTS_BUCKET PR_TOKEN; do
             test -n "${!name}" || { echo "Missing configuration: $name"; exit 1; }
           done
       - uses: astral-sh/setup-uv@v5
         with:
           version: "0.5.4"
-      - run: uv run --directory pipeline --frozen --extra results pytest -q
+      - run: uv run --directory pipeline --frozen --extra results --extra preparation pytest -q
       - uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ vars.FRI_WORKLOAD_IDENTITY_PROVIDER }}
@@ -55,51 +54,58 @@ jobs:
       - name: Build exact worker
         run: |
           gcloud auth configure-docker "${REGISTRY%%/*}" --quiet
-          docker buildx build --platform linux/amd64 --file pipeline/Dockerfile \
+          docker buildx build --platform linux/amd64 --file pipeline/Preparation.Dockerfile \
             --tag "$REGISTRY:$GITHUB_SHA" --push --metadata-file /tmp/image.json .
           DIGEST=$(jq -r '."containerimage.digest"' /tmp/image.json)
           echo "WORKER_IMAGE=$REGISTRY@$DIGEST" >> "$GITHUB_ENV"
       - name: Assign results version
         run: echo "RESULTS_VERSION=$(date -u +v%Y%m%dT%H%M%SZ)" >> "$GITHUB_ENV"
-      - name: Execute Hamilton, source archiving and Portolan packaging on Cloud Batch
+      - name: Submit county and tract calculation to Cloud Batch
         run: |
-          uv run --directory pipeline --frozen python -m fri_pipeline.cloud \
+          SNAPSHOT_ARGS=()
+          if test -n "$SNAPSHOT_URI"; then
+            SNAPSHOT_ARGS=(--snapshot "$SNAPSHOT_URI" --snapshot-sha256 "$SNAPSHOT_SHA")
+          elif test -n "$SNAPSHOT_SHA"; then
+            echo "Snapshot URI and hash must be supplied together"; exit 1
+          fi
+          uv run --directory pipeline --frozen --extra preparation --extra results \
+            python -m fri_pipeline.current_cloud \
             --project "$PROJECT" --region "$REGION" --image "$WORKER_IMAGE" \
             --network "$NETWORK" --subnetwork "$SUBNETWORK" \
-            --service-account "$WORKER_SA" --snapshot "$SNAPSHOT_URI" \
-            --snapshot-sha256 "$SNAPSHOT_SHA" --output "gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID" \
-            --release-id "$RELEASE_ID" --code-revision "$GITHUB_SHA" \
-            --results-uri "gs://$RESULTS_BUCKET" --results-version "$RESULTS_VERSION"
-      - name: Verify and prepare review files
+            --service-account "$WORKER_SA" --run-id "$RELEASE_ID" \
+            --version "$RESULTS_VERSION" --code-revision "$GITHUB_SHA" \
+            --output "gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID" \
+            "${SNAPSHOT_ARGS[@]}" --submit
+          for attempt in $(seq 1 720); do
+            STATE=$(gcloud batch jobs describe "$RELEASE_ID" --project "$PROJECT" \
+              --location "$REGION" --format='value(status.state)')
+            case "$STATE" in
+              SUCCEEDED) exit 0 ;;
+              FAILED|DELETION_IN_PROGRESS) echo "Batch ended: $STATE"; exit 1 ;;
+            esac
+            sleep 30
+          done
+          echo "Batch monitoring timed out; inspect the job before retrying."; exit 1
+      - name: Prepare review report
         run: |
-          uv run --directory pipeline --frozen python -m fri_pipeline fetch \
-            "gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID" /tmp/candidate
-          uv run --directory pipeline --frozen python -m fri_pipeline verify /tmp/candidate --publication
-          gcloud storage cp "gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID/results.json" /tmp/results.json
-          python - <<'PY'
-          import json
-          pointer = json.load(open("/tmp/results.json"))
-          if pointer["collection"] != "future-risk-index" or not pointer["publishable"]:
-              raise SystemExit("Portolan result is not a publication candidate")
-          PY
-          TARGET="releases/candidates/$RELEASE_ID"
+          TARGET="releases/reviews/$RELEASE_ID"
           mkdir -p "$TARGET"
-          cp /tmp/candidate/{candidate.json,report.md,validation.json,provenance.json,changes.json} "$TARGET/"
-          cp /tmp/results.json "$TARGET/results.json"
-          cat /tmp/candidate/report.md >> "$GITHUB_STEP_SUMMARY"
-          cp /tmp/candidate/report.md /tmp/pr-body.md
-          echo "Portolan results: gs://$RESULTS_BUCKET/future-risk-index/ ($RESULTS_VERSION)" >> /tmp/pr-body.md
-          echo "Includes analysis-ready Zarr and hash-verified original source files." >> /tmp/pr-body.md
+          gcloud storage cp "gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID/result-manifest.json" "$TARGET/"
+          gcloud storage cp "gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID/report.md" "$TARGET/"
+          cat "$TARGET/report.md" >> "$GITHUB_STEP_SUMMARY"
+          cp "$TARGET/report.md" /tmp/pr-body.md
+          echo "Immutable review artifacts: gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID" >> /tmp/pr-body.md
+          echo "This PR does not activate a release or promote files to staging." >> /tmp/pr-body.md
       - uses: actions/upload-artifact@v4
         with:
           name: risk-review-${{ env.RELEASE_ID }}
-          path: releases/candidates/
+          path: releases/reviews/
       - uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.FRI_PR_TOKEN }}
           branch: data/${{ env.RELEASE_ID }}
           base: main
-          add-paths: releases/candidates/
-          title: "Update county risk: ${{ env.RELEASE_ID }}"
-          commit-message: "data: propose county risk release ${{ env.RELEASE_ID }}"
+          add-paths: releases/reviews/
+          title: "Review NRI v1.20 county and tract results: ${{ env.RELEASE_ID }}"
+          commit-message: "data: propose NRI v1.20 results ${{ env.RELEASE_ID }}"
           body-path: /tmp/pr-body.md
