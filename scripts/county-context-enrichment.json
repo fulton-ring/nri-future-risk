@@ -1,0 +1,68 @@
+{
+  "19109": {
+    "facts": "The 2024 county hazard mitigation plan identifies corn as the most prevalent crop, followed by soybeans; agriculture is a major county land use. Algona is the county seat. Do not imply drought score is solely caused by farmland.",
+    "sources": [
+      {
+        "title": "Kossuth County: 2024 hazard mitigation plan",
+        "url": "https://www.kossuthcounty.iowa.gov/wp-content/uploads/2025/01/2024-Kossuth-County-Multi-Jurisdictional-Mitigation-Plan.pdf"
+      }
+    ]
+  },
+  "06055": {
+    "facts": "Napa County watershed information describes oak woodland as the most common land cover, roughly one third of the county. Wine grapes and vineyards are important but the county also contains extensive woodland and chaparral. Do not assert the model includes smoke damage.",
+    "sources": [
+      {
+        "title": "Napa County watershed information: Oak woodlands",
+        "url": "https://www.napawatersheds.org/oak-woodlands"
+      }
+    ]
+  },
+  "53077": {
+    "facts": "Yakima Valley agriculture depends on extensive irrigation from the Yakima Project. Reservoirs and mountain snowpack support the basin water supply; Washington Ecology describes warming temperatures threatening snowpack and water supply. Climate multiplier does not simulate farm water rights or reservoir operations.",
+    "sources": [
+      {
+        "title": "Bureau of Reclamation: Yakima Project",
+        "url": "https://usbr.gov/projects/index.php?id=400"
+      },
+      {
+        "title": "Washington Ecology: Yakima Basin Integrated Plan",
+        "url": "https://ecology.wa.gov/ecologys-work-near-you/river-basins-groundwater/yakima-river-basin-projects/yakima-integrated-plan"
+      }
+    ]
+  },
+  "53047": {
+    "facts": "Okanogan is Washington’s largest county by area; agriculture and forestry are major parts of its economy. Its agricultural valleys, forests and mountains are useful local context, but do not infer its rating or losses.",
+    "sources": [
+      {
+        "title": "Okanogan County: Demographics",
+        "url": "https://www.okanogancounty.gov/556/Demographics"
+      }
+    ]
+  },
+  "51683": {
+    "facts": "Manassas is an independent city, bordered by Prince William County and Manassas Park. Census2020 population42772 andlandarea9.84squaremiles. Separatecounty-equivalentCensusgeography.",
+    "sources": [
+      {
+        "title": "Census Bureau: Manassas city profile",
+        "url": "https://data.census.gov/profile/Manassas_city%2C_Virginia?g=050XX00US51683"
+      },
+      {
+        "title": "Northern Virginia Regional Commission: Manassas",
+        "url": "https://novaregion.org/94/Manassas"
+      }
+    ]
+  },
+  "51153": {
+    "facts": "Prince William County spans Potomac coastalplain toBullRunMountains and transitions between developedsuburbs andrurallandscapes. County2020Censuspopulation482204 excludesindependentcities.",
+    "sources": [
+      {
+        "title": "Prince William Conservation Alliance: County geography",
+        "url": "https://www.pwconserve.org/who/whereispw.html"
+      },
+      {
+        "title": "Prince William County: 2020 Census",
+        "url": "https://www.pwcva.gov/department/gis/2020-census"
+      }
+    ]
+  }
+}

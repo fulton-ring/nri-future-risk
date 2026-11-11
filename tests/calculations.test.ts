@@ -1,0 +1,86 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { countyCalculation, ratingIntervals, nriCountyUrl, binIndex } from '../src/lib/calculations.ts';
+import { readState, changeLabel } from '../src/lib/risk.ts';
+
+const view = readState('?hazard=EXHT&model=L95&period=mid&emissions=lower');
+const values = {EXHT_EALT:192187.6093,EXHT_RISKV:250992.4977,EXHT_RISKS:67.61056316,EXHT_L95_MID_LOWER_HM:1,EXHT_L95_MID_LOWER_PRISKS:64.05};
+test('county details separate dollar loss, risk value, percentile score and multiplier', () => {
+  assert.deepEqual(countyCalculation(values,view), {baselineLoss:192187.6093,annualLoss:192187.6093,baselineRiskValue:250992.4977,riskValue:250992.4977,riskScore:64.05,multiplier:1,derivedLoss:true});
+  assert.equal(countyCalculation({...values,EXHT_L95_MID_LOWER_PALT:0},view).annualLoss,0);
+  assert.equal(countyCalculation({},view).annualLoss,null);
+  assert.equal(countyCalculation(values,{...view,period:'base'}).riskScore,67.61056316);
+});
+test('exact category edges are inclusive on the upper side and do not use percentile bins', () => {
+  const intervals=ratingIntervals('EXHT','loss');
+  assert.equal(intervals[1].upper,241379.1141);
+  assert.equal(binIndex(241379.1141,intervals),1);
+  assert.equal(binIndex(241379.11410001,intervals),2);
+  assert.equal(binIndex(295603.5917,intervals),2);
+  assert.equal(ratingIntervals('EXHT','risk')[1].upper,306824.0993);
+  assert.equal(binIndex(250992.4977,ratingIntervals('EXHT','risk')),1);
+  assert.equal(binIndex(1,ratingIntervals('EXHT','multiplier')),0);
+  assert.equal(binIndex(1.5,ratingIntervals('EXHT','multiplier')),1);
+});
+test('NRI county links retain leading zeros and independent-city FIPS', () => {
+  assert.ok(decodeURIComponent(new URL(nriCountyUrl('51683')).hash).includes("NRI_ID='C51683'"));
+  assert.equal(new URL(nriCountyUrl('51683')).hostname,'experience.arcgis.com');
+  assert.ok(decodeURIComponent(new URL(nriCountyUrl('01001')).hash).includes("NRI_ID='C01001'"));
+  assert.throws(()=>nriCountyUrl('bad'),/FIPS/);
+});
+
+
+test('a published 1x does not claim an absence of warming',()=>{
+  assert.equal(changeLabel(1),'No increase applied');
+});
+
+test('archive No Rating multipliers do not fabricate zero projected losses',()=>{
+  const hurricane={...view,hazard:'HRCN'} as typeof view;
+  const row=countyCalculation({HRCN_EALT:4012702.354,HRCN_RISKV:5000000,HRCN_MID_LOWER_HM:0,HRCN_MID_LOWER_DELTAR:'No Rating',HRCN_MID_LOWER_PRISKS:50},hurricane);
+  assert.equal(row.multiplier,null);
+  assert.equal(row.annualLoss,null);
+  assert.equal(row.riskValue,null);
+  assert.equal(row.riskScore,50);
+});
+
+test('display values use three significant digits while bin limits retain their precision', async()=>{
+  const {formatDollars,formatNumber,intervalLabel}=await import('../src/lib/calculations.ts');
+  assert.equal(formatDollars(192187.6093),'$192K');
+  assert.equal(formatDollars(1873469.748),'$1.87M');
+  assert.equal(formatDollars(0),'$0');
+  assert.equal(formatNumber(0.5907061067),'0.591');
+  assert.equal(formatNumber(64.05),'64.1');
+  assert.equal(formatNumber(null),'Unavailable');
+  assert.equal(intervalLabel(ratingIntervals('EXHT','loss')[1],'loss'),'> $10,855.88871 to ≤ $241,379.1141');
+});
+
+test('dollar category charts keep low bins visible, include zero and preserve ordered exact values', async () => {
+  const { ratingChartScale } = await import('../src/lib/calculations.ts');
+  for (const hazard of ['EXHT','WFIR','DRGT','CFLD','HRCN'] as const) {
+    const intervals=ratingIntervals(hazard,'loss');
+    const scale=ratingChartScale(intervals,null,'loss');
+    assert.equal(scale.position(0),0);
+    assert.equal(scale.position(scale.ceiling),1);
+    assert.ok(scale.position(intervals[0].upper!) >= 0.12,`${hazard}: first category must be readable`);
+    assert.ok(scale.position(intervals[3].upper!) < 0.95);
+    assert.ok(scale.ticks.every((n,i,a)=>i === 0 || n > a[i-1]));
+    assert.ok(scale.ticks.every(n=>n >= 0 && n <= scale.ceiling));
+    assert.ok(scale.position(intervals[1].upper!) > scale.position(intervals[0].upper!));
+  }
+  const multiplier=ratingChartScale(ratingIntervals('EXHT','multiplier'),100,'multiplier');
+  assert.equal(multiplier.position(2),2/multiplier.ceiling);
+  assert.ok(multiplier.ceiling >= 100);
+});
+
+test('tract links and shared selections preserve eleven-digit identifiers', () => {
+  assert.ok(decodeURIComponent(new URL(nriCountyUrl('09110535200')).hash).includes("NRI_ID='T09110535200'"));
+  assert.equal(readState('?county=09110535200').county, '09110535200');
+  assert.ok(new URL(nriCountyUrl('09110535200')).hash.includes('dataSource_12-d62a395a526349e5bdc9ac8064198347'));
+  assert.ok(new URL(nriCountyUrl('01001')).hash.includes('dataSource_12-a8b034164184436dbadb4c6d1b423d5b'));
+});
+
+test('release-specific thresholds replace archived rating bins', () => {
+  const custom = {hazards:{EXHT:{annualLoss:[1,2,3,4],riskValue:[10,20,30,40]}}};
+  assert.equal(ratingIntervals('EXHT','loss',custom)[1].upper,2);
+  assert.equal(ratingIntervals('EXHT','risk',custom)[1].upper,20);
+});

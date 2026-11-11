@@ -1,0 +1,386 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-11T22:25:25.109892+00:00",
+  "researchBaseline": {
+    "baseline": "NRI v1.20",
+    "geography": "counties",
+    "sourceUrl": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261111T211638Z/geoparquet/counties.parquet",
+    "sourceSha256": "191e86bb56174c3d9973ee55ee282f03be3dd80aaed5b709cff5eb38527da17b"
+  },
+  "license": {
+    "name": "CC BY-SA 4.0",
+    "url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "Original summaries of cited public sources; source publications retain their own terms."
+  },
+  "counties": {
+    "09110": {
+      "name": "Capitol Planning Region",
+      "description": "Home to about 994,000 people (2025 estimate), the Capitol region combines Hartford’s insurance and finance businesses with an advanced-manufacturing economy. FEMA’s v1.20 baseline places its extreme-heat risk in the national top tenth, while wildfire risk is only slightly above the median.",
+      "baseline": "NRI v1.20",
+      "population": {
+        "value": 994115,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "sources": [
+        {
+          "title": "U.S. Census Bureau population estimates (2025)",
+          "url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+        },
+        {
+          "title": "Capitol Region Council of Governments — economic development strategy",
+          "url": "https://crcogct.org/comprehensive-economic-development-strategy-ceds/"
+        },
+        {
+          "title": "Exact NRI v1.20 baseline fields and recreated results",
+          "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261111T211638Z/geoparquet/counties.parquet"
+        }
+      ],
+      "researchComparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 96.40333975594089,
+          "relation": "top10"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 56.93384223918575,
+          "relation": "aboveMedian"
+        }
+      ],
+      "sourceNote": "Risk comparisons use the national NRI v1.20 county-equivalent baseline, not the selected future scenario. Current population estimates provide context and do not replace the model’s baseline exposure.",
+      "attribution": "Written from cited Census, regional planning and economic-development sources."
+    },
+    "09120": {
+      "name": "Greater Bridgeport Planning Region",
+      "description": "Greater Bridgeport’s roughly 338,000 residents (2025 estimate) share an economy built around healthcare, manufacturing and services, with aerospace production in Stratford and a working port in Bridgeport. Its v1.20 baseline extreme-heat risk is in the national upper quarter, while wildfire risk is in the lowest quarter.",
+      "baseline": "NRI v1.20",
+      "population": {
+        "value": 337697,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "sources": [
+        {
+          "title": "U.S. Census Bureau population estimates (2025)",
+          "url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+        },
+        {
+          "title": "Connecticut MetroCOG — Greater Bridgeport target industries",
+          "url": "https://choosegreaterbridgeport.com/target-industries.php"
+        },
+        {
+          "title": "Exact NRI v1.20 baseline fields and recreated results",
+          "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261111T211638Z/geoparquet/counties.parquet"
+        }
+      ],
+      "researchComparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 77.61721258831086,
+          "relation": "top25"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 23.918575063613236,
+          "relation": "bottom25"
+        }
+      ],
+      "sourceNote": "Risk comparisons use the national NRI v1.20 county-equivalent baseline, not the selected future scenario. Current population estimates provide context and do not replace the model’s baseline exposure.",
+      "attribution": "Written from cited Census, regional planning and economic-development sources."
+    },
+    "09130": {
+      "name": "Lower Connecticut River Valley Planning Region",
+      "description": "The Lower Connecticut River Valley has about 177,000 residents (2025 estimate), with manufacturing, tourism and small businesses supporting an economy whose principal employment center is Middletown. Its v1.20 baseline heat and wildfire risk both fall below the national median, unlike the much larger Capitol region’s top-tenth heat risk.",
+      "baseline": "NRI v1.20",
+      "population": {
+        "value": 177311,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "sources": [
+        {
+          "title": "U.S. Census Bureau population estimates (2025)",
+          "url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+        },
+        {
+          "title": "RiverCOG regional plan — economic development existing conditions",
+          "url": "https://easthamptonct.gov/DocumentCenter/View/495/River-COG-Existing-Conditions-Report-2021-2031-PDF"
+        },
+        {
+          "title": "Exact NRI v1.20 baseline fields and recreated results",
+          "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261111T211638Z/geoparquet/counties.parquet"
+        }
+      ],
+      "researchComparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 42.19653179190752,
+          "relation": "belowMedian"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 43.63867684478372,
+          "relation": "belowMedian"
+        }
+      ],
+      "sourceNote": "Risk comparisons use the national NRI v1.20 county-equivalent baseline, not the selected future scenario. Current population estimates provide context and do not replace the model’s baseline exposure.",
+      "attribution": "Written from cited Census, regional planning and economic-development sources."
+    },
+    "09140": {
+      "name": "Naugatuck Valley Planning Region",
+      "description": "The Naugatuck Valley’s roughly 463,000 residents (2025 estimate) live in a region shaped by industrial towns, with healthcare and manufacturing among its largest employment clusters. FEMA’s v1.20 baseline places heat risk in the national upper quarter but wildfire risk below the median.",
+      "baseline": "NRI v1.20",
+      "population": {
+        "value": 463349,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "sources": [
+        {
+          "title": "U.S. Census Bureau population estimates (2025)",
+          "url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+        },
+        {
+          "title": "Naugatuck Valley economic development strategy — employment clusters",
+          "url": "https://nvcogct.gov/wp-content/uploads/2023/02/2022-NVC-EDD-CEDS-Report.pdf"
+        },
+        {
+          "title": "Exact NRI v1.20 baseline fields and recreated results",
+          "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261111T211638Z/geoparquet/counties.parquet"
+        }
+      ],
+      "researchComparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 80.73217726396916,
+          "relation": "top25"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 47.70992366412214,
+          "relation": "belowMedian"
+        }
+      ],
+      "sourceNote": "Risk comparisons use the national NRI v1.20 county-equivalent baseline, not the selected future scenario. Current population estimates provide context and do not replace the model’s baseline exposure.",
+      "attribution": "Written from cited Census, regional planning and economic-development sources."
+    },
+    "09150": {
+      "name": "Northeastern Connecticut Planning Region",
+      "description": "Northeastern Connecticut has about 98,100 residents (2025 estimate), with a manufacturing base ranging from metal products to food production and distribution businesses along the I-395 corridor. Its v1.20 baseline heat risk sits close to the national median and wildfire risk in the lowest quarter.",
+      "baseline": "NRI v1.20",
+      "population": {
+        "value": 98096,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "sources": [
+        {
+          "title": "U.S. Census Bureau population estimates (2025)",
+          "url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+        },
+        {
+          "title": "Northeastern Connecticut Chamber of Commerce — business and industry",
+          "url": "https://nectchamber.com/business-industry/"
+        },
+        {
+          "title": "Exact NRI v1.20 baseline fields and recreated results",
+          "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261111T211638Z/geoparquet/counties.parquet"
+        }
+      ],
+      "researchComparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 49.67886962106615,
+          "relation": "belowMedian"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 22.900763358778622,
+          "relation": "bottom25"
+        }
+      ],
+      "sourceNote": "Risk comparisons use the national NRI v1.20 county-equivalent baseline, not the selected future scenario. Current population estimates provide context and do not replace the model’s baseline exposure.",
+      "attribution": "Written from cited Census, regional planning and economic-development sources."
+    },
+    "09160": {
+      "name": "Northwest Hills Planning Region",
+      "description": "Northwest Hills has about 115,000 residents (2025 estimate), with healthcare and manufacturing important to its employment base. Its v1.20 baseline heat and wildfire risk both fall below the national median, contrasting with the upper-quarter heat risk in the more populous Naugatuck Valley.",
+      "baseline": "NRI v1.20",
+      "population": {
+        "value": 114690,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "sources": [
+        {
+          "title": "U.S. Census Bureau population estimates (2025)",
+          "url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+        },
+        {
+          "title": "Northwest Connecticut economic development strategy — industry employment",
+          "url": "https://www.nhcogct.gov/_files/ugd/0bc5be_56ba00f00cbc4711a524c2d2df9bd93c.pdf"
+        },
+        {
+          "title": "Exact NRI v1.20 baseline fields and recreated results",
+          "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261111T211638Z/geoparquet/counties.parquet"
+        }
+      ],
+      "researchComparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 30.82851637764932,
+          "relation": "belowMedian"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 39.94910941475826,
+          "relation": "belowMedian"
+        }
+      ],
+      "sourceNote": "Risk comparisons use the national NRI v1.20 county-equivalent baseline, not the selected future scenario. Current population estimates provide context and do not replace the model’s baseline exposure.",
+      "attribution": "Written from cited Census, regional planning and economic-development sources."
+    },
+    "09170": {
+      "name": "South Central Connecticut Planning Region",
+      "description": "South Central Connecticut’s roughly 579,000 residents (2025 estimate) live in an economy where New Haven’s healthcare, higher education and life-science research are major anchors. Its v1.20 baseline heat risk is in the national upper quarter while wildfire risk is below the median.",
+      "baseline": "NRI v1.20",
+      "population": {
+        "value": 578741,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "sources": [
+        {
+          "title": "U.S. Census Bureau population estimates (2025)",
+          "url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+        },
+        {
+          "title": "Economic Development Corporation of New Haven — local economic sectors",
+          "url": "https://www.edcnewhaven.com/key-sectors/manufacturing"
+        },
+        {
+          "title": "Exact NRI v1.20 baseline fields and recreated results",
+          "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261111T211638Z/geoparquet/counties.parquet"
+        }
+      ],
+      "researchComparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 85.38856775850995,
+          "relation": "top25"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 41.221374045801525,
+          "relation": "belowMedian"
+        }
+      ],
+      "sourceNote": "Risk comparisons use the national NRI v1.20 county-equivalent baseline, not the selected future scenario. Current population estimates provide context and do not replace the model’s baseline exposure.",
+      "attribution": "Written from cited Census, regional planning and economic-development sources."
+    },
+    "09180": {
+      "name": "Southeastern Connecticut Planning Region",
+      "description": "Southeastern Connecticut has about 284,000 residents (2025 estimate), with submarine construction, naval activity, casinos and tourism supporting a distinctive mix of industrial and visitor-serving jobs. Its v1.20 baseline heat risk ranks above the national median while wildfire risk ranks below it.",
+      "baseline": "NRI v1.20",
+      "population": {
+        "value": 284015,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "sources": [
+        {
+          "title": "U.S. Census Bureau population estimates (2025)",
+          "url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+        },
+        {
+          "title": "Southeastern Connecticut regional plan — employment and economic base",
+          "url": "https://seccog.org/wp-content/uploads/2020/08/SCCOG_RWMP_final_adopted_071719.pdf"
+        },
+        {
+          "title": "Exact NRI v1.20 baseline fields and recreated results",
+          "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261111T211638Z/geoparquet/counties.parquet"
+        }
+      ],
+      "researchComparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 71.25883108542068,
+          "relation": "aboveMedian"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 39.3765903307888,
+          "relation": "belowMedian"
+        }
+      ],
+      "sourceNote": "Risk comparisons use the national NRI v1.20 county-equivalent baseline, not the selected future scenario. Current population estimates provide context and do not replace the model’s baseline exposure.",
+      "attribution": "Written from cited Census, regional planning and economic-development sources."
+    },
+    "09190": {
+      "name": "Western Connecticut Planning Region",
+      "description": "Western Connecticut has about 640,000 residents (2025 estimate), with finance, professional services, education and healthcare forming much of its employment base. Its v1.20 baseline heat risk is in the national upper quarter but wildfire risk is below the median.",
+      "baseline": "NRI v1.20",
+      "population": {
+        "value": 640482,
+        "year": 2025,
+        "date": "July 1, 2025",
+        "sourceUrl": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+      },
+      "sources": [
+        {
+          "title": "U.S. Census Bureau population estimates (2025)",
+          "url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv"
+        },
+        {
+          "title": "Western Connecticut regional plan — economy",
+          "url": "https://westcog.org/wp-content/uploads/2020/07/ADOPTED_-2020-2030-WESTCOGPOCD.pdf"
+        },
+        {
+          "title": "Exact NRI v1.20 baseline fields and recreated results",
+          "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261111T211638Z/geoparquet/counties.parquet"
+        }
+      ],
+      "researchComparisons": [
+        {
+          "kind": "riskPercentile",
+          "hazard": "EXHT",
+          "value": 84.00770712909441,
+          "relation": "top25"
+        },
+        {
+          "kind": "riskPercentile",
+          "hazard": "WFIR",
+          "value": 46.24681933842239,
+          "relation": "belowMedian"
+        }
+      ],
+      "sourceNote": "Risk comparisons use the national NRI v1.20 county-equivalent baseline, not the selected future scenario. Current population estimates provide context and do not replace the model’s baseline exposure.",
+      "attribution": "Written from cited Census, regional planning and economic-development sources."
+    }
+  }
+}
