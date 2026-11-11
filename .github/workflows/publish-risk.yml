@@ -2,7 +2,7 @@ name: Stage approved Future Risk Index results
 on:
   push:
     branches: [main]
-    paths: ["releases/candidates/**/candidate.json"]
+    paths: ["releases/candidates/**/candidate.json", "releases/reviews/**/result-manifest.json", "releases/reviews/**/public-review.json"]
 permissions:
   contents: read
   id-token: write
@@ -29,8 +29,20 @@ jobs:
           from pathlib import Path
           paths = subprocess.check_output([
               "git", "diff", "--name-only", os.environ["BEFORE_SHA"], os.environ["APPROVED_SHA"],
-              "--", "releases/candidates/*/candidate.json"
+              "--", "releases/candidates/*/candidate.json",
+              "releases/reviews/*/result-manifest.json", "releases/reviews/*/public-review.json"
           ], text=True).splitlines()
+          reviews = {str(Path(path).parent) for path in paths if path.startswith("releases/reviews/")}
+          candidates = [path for path in paths if path.startswith("releases/candidates/")]
+          if reviews:
+              if len(reviews) != 1 or candidates:
+                  raise SystemExit("Merge exactly one review or legacy candidate per PR")
+              review = reviews.pop()
+              if not re.fullmatch(r"releases/reviews/[a-z][a-z0-9-]{2,62}", review):
+                  raise SystemExit("Invalid review path")
+              with open(os.environ["GITHUB_ENV"], "a") as handle:
+                  handle.write(f"REVIEW_PATH={os.environ['GITHUB_WORKSPACE']}/{review}\nPUBLICATION_KIND=v120-review\n")
+              raise SystemExit(0)
           if len(paths) != 1:
               raise SystemExit("Merge exactly one candidate per PR")
           path = Path(paths[0])
@@ -50,7 +62,7 @@ jobs:
           if not re.fullmatch(r"[a-f0-9]{64}", pointer["manifestSha256"]):
               raise SystemExit("Invalid results manifest digest")
           with open(os.environ["GITHUB_ENV"], "a") as handle:
-              handle.write(f"REVIEW_PATH={path.parent}\n")
+              handle.write(f"REVIEW_PATH={os.environ['GITHUB_WORKSPACE']}/{path.parent}\nPUBLICATION_KIND=legacy-candidate\n")
               handle.write(f"RESULTS_VERSION={pointer['version']}\n")
               handle.write(f"RESULTS_MANIFEST_SHA={pointer['manifestSha256']}\n")
           PY
@@ -65,11 +77,19 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v2
       - name: Copy approved collection data to existing staging
         run: |
-          uv run --directory pipeline --frozen --extra results python -m fri_pipeline.results_cloud stage \
-            --results-uri "gs://$RESULTS_BUCKET" --version "$RESULTS_VERSION" \
-            --manifest-sha256 "$RESULTS_MANIFEST_SHA" \
-            --approved-candidate "$REVIEW_PATH/candidate.json" \
-            --staging-uri "gs://$STAGING_BUCKET" > /tmp/promotion.json
+          if test "$PUBLICATION_KIND" = v120-review; then
+            uv run --directory pipeline --frozen --extra results python -m fri_pipeline.current_stage \
+              --results-uri "gs://$RESULTS_BUCKET" --staging-uri "gs://$STAGING_BUCKET" \
+              --approved-source-manifest "$REVIEW_PATH/result-manifest.json" \
+              --approved-public-review "$REVIEW_PATH/public-review.json" \
+              --approved-revision "$APPROVED_SHA" > /tmp/promotion.json
+          else
+            uv run --directory pipeline --frozen --extra results python -m fri_pipeline.results_cloud stage \
+              --results-uri "gs://$RESULTS_BUCKET" --version "$RESULTS_VERSION" \
+              --manifest-sha256 "$RESULTS_MANIFEST_SHA" \
+              --approved-candidate "$REVIEW_PATH/candidate.json" \
+              --staging-uri "gs://$STAGING_BUCKET" > /tmp/promotion.json
+          fi
           cat /tmp/promotion.json >> "$GITHUB_STEP_SUMMARY"
           echo "Staged the future-risk-index collection. Downstream publication owns transforms, hosted assets and catalog activation." >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4

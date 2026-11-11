@@ -93,11 +93,23 @@ jobs:
           mkdir -p "$TARGET"
           gcloud storage cp "gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID/result-manifest.json" "$TARGET/"
           gcloud storage cp "gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID/report.md" "$TARGET/"
+          gcloud storage cp "gs://$RESULTS_BUCKET/_releases/$RESULTS_VERSION.json" "$TARGET/public-review.json"
+          uv run --directory pipeline --frozen --extra results python - <<'PYVERIFY'
+          import os
+          from pathlib import Path
+          from fri_pipeline.current_stage import validate_approval
+          root = Path(os.environ["GITHUB_WORKSPACE"]) / "releases/reviews" / os.environ["RELEASE_ID"]
+          receipt = validate_approval(root / "result-manifest.json", root / "public-review.json",
+                                      f"gs://{os.environ['RESULTS_BUCKET']}")
+          expected = f"gs://{os.environ['EXPERIMENTS_BUCKET']}/runs/{os.environ['RELEASE_ID']}/result-manifest.json"
+          if receipt["sourceManifestUri"] != expected or receipt["version"] != os.environ["RESULTS_VERSION"]:
+              raise SystemExit("Public receipt does not belong to this exact calculation")
+          PYVERIFY
           cat "$TARGET/report.md" >> "$GITHUB_STEP_SUMMARY"
           cp "$TARGET/report.md" /tmp/pr-body.md
           echo "Public review catalog: https://storage.googleapis.com/$RESULTS_BUCKET/future-risk-index/catalog.json ($RESULTS_VERSION)" >> /tmp/pr-body.md
           echo "Immutable source artifacts: gs://$EXPERIMENTS_BUCKET/runs/$RELEASE_ID" >> /tmp/pr-body.md
-          echo "This PR does not activate a release or promote files to staging." >> /tmp/pr-body.md
+          echo "Merging this PR approves the exact numeric data and source assets pinned by result-manifest.json and public-review.json for staging in the existing future-risk-index collection. Downstream publication owns transforms, hosting and activation." >> /tmp/pr-body.md
       - uses: actions/upload-artifact@v4
         with:
           name: risk-review-${{ env.RELEASE_ID }}
