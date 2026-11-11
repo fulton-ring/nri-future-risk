@@ -86,3 +86,13 @@ test('all nine Connecticut planning regions have sourced native-v1.20 context', 
     assert.ok(entry.researchComparisons.length>0,id);
   }
 });
+
+test('tract context resolves the containing county equivalent, including Connecticut planning regions', async () => {
+  const { countyContextId } = await import('../src/lib/county-context');
+  assert.equal(countyContextId('09110535200'),'09110');
+  assert.equal(countyContextId('51683910100'),'51683');
+  assert.equal(countyContextId('19153000100'),'19153');
+  assert.equal(countyContextId('09110'),'09110');
+  assert.equal(countyContextId('09001'),'09001');
+  for(const id of ['', '0911', '0911053520', '091105352001', '09110invalid']) assert.equal(countyContextId(id),null);
+});

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { bytesToHeader, PMTiles } from 'pmtiles';
 import { createHash } from 'node:crypto';
 import { setTimeout } from 'node:timers/promises';
 import { readFile, readdir, stat } from 'node:fs/promises';
@@ -76,7 +77,14 @@ for (const release of JSON.parse(await readFile('src/data/current-releases.json'
     const response=await fetchReady(tileUrl,{headers:{...headers,Origin:origin,Range:`bytes=${start}-${start+126}`}});
     assert.equal(response.status,206,'Current PMTiles requires byte ranges');
     assert.equal(response.headers.get('content-range'),`bytes ${start}-${start+126}/${size}`);
-    assert.equal((await response.arrayBuffer()).byteLength,127);
+    const bytes=await response.arrayBuffer();
+    assert.equal(bytes.byteLength,127);
+    if(start===0 && release.geography==='tracts') assert.equal(bytesToHeader(bytes).minZoom,0,'Tract PMTiles must include the zoomed-out overview');
+  }
+  if(release.geography==='tracts') {
+    const metadata=await new PMTiles(tileUrl.href).getMetadata();
+    const fields=metadata.vector_layers.find(layer=>layer.id===release.sourceLayer).fields;
+    for(const field of Object.keys(release.fieldAssets)) assert.ok(field in fields,`Tract tiles must retain map field ${field}`);
   }
   async function jsonAsset(spec) {
     const response=await fetchReady(new URL(spec.path,base),{headers});

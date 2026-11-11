@@ -1,4 +1,4 @@
-import { release, isAnalysis, isTract, areaLabel } from "../../data/releases";
+import { release, isAnalysis, areaLabel } from "../../data/releases";
 import CalculationDetails from "./CalculationDetails";
 import CountyContext from "./CountyContext";
 import { countyCalculation, formatDollars, formatNumber } from "../../lib/calculations";
@@ -130,9 +130,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
           </strong>
         </div>
         <CalculationDetails county={county} view={view}>
-          {!isTract && <>
-            <CountyContext county={county} />
-          </>}
+          <CountyContext county={county} />
         </CalculationDetails>
         <section className="comparison" aria-labelledby="comparison-title">
           <div className="section-heading">

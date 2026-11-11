@@ -52,7 +52,6 @@ export default function RiskMap({
   const latest = useRef({ counties, view, onSelect, onMove });
   latest.current = { counties, view, onSelect, onMove };
   const [ready, setReady] = useState(false);
-  const [zoom, setZoom] = useState(view.camera?.zoom ?? 3.3);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
   const [hover, setHover] = useState("");
@@ -126,7 +125,6 @@ export default function RiskMap({
         type: "fill",
         source: "counties",
         "source-layer": release.sourceLayer,
-        minzoom: isTract ? 5 : 0,
         paint: {
           "fill-color": "#b6b3ac",
           "fill-opacity": [
@@ -142,7 +140,6 @@ export default function RiskMap({
         type: "line",
         source: "counties",
         "source-layer": release.sourceLayer,
-        minzoom: isTract ? 5 : 0,
         paint: {
           "line-color": "#655f51",
           "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.25, 7, 0.8],
@@ -154,7 +151,6 @@ export default function RiskMap({
         type: "line",
         source: "counties",
         "source-layer": release.sourceLayer,
-        minzoom: isTract ? 5 : 0,
         filter: ["==", ["coalesce", ["get", "fips"], ["get", "geoid"]], latest.current.view.county],
         paint: { "line-color": "#283f3b", "line-width": 3 },
       });
@@ -301,7 +297,6 @@ export default function RiskMap({
       popup.remove();
       setHover("");
     });
-    map.on("zoom", () => setZoom(map.getZoom()));
     map.on("moveend", () => {
       const { lat, lng } = map.getCenter();
       latest.current.onMove({
@@ -445,7 +440,6 @@ export default function RiskMap({
           {contextError && <p role="status">{contextError}</p>}
         </div>
       </details>
-      {isTract && ready && zoom < 5 && <div className="map-status" role="status">Zoom in to see census tract results.</div>}
       {!ready && !error && (
         <div className="map-status" role="status">
           Loading {areaLabel} map…
