@@ -20,8 +20,8 @@ function BinChart({view,value}:Props) {
   const tick=(amount:number)=>view.metric === 'loss' ? formatDollars(amount) : `${formatNumber(amount)}${view.metric === 'multiplier' ? '×' : ''}`;
   return <div className="bin-explorer" onKeyDown={event=>{if(event.key==='Escape'){setPinned(null);setHovered(null);}}}>
     <div className="range-chart">
-      <svg viewBox="0 0 400 173" role="img" aria-label={`${view.metric === 'loss' ? 'Annual loss in dollars per year' : view.metric === 'risk' ? 'Risk value' : 'Multiplier'} on the left axis${view.metric === 'multiplier' ? '' : ', logarithmic scale including zero'}; five categories on the bottom. Bars show each category’s range. The highest range has no upper limit.`}>
-        <text x={left} y={10} className="range-axis-title">{view.metric === 'loss' ? 'Annual loss ($ / year · log scale)' : view.metric === 'risk' ? 'Risk value · log scale' : 'Multiplier'}</text>
+      <svg viewBox="0 0 400 173" role="img" aria-label={`${view.metric === 'loss' ? 'Annual loss in dollars per year' : view.metric === 'risk' ? 'Risk index value, not a dollar-loss estimate' : 'Multiplier'} on the left axis${view.metric === 'multiplier' ? '' : ', logarithmic scale including zero'}; five categories on the bottom. Bars show each category’s range. The highest range has no upper limit.`}>
+        <text x={left} y={10} className="range-axis-title">{view.metric === 'loss' ? 'Annual loss ($ / year · log scale)' : view.metric === 'risk' ? 'Risk index value · log scale' : 'Multiplier'}</text>
         {ticks.map(amount=><g key={amount}>
           <line x1={left} x2={left+plotWidth} y1={y(amount)} y2={y(amount)} className="range-grid" />
           <text x={left-7} y={y(amount)+3} textAnchor="end" className="range-tick">{tick(amount)}</text>
@@ -58,7 +58,7 @@ function BinChart({view,value}:Props) {
       <small>{selected.upper === null ? 'No upper limit' : 'Upper bound included'} · click to pin · Esc to reset</small>
     </div>}
     <p className="bin-hint">{selected ? 'Click to pin · Esc to reset' : 'Hover or select a bar for the exact range.'}</p>
-    {view.metric === 'risk' && <p className="bin-caption">Categories use risk value, not the 0–100 percentile.</p>}
+    {view.metric === 'risk' && <p className="bin-caption">Loss adjusted for vulnerability and resilience; not a dollar-loss estimate. The risk score is a separate 0–100 percentile.</p>}
   </div>;
 }
 export default function RatingBins(props:Props) {
