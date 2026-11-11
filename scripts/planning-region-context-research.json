@@ -27,7 +27,7 @@
         "WFIR": 56.93384223918575,
         "EXHT": 96.40333975594089
       },
-      "description": "Home to about 994,000 people (2025 estimate), the Capitol region combines Hartford’s insurance and finance businesses with an advanced-manufacturing economy. FEMA’s v1.20 baseline places its extreme-heat risk in the national top tenth, while wildfire risk is only slightly above the median.",
+      "description": "Hartford and its suburbs bring nearly a million people, busy roads, homes and major employers into the Capitol region. When Connecticut gets a run of hot summer days, that large urban population leaves a lot of people exposed to extreme heat.",
       "comparisons": [
         {
           "kind": "riskPercentile",
@@ -59,7 +59,7 @@
         "WFIR": 23.918575063613236,
         "EXHT": 77.61721258831086
       },
-      "description": "Greater Bridgeport’s roughly 338,000 residents (2025 estimate) share an economy built around healthcare, manufacturing and services, with aerospace production in Stratford and a working port in Bridgeport. Its v1.20 baseline extreme-heat risk is in the national upper quarter, while wildfire risk is in the lowest quarter.",
+      "description": "Greater Bridgeport combines dense city neighborhoods with factories, hospitals and homes along Long Island Sound. Summer heat affects a lot of people in a small area, while the shoreline puts waterfront buildings in the path of coastal storms.",
       "comparisons": [
         {
           "kind": "riskPercentile",
@@ -91,7 +91,7 @@
         "WFIR": 43.63867684478372,
         "EXHT": 42.19653179190752
       },
-      "description": "The Lower Connecticut River Valley has about 177,000 residents (2025 estimate), with manufacturing, tourism and small businesses supporting an economy whose principal employment center is Middletown. Its v1.20 baseline heat and wildfire risk both fall below the national median, unlike the much larger Capitol region’s top-tenth heat risk.",
+      "description": "The Lower Connecticut River Valley includes Middletown, smaller river towns and communities along Long Island Sound. Summer heat affects residents and outdoor workers, while coastal storms can threaten waterfront homes, roads and marinas.",
       "comparisons": [
         {
           "kind": "riskPercentile",
@@ -123,7 +123,7 @@
         "WFIR": 47.70992366412214,
         "EXHT": 80.73217726396916
       },
-      "description": "The Naugatuck Valley’s roughly 463,000 residents (2025 estimate) live in a region shaped by industrial towns, with healthcare and manufacturing among its largest employment clusters. FEMA’s v1.20 baseline places heat risk in the national upper quarter but wildfire risk below the median.",
+      "description": "Waterbury, Bristol and the surrounding valley towns have a large population and a long industrial history. Hot summer days affect people across their built-up neighborhoods, with homes, workplaces and hospitals all exposed to the heat.",
       "comparisons": [
         {
           "kind": "riskPercentile",
@@ -155,7 +155,7 @@
         "WFIR": 22.900763358778622,
         "EXHT": 49.67886962106615
       },
-      "description": "Northeastern Connecticut has about 98,100 residents (2025 estimate), with a manufacturing base ranging from metal products to food production and distribution businesses along the I-395 corridor. Its v1.20 baseline heat risk sits close to the national median and wildfire risk in the lowest quarter.",
+      "description": "Northeastern Connecticut is a landscape of small towns, farms and woods. Dry spells can hurt crops and leave vegetation ready to burn near rural homes, while humid summer heat affects residents and people working outside.",
       "comparisons": [
         {
           "kind": "riskPercentile",
@@ -187,7 +187,7 @@
         "WFIR": 39.94910941475826,
         "EXHT": 30.82851637764932
       },
-      "description": "Northwest Hills has about 115,000 residents (2025 estimate), with healthcare and manufacturing important to its employment base. Its v1.20 baseline heat and wildfire risk both fall below the national median, contrasting with the upper-quarter heat risk in the more populous Naugatuck Valley.",
+      "description": "Northwest Hills includes Torrington, Litchfield and small communities amid wooded hills. Dry weather can allow fires to spread near rural homes and roads, while summer heat affects residents and people working outdoors.",
       "comparisons": [
         {
           "kind": "riskPercentile",
@@ -219,7 +219,7 @@
         "WFIR": 41.221374045801525,
         "EXHT": 85.38856775850995
       },
-      "description": "South Central Connecticut’s roughly 579,000 residents (2025 estimate) live in an economy where New Haven’s healthcare, higher education and life-science research are major anchors. Its v1.20 baseline heat risk is in the national upper quarter while wildfire risk is below the median.",
+      "description": "New Haven and the surrounding towns concentrate people, homes, hospitals and university buildings along Connecticut’s coast. Heat waves can affect a large urban population, while coastal storms put waterfront neighborhoods and businesses at risk.",
       "comparisons": [
         {
           "kind": "riskPercentile",
@@ -251,7 +251,7 @@
         "WFIR": 39.3765903307888,
         "EXHT": 71.25883108542068
       },
-      "description": "Southeastern Connecticut has about 284,000 residents (2025 estimate), with submarine construction, naval activity, casinos and tourism supporting a distinctive mix of industrial and visitor-serving jobs. Its v1.20 baseline heat risk ranks above the national median while wildfire risk ranks below it.",
+      "description": "New London, Groton and nearby communities have many homes and workplaces along the coast and tidal rivers. Coastal storms can threaten waterfront neighborhoods, docks and roads, while summer heat affects residents and visitors.",
       "comparisons": [
         {
           "kind": "riskPercentile",
@@ -283,7 +283,7 @@
         "WFIR": 46.24681933842239,
         "EXHT": 84.00770712909441
       },
-      "description": "Western Connecticut has about 640,000 residents (2025 estimate), with finance, professional services, education and healthcare forming much of its employment base. Its v1.20 baseline heat risk is in the national upper quarter but wildfire risk is below the median.",
+      "description": "Stamford, Norwalk, Danbury and their suburbs put a large population and a lot of homes and businesses in Western Connecticut. Summer heat can affect many people at once, while the region’s shoreline communities also face coastal storms.",
       "comparisons": [
         {
           "kind": "riskPercentile",
