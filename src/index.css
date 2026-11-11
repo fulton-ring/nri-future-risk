@@ -634,6 +634,7 @@ summary {
 .county-context p {
   margin: 0;
 }
+.county-context > p + p, .county-context details p { margin-top: 6px; }
 .county-context details {
   margin-top: 5px;
   font-size: 11px;
