@@ -18,7 +18,7 @@ taken down:
 The atlas uses TanStack Start and Router with React, TypeScript, MapLibre GL JS and PMTiles.
 Vite builds a prerendered static site for GitHub Pages and Cloudflare Pages.
 Fonts are provided by Fontsource, and dropdowns/dialogs use shadcn components.
-The map reads archived scores and ratings directly from PMTiles properties.
+The map reads version-specific ratings and multipliers directly from PMTiles properties.
 A separate lossless attribute table supports county search, comparisons and
 the accessible national table independently of the visible tiles.
 
@@ -48,6 +48,8 @@ scores, ratings and multipliers. `public/atlas/counties.json` stores the same
 attributes in columnar JSON for county profiles and the national table.
 `src/data/release.json` records asset paths, SHA-256 hashes, the source hash and
 release identity. The archived source GeoJSON and workbooks remain available.
+Recreated NRI v1.20 county and tract releases use verified public PMTiles and
+sharded attributes recorded in `src/data/current-releases.json`.
 
 To regenerate these checked-in assets, install [tippecanoe](https://github.com/felt/tippecanoe), then run:
 
@@ -57,7 +59,8 @@ npm run assets:archive
 
 This command changes display formats only; it does not recompute the science.
 New reconstructed products must be validated before replacing the release
-manifest. All currently displayed values are labeled as the December 2024 archive.
+manifest. The original archive remains selectable alongside recreated analyses;
+each release identifies its own baseline and methodology.
 
 Shared URLs retain the release, county, hazard, measure, time period, emissions,
 heat model and map camera. Unrecognized releases produce a visible warning.
@@ -100,14 +103,19 @@ The Pages worker provides byte-range responses required by PMTiles.
 ## Version information and welcome guide
 
 The Data version header identifies the displayed dataset and links to its separate
-Methodology and Data pages. This UI branch includes only the FEMA archive; the
-new analysis data and its pipeline remain on the combined preview branch.
+Methodology and Data pages. The selector includes the FEMA archive, earlier
+analyses, and the verified NRI v1.20 county and census-tract results. Cloudflare
+previews open the current county release by default. Scientific calculations and
+infrastructure are reviewed separately in the pipeline PRs.
 Shared links retain the selected release. The main header links to GitHub, and
 the help button reopens the welcome guide. The guide opens once per tab session,
 so changing versions does not show it again.
 
 Every build generates the version pages with `scripts/build_version_pages.mjs`.
-They include the original technical document, download links and source checksums.
+They include version-specific methods, download links and source checksums.
+Tract PMTiles cover zooms 0–10 with generalized overview geometry, retaining exact
+map ratings and multipliers. Tract profiles show their own scores followed by
+the containing county or planning region’s sourced description.
 
 ## Rendering and static builds
 
