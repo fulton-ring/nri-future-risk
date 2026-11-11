@@ -24,7 +24,7 @@ import CountySearch from "./components/counties/CountySearch";
 import CountyPanel from "./components/counties/CountyPanel";
 import Legend from "./components/map/Legend";
 import { assetUrl, useCounties } from "./clients/api";
-import { release } from "./data/releases";
+import { release, areaLabel, areasLabel } from "./data/releases";
 import {
   colorFor,
   describeValue,
@@ -56,11 +56,12 @@ export default function App() {
   const [copied, setCopied] = useState("");
   const [resetKey, setResetKey] = useState(0);
   const [tableQuery, setTableQuery] = useState("");
+  const [tablePage, setTablePage] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const [requestedRelease] = useState(() =>
     new URLSearchParams(window.location.search).get("release"),
   );
-  const { data: counties, error, isLoading, mutate } = useCounties();
+  const { data: counties, selectedCounty: county, error, isLoading, mutate, detailsLoading, detailsError, retryDetails } = useCounties(view);
   const update = (change: Partial<ViewState>) =>
     setView((previous) => {
       const next = { ...previous, ...change };
@@ -89,13 +90,13 @@ export default function App() {
     update({ county: id });
     setExpanded(true);
   };
-  const county = counties?.find((c) => c.id === view.county);
   const filtered =
     counties?.filter((c) =>
       `${c.name}, ${c.state} ${c.id}`
         .toLowerCase()
         .includes(tableQuery.toLowerCase()),
     ) ?? [];
+  const page = Math.min(tablePage, Math.max(0, Math.ceil(filtered.length / 100) - 1));
   const share = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -198,19 +199,19 @@ export default function App() {
           {isLoading && (
             <div className="data-status" role="status">
               <span className="loading-dot" />
-              Loading county data…
+              Loading {areaLabel} data…
             </div>
           )}
           {error && (
             <div className="data-status" role="alert">
-              <strong>County data could not be loaded.</strong>
+              <strong>{areaLabel === "county" ? "County" : "Census tract"} data could not be loaded.</strong>
               <p>Check your connection and try again.</p>
               <button onClick={() => mutate()}>Retry data</button>
             </div>
           )}
           {counties && view.county && !county && (
             <div className="data-status" role="alert">
-              This county is not included in this dataset.
+              This {areaLabel} is not included in this dataset.
               <button onClick={() => update({ county: "" })}>
                 Clear selection
               </button>
@@ -250,18 +251,23 @@ export default function App() {
             </div>
           ) : (
             <div className="results-table">
-              <label htmlFor="table-search">Filter counties</label>
+              <label htmlFor="table-search">Filter {areasLabel}</label>
               <input
                 id="table-search"
                 type="search"
                 value={tableQuery}
-                onChange={(e) => setTableQuery(e.target.value)}
-                placeholder="County, state abbreviation or FIPS"
+                onChange={(e) => { setTableQuery(e.target.value); setTablePage(0); }}
+                placeholder={`${areaLabel}, state abbreviation or FIPS`}
               />
               <p className="caption" role="status">
-                {filtered.length.toLocaleString()} counties ·{" "}
+                {filtered.length.toLocaleString()} {areasLabel} ·{" "}
                 {metrics[view.metric]}
               </p>
+              {filtered.length > 100 && <nav aria-label="Result pages">
+                <button disabled={page === 0} onClick={() => setTablePage(page - 1)}>Previous</button>
+                <span> Page {page + 1} of {Math.ceil(filtered.length / 100).toLocaleString()} </span>
+                <button disabled={(page + 1) * 100 >= filtered.length} onClick={() => setTablePage(page + 1)}>Next</button>
+              </nav>}
               <div className="table-scroll">
                 <table>
                   <caption className="sr-only">
@@ -270,13 +276,13 @@ export default function App() {
                   </caption>
                   <thead>
                     <tr>
-                      <th scope="col">County</th>
+                      <th scope="col">{areaLabel === "county" ? "County" : "Census tract"}</th>
                       <th scope="col">State</th>
                       <th scope="col">{metrics[view.metric]}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map((c) => {
+                    {filtered.slice(page * 100, (page + 1) * 100).map((c) => {
                       const value = metricValue(c.values, view);
                       return (
                         <tr key={c.id} aria-selected={c.id === view.county}>
@@ -301,7 +307,7 @@ export default function App() {
                   </tbody>
                 </table>
                 {!filtered.length && !isLoading && (
-                  <p>No matching counties.</p>
+                  <p>No matching {areasLabel}.</p>
                 )}
               </div>
             </div>
@@ -309,7 +315,7 @@ export default function App() {
         </section>
         <aside
           className={`county-panel ${county ? "has-county" : ""} ${expanded ? "expanded" : ""}`}
-          aria-label="County profile"
+          aria-label={`${areaLabel} profile`}
         >
           <button
             className="sheet-toggle"
@@ -317,20 +323,25 @@ export default function App() {
             onClick={() => setExpanded(!expanded)}
           >
             <span>
-              {county ? `${county.name}, ${county.state}` : "Select a county"}
+              {county ? `${county.name}, ${county.state}` : `Select a ${areaLabel}`}
               {county && <small>{`${hazards[view.hazard]} · ${periodLabel(view.period)} · ${describeValue(metricValue(county.values, view), view.metric)}`}</small>}
             </span>
             <ChevronDown size={18} />
           </button>
           <div className="county-content">
-            <CountyPanel
+            {detailsLoading ? <div className="data-status" role="status">Loading {areaLabel} profile…</div>
+              : detailsError ? <div className="data-status" role="alert">
+                Profile details could not be loaded.
+                <button onClick={() => retryDetails()}>Retry profile</button>
+                <button onClick={() => update({county:""})}>Clear selection</button>
+              </div> : <CountyPanel
               county={county}
               view={view}
               onClear={() => {
                 update({ county: "" });
                 setExpanded(false);
               }}
-            />
+            />}
           </div>
         </aside>
       </main>

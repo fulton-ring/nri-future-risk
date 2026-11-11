@@ -1,4 +1,5 @@
 import useSWR from "swr";
+import { release } from "../../data/releases";
 import { assetUrl } from "../../clients/api";
 import type { County } from "../../lib/risk";
 
@@ -51,6 +52,7 @@ export default function CountyContext({ county }: { county: County }) {
 
   return (
     <section className="county-context" aria-label={`${county.name} context`}>
+      {release.baseline === 'NRI v1.20' && <p className="caption">County context compares archived NRI v1.19 values.</p>}
       <p>{context.description}</p>
       {sources.length > 0 && (
         <details>

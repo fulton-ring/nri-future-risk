@@ -71,3 +71,16 @@ test('dollar category charts keep low bins visible, include zero and preserve or
   assert.equal(multiplier.position(2),2/multiplier.ceiling);
   assert.ok(multiplier.ceiling >= 100);
 });
+
+test('tract links and shared selections preserve eleven-digit identifiers', () => {
+  assert.ok(decodeURIComponent(new URL(nriCountyUrl('09110535200')).hash).includes("NRI_ID='T09110535200'"));
+  assert.equal(readState('?county=09110535200').county, '09110535200');
+  assert.ok(new URL(nriCountyUrl('09110535200')).hash.includes('dataSource_12-d62a395a526349e5bdc9ac8064198347'));
+  assert.ok(new URL(nriCountyUrl('01001')).hash.includes('dataSource_12-a8b034164184436dbadb4c6d1b423d5b'));
+});
+
+test('release-specific thresholds replace archived rating bins', () => {
+  const custom = {hazards:{EXHT:{annualLoss:[1,2,3,4],riskValue:[10,20,30,40]}}};
+  assert.equal(ratingIntervals('EXHT','loss',custom)[1].upper,2);
+  assert.equal(ratingIntervals('EXHT','risk',custom)[1].upper,20);
+});

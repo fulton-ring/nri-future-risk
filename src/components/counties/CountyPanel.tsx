@@ -1,4 +1,4 @@
-import { release, isAnalysis } from "../../data/releases";
+import { release, isAnalysis, isTract, areaLabel } from "../../data/releases";
 import CalculationDetails from "./CalculationDetails";
 import CountyContext from "./CountyContext";
 import { countyCalculation, formatDollars, formatNumber } from "../../lib/calculations";
@@ -20,7 +20,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
   if (!county)
     return (
       <div className="county-empty">
-        <h2>Select a county</h2>
+        <h2>Select a {areaLabel}</h2>
       </div>
     );
   const value = metricValue(county.values, view);
@@ -79,6 +79,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
             county: { id: county.id, name: county.name, state: county.state },
             view,
             values: county.values,
+            heatCalculations: county.heatCalculations,
           },
           null,
           2,
@@ -103,7 +104,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
         </div>
         <button
           className="icon-button"
-          aria-label="Clear selected county"
+          aria-label={`Clear selected ${areaLabel}`}
           onClick={onClear}
         >
           <X size={19} />
@@ -120,7 +121,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
           {describeValue(value,view.metric)}
         </div>}
         <div className="baseline-row">
-          <span>Baseline · NRI v1.19</span>
+          <span>Baseline · {release.baseline}</span>
           <strong>
             {describeValue(
               baseline,
@@ -129,7 +130,9 @@ export default function CountyPanel({ county, view, onClear }: Props) {
           </strong>
         </div>
         <CalculationDetails county={county} view={view}>
-          <CountyContext county={county} />
+          {!isTract && <>
+            <CountyContext county={county} />
+          </>}
         </CalculationDetails>
         <section className="comparison" aria-labelledby="comparison-title">
           <div className="section-heading">
@@ -213,7 +216,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
         </details>
         <button className="download-button" onClick={download}>
           <Download size={16} />
-          Download county data
+          Download {areaLabel} data
         </button>
       </div>
     </>

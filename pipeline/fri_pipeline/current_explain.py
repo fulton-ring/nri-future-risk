@@ -88,9 +88,9 @@ def explain_current(verified, weights, ids, expected, unsupported_ids, contract_
 def execute(results_uri, version, manifest_sha256, work):
     from google.cloud import storage
 
-    from .current_stage import validate_approval
     from .current_results import validate_version
     from .current_run import CONTRACT, climate_inputs
+    from .current_stage import validate_approval
     from .results_cloud import put_file
     from .storage import download, split_prefix
 

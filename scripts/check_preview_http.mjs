@@ -56,3 +56,64 @@ for (const name of releaseFiles) {
   }
   console.log(`Verified hosted PMTiles bytes and available version documents/data: ${release.id}`);
 }
+
+for (const release of JSON.parse(await readFile('src/data/current-releases.json','utf8'))) {
+  const origin=new URL(base).origin;
+  const asset=release.assets['counties.pmtiles'];
+  const tileUrl=new URL(asset.path,base);
+  const head=await fetchReady(tileUrl,{method:'HEAD',headers:{...headers,Origin:origin}});
+  assert.equal(head.status,200,'Current PMTiles must be available before exposing the version');
+  const size=Number(head.headers.get('content-length'));
+  assert.ok(size>127);
+  if(tileUrl.origin!==origin) {
+    assert.ok(['*',origin].includes(head.headers.get('access-control-allow-origin')),'Current tiles require preview-origin CORS');
+    assert.equal(head.headers.get('x-goog-meta-sha256'),asset.sha256,'Public tile metadata must bind the verified renderer output');
+  }
+  for(const start of [0,16384,size-127]) {
+    const response=await fetchReady(tileUrl,{headers:{...headers,Origin:origin,Range:`bytes=${start}-${start+126}`}});
+    assert.equal(response.status,206,'Current PMTiles requires byte ranges');
+    assert.equal(response.headers.get('content-range'),`bytes ${start}-${start+126}/${size}`);
+    assert.equal((await response.arrayBuffer()).byteLength,127);
+  }
+  async function jsonAsset(spec) {
+    const response=await fetchReady(new URL(spec.path,base),{headers});
+    assert.equal(response.status,200);
+    const bytes=Buffer.from(await response.arrayBuffer());
+    assert.equal(createHash('sha256').update(bytes).digest('hex'),spec.sha256);
+    return JSON.parse(bytes.toString());
+  }
+  if(release.heatDiagnostics) {
+    const diagnostic=await jsonAsset(release.heatDiagnostics.manifest);
+    assert.equal(diagnostic.version,release.resultsVersion);
+    assert.equal(diagnostic.geography,release.geography);
+    assert.equal(diagnostic.verifiedAreaScenarios,(release.geography==='tracts'?83461:3109)*8);
+    assert.equal(diagnostic.assets['heat-calculations.json'].sha256,release.heatDiagnostics.sha256);
+    if(release.geography==='counties') {
+      const heat=await jsonAsset(release.heatCalculations);
+      assert.equal(heat.publishedMultipliersSha256,release.sourceSha256);
+    }
+  }
+  const index=await jsonAsset(release.assets['counties.json']);
+  assert.equal(index.counties.length,release.countyCount);
+  const ct=index.counties.filter(row=>row.id.startsWith('09'));
+  if(release.geography==='counties') assert.deepEqual(ct.map(row=>row.id).sort(),['09110','09120','09130','09140','09150','09160','09170','09180','09190']);
+  else {
+    assert.equal(ct.length,879);
+    const column=await jsonAsset(release.fieldAssets.DRGT_MID_LOWER_PALR);
+    assert.equal(column.length,index.counties.length);
+    const prefix='09110';
+    const profile=await jsonAsset({path:release.profileAssets.template.replace('{prefix}',prefix),sha256:release.profileAssets.hashes[prefix]});
+    assert.ok(profile.counties.length>0 && profile.counties.every(row=>row.id.startsWith(prefix)));
+  }
+  for(const name of ['methodology','data']) {
+    const response=await fetchReady(new URL(`/versions/${release.id}/${name}.html`,base),{headers});
+    assert.equal(response.status,200);
+    const body=await response.text();
+    assert.ok(body.includes(`<h1>${name==='data'?'Data':'Methodology'}</h1>`));
+    assert.ok(body.includes('NRI v1.20'));
+  }
+  const source=await fetchReady(release.sourceData,{method:'HEAD',headers});
+  assert.equal(source.status,200,'Exact current Batch output must be reviewable');
+  assert.equal(source.headers.get('x-goog-meta-sha256'),release.sourceSha256);
+  console.log(`Verified current ${release.geography}, remote ranges/CORS, pinned attributes and version documents: ${release.id}`);
+}

@@ -25,6 +25,14 @@ for (const name of releaseFiles) {
   const asset = release.assets['counties.pmtiles'];
   tiles[`/${asset.path}`] = {sha256: asset.sha256, size: (await stat(join('dist', asset.path))).size};
 }
+// Large current assets are hosted directly by GCS, which supports Range + CORS.
+// If a future current release uses local assets, route it through the Pages worker too.
+for (const release of JSON.parse(await readFile('src/data/current-releases.json','utf8'))) {
+  const asset=release.assets['counties.pmtiles'];
+  if (!/^https:\/\//.test(asset.path)) {
+    tiles[`/${asset.path}`]={sha256:asset.sha256,size:(await stat(join('dist',asset.path))).size};
+  }
+}
 const worker = await readFile('cloudflare/tile-worker.mjs', 'utf8');
 await writeFile('dist/_worker.js', `const TILE_ASSETS = ${JSON.stringify(tiles)};\n${worker}`);
 await writeFile('dist/_routes.json', JSON.stringify({version: 1, include: Object.keys(tiles), exclude: []}));

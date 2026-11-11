@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 import { Search } from "lucide-react";
+import { areaLabel, areasLabel } from "../../data/releases";
 import type { County } from "../../lib/risk";
 export default function CountySearch({
   counties,
@@ -34,7 +35,7 @@ export default function CountySearch({
       }}
     >
       <label className="sr-only" htmlFor={id}>
-        Search counties by name, state abbreviation or FIPS
+        Search {areasLabel} by name, state abbreviation or FIPS
       </label>
       <Search size={18} aria-hidden="true" />
       <input
@@ -48,7 +49,7 @@ export default function CountySearch({
         aria-activedescendant={
           open && results[active] ? `${id}-${active}` : undefined
         }
-        placeholder="Find a county…"
+        placeholder={`Find a ${areaLabel}…`}
         value={query}
         onFocus={() => setOpen(true)}
         onChange={(e) => {
@@ -82,7 +83,7 @@ export default function CountySearch({
           className="search-results"
           id={`${id}-results`}
           role="listbox"
-          aria-label="Matching counties"
+          aria-label={`Matching ${areasLabel}`}
         >
           {results.length ? (
             results.map((county, i) => (
@@ -103,7 +104,7 @@ export default function CountySearch({
             ))
           ) : (
             <li role="option" aria-disabled="true" aria-selected="false">
-              No counties found. Try a name or state abbreviation.
+              No {areasLabel} found. Try a name or state abbreviation.
             </li>
           )}
         </ul>

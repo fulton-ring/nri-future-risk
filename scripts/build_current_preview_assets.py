@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "pipeline"))
@@ -55,9 +56,7 @@ def write_attributes(frame, output, level):
                 shape,
                 lambda xy: np.column_stack(
                     [
-                        np.where(
-                            xy[:, 0] < 0, xy[:, 0] + 360, xy[:, 0]
-                        ),
+                        np.where(xy[:, 0] < 0, xy[:, 0] + 360, xy[:, 0]),
                         xy[:, 1],
                     ]
                 ),
@@ -123,6 +122,20 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--public-prefix", required=True)
     args = parser.parse_args()
+    public = urlparse(args.public_prefix)
+    if (
+        public.scheme != "https"
+        or not public.netloc
+        or public.query
+        or public.fragment
+        or not public.path.rstrip("/").endswith("/future-risk-index/fri")
+    ):
+        parser.error(
+            "Public prefix must be a permanent HTTPS .../future-risk-index/fri URL"
+        )
+    results_origin = args.public_prefix.rstrip("/").removesuffix(
+        "/future-risk-index/fri"
+    )
     if digest(args.manifest) != args.manifest_sha256:
         raise ValueError("Result manifest checksum mismatch")
     package = json.loads(args.manifest.read_text())
@@ -139,9 +152,18 @@ def main():
         if digest(parquet) != package["files"][relative]["sha256"]:
             raise ValueError("GeoParquet differs from completed Batch output")
         frame = gpd.read_parquet(parquet)
+        if level == "counties":
+            ct = frame["state"].eq("CT")
+            frame.loc[ct, "name"] = frame.loc[ct, "COUNTY"] + " Planning Region"
+        else:
+            frame["name"] = frame["name"] + " · " + frame["COUNTY"]
         output = args.output / level
         spec = write_attributes(frame, output, level)
         attributes = spec.pop("attributes")
+        index_name = f"{level}.json"
+        tile_name = f"{level}.pmtiles"
+        if index_name != "counties.json":
+            (output / "counties.json").rename(output / index_name)
         columns = attributes["columns"]
         tile_frame = frame[
             ["geoid", "area_id", "name", "state", *columns, "geometry"]
@@ -154,7 +176,7 @@ def main():
                 [
                     "tippecanoe",
                     "-o",
-                    str(output / "counties.pmtiles"),
+                    str(output / tile_name),
                     "-l",
                     level,
                     "-Z5" if level == "tracts" else "-Z0",
@@ -170,8 +192,8 @@ def main():
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
-        verify_tiles(output / "counties.pmtiles", attributes, source_layer=level)
-        base = args.public_prefix.rstrip("/") + "/" + level
+        verify_tiles(output / tile_name, attributes, source_layer=level)
+        base = args.public_prefix.rstrip("/") + f"/{level}/{package['version']}/preview"
         for field in spec.get("fieldAssets", {}).values():
             field["path"] = base + "/" + field["path"]
         if "profileAssets" in spec:
@@ -209,13 +231,19 @@ def main():
             "bins": metadata("rating-bins.json"),
             "validation": validation,
             "resultManifestSha256": args.manifest_sha256,
-            "sourceCatalog": f"https://storage.googleapis.com/future-risk-index-results/{folder}/collection.json",
-            "sourceData": f"https://storage.googleapis.com/future-risk-index-results/{relative}",
+            "sourceCatalog": f"{results_origin}/{folder}/collection.json",
+            "sourceData": f"{results_origin}/{relative}",
             "methodology": "pipeline/CURRENT_METHODOLOGY.md",
             "codeRevision": provenance["codeRevision"],
             "assets": {
-                name: {"path": base + "/" + name, "sha256": digest(output / name)}
-                for name in ("counties.json", "counties.pmtiles")
+                "counties.json": {
+                    "path": base + "/" + index_name,
+                    "sha256": digest(output / index_name),
+                },
+                "counties.pmtiles": {
+                    "path": base + "/" + tile_name,
+                    "sha256": digest(output / tile_name),
+                },
             },
             **spec,
         }

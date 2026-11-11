@@ -178,3 +178,12 @@ test("shared map layers restore opacity and terrain with bounded inputs", () => 
   assert.equal(readState("?opacity=7").opacity, 0.7);
   assert.equal(readState("?opacity=0").opacity, 0);
 });
+
+test('area selection accepts legacy FIPS and current GEOID tile properties', async () => {
+  const {featureAreaId}=await import('../src/lib/risk.ts');
+  assert.equal(featureAreaId({fips:'01001'}),'01001');
+  assert.equal(featureAreaId({geoid:'09110535200'}),'09110535200');
+  assert.equal(featureAreaId({fips:'01001',geoid:'01003'}),'01001');
+  assert.equal(featureAreaId({}),null);
+  assert.equal(featureAreaId({geoid:9110535200}),null);
+});

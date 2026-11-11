@@ -10,9 +10,10 @@ import { Protocol } from "pmtiles";
 import { Layers } from "lucide-react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { assetUrl } from "../../clients/api";
-import { release } from "../../data/releases";
+import { release, isTract, areaLabel } from "../../data/releases";
 import {
   colorFor,
+  featureAreaId,
   describeValue,
   metricField,
   metricValue,
@@ -51,6 +52,7 @@ export default function RiskMap({
   const latest = useRef({ counties, view, onSelect, onMove });
   latest.current = { counties, view, onSelect, onMove };
   const [ready, setReady] = useState(false);
+  const [zoom, setZoom] = useState(view.camera?.zoom ?? 3.3);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
   const [hover, setHover] = useState("");
@@ -89,7 +91,7 @@ export default function RiskMap({
       });
     } catch {
       setError(
-        "Your browser could not start the map. County search and the data table are still available.",
+        "Your browser could not start the map. Search and the data table are still available.",
       );
       return;
     }
@@ -101,7 +103,7 @@ export default function RiskMap({
     map.addControl(
       new maplibregl.AttributionControl({
         compact: true,
-        customAttribution: "County data: FEMA · Boundaries: US Census Bureau",
+        customAttribution: `${areaLabel === "county" ? "County" : "Census tract"} data: FEMA · Boundaries: US Census Bureau`,
       }),
       "bottom-right",
     );
@@ -124,6 +126,7 @@ export default function RiskMap({
         type: "fill",
         source: "counties",
         "source-layer": release.sourceLayer,
+        minzoom: isTract ? 5 : 0,
         paint: {
           "fill-color": "#b6b3ac",
           "fill-opacity": [
@@ -139,6 +142,7 @@ export default function RiskMap({
         type: "line",
         source: "counties",
         "source-layer": release.sourceLayer,
+        minzoom: isTract ? 5 : 0,
         paint: {
           "line-color": "#655f51",
           "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.25, 7, 0.8],
@@ -150,7 +154,8 @@ export default function RiskMap({
         type: "line",
         source: "counties",
         "source-layer": release.sourceLayer,
-        filter: ["==", ["get", "fips"], latest.current.view.county],
+        minzoom: isTract ? 5 : 0,
+        filter: ["==", ["coalesce", ["get", "fips"], ["get", "geoid"]], latest.current.view.county],
         paint: { "line-color": "#283f3b", "line-width": 3 },
       });
       map.addSource("terrain", {
@@ -240,19 +245,20 @@ export default function RiskMap({
         .catch(() => {
           if (mapRef.current === map)
             setContextError(
-              "Basemap unavailable. County results are still available.",
+              "Basemap unavailable. Results are still available.",
             );
         });
     });
     map.on("error", (event) => {
       if ("sourceId" in event && event.sourceId === "counties")
         setError(
-          "County tiles could not be loaded. Try again, or explore the same results in the data table.",
+          "Risk tiles could not be loaded. Try again, or explore the same results in the data table.",
         );
     });
     map.on("click", "county-fill", (event) => {
-      const id = event.features?.[0]?.properties.fips;
-      if (typeof id === "string") latest.current.onSelect(id);
+      const properties = event.features?.[0]?.properties;
+      const id = properties ? featureAreaId(properties) : null;
+      if (id) latest.current.onSelect(id);
     });
     let hoveredId: string | number | undefined;
     const clearHover = () => {
@@ -295,6 +301,7 @@ export default function RiskMap({
       popup.remove();
       setHover("");
     });
+    map.on("zoom", () => setZoom(map.getZoom()));
     map.on("moveend", () => {
       const { lat, lng } = map.getCenter();
       latest.current.onMove({
@@ -367,7 +374,7 @@ export default function RiskMap({
       "fill-color",
       expression as ExpressionSpecification,
     );
-    map.setFilter("county-selected", ["==", ["get", "fips"], view.county]);
+    map.setFilter("county-selected", ["==", ["coalesce", ["get", "fips"], ["get", "geoid"]], view.county]);
   }, [ready, counties, view]);
 
   useEffect(() => {
@@ -377,7 +384,7 @@ export default function RiskMap({
       fittedCounty.current = county.id;
       map.fitBounds(county.bounds, {
         padding: 65,
-        maxZoom: 8,
+        maxZoom: isTract ? 12 : 8,
         duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches
           ? 0
           : 550,
@@ -402,7 +409,7 @@ export default function RiskMap({
         ref={container}
         className="map-canvas"
         role="region"
-        aria-label="County risk map. Use county search or the data table for keyboard-accessible results."
+        aria-label={`${areaLabel} risk map. Use search or the data table for keyboard-accessible results.`}
       />
       <details className="map-layers">
         <summary>
@@ -412,7 +419,7 @@ export default function RiskMap({
         <div className="map-layers-content">
           <p>Bright · OpenFreeMap</p>
           <label htmlFor={opacityId}>
-            County fill <output>{Math.round(view.opacity * 100)}%</output>
+            {areaLabel === "county" ? "County" : "Census tract"} fill <output>{Math.round(view.opacity * 100)}%</output>
           </label>
           <input
             id={opacityId}
@@ -438,9 +445,10 @@ export default function RiskMap({
           {contextError && <p role="status">{contextError}</p>}
         </div>
       </details>
+      {isTract && ready && zoom < 5 && <div className="map-status" role="status">Zoom in to see census tract results.</div>}
       {!ready && !error && (
         <div className="map-status" role="status">
-          Loading county map…
+          Loading {areaLabel} map…
         </div>
       )}
       {error && (

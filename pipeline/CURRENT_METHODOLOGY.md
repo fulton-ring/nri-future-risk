@@ -11,7 +11,10 @@ by SHA-256 in `reference/current-contract.json`. Their national inventories cont
 3,232 county-equivalent areas and 85,154 census tracts. The heat-wave `HWAV` fields
 are renamed `EXHT` for compatibility with the interface; values are not transformed.
 
-Connecticut uses its nine planning regions (09110–09190), including 879 tracts.
+Connecticut uses its nine planning regions (09110–09190), including 879 tracts:
+Capitol, Greater Bridgeport, Lower Connecticut River Valley, Naugatuck Valley,
+Northeastern Connecticut, Northwest Hills, South Central Connecticut,
+Southeastern Connecticut, and Western Connecticut.
 Census 2024 cartographic boundary files supply the matching polygons, except Florida
 tracts use full-resolution 2024 TIGER/Line boundaries: the cartographic file omits
 native tract 12057980100. The full-resolution source restores that exact ID;
@@ -73,6 +76,20 @@ Risk value is a vulnerability/resilience-adjusted loss index, not another estima
 of annual dollar damage. Risk score is the separate 0–100 percentile. Different
 geographic populations and changing rank distributions prevent direct comparison
 of a county percentile with a tract percentile.
+
+## Verified review run
+
+Batch job `fri-v120-20261111211638`, version `v20261111T211638Z`, computes all
+3,109 CONUS county equivalents. Drought and wildfire cover 83,480 of 83,481
+CONUS tracts; LOCA2 heat covers 83,461. Unsupported tracts are in Monroe County,
+Florida; the exact IDs and partial-coverage fractions are recorded in each
+version's validation. The county-fitted wildfire gamma is 1.5711909155957975.
+
+A supplementary Batch job verifies historical/future heat days and pre-floor
+ratios against every published supported heat multiplier: 24,872 county and
+667,688 tract area-scenarios. Its separately hashed diagnostic manifest pins the
+same result GeoParquet, weights, IDs and climate snapshot. The preview exposes
+these details without changing scientific output values.
 
 ## Reproduction and review
 
