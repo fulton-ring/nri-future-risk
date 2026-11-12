@@ -68,14 +68,15 @@ function PanelToggle({ side, open, onToggle }: { side: "left" | "right"; open: b
 export default function App() {
   const [view, setView] = useState(() => readState(window.location.search));
   const [section, setSection] = useState<"map" | "table">("map");
+  // Show the welcome guide on a viewer's first visit; the help button reopens it any time.
   const [dialog, setDialog] = useState<"primer" | "settings" | null>(() => {
-    try { return sessionStorage.getItem("fri-primer-seen") ? null : "primer"; }
+    try { return localStorage.getItem("fri-welcome-seen") ? null : "primer"; }
     catch { return "primer"; }
   });
   useEffect(() => {
     if (dialog === "primer") {
-      try { sessionStorage.setItem("fri-primer-seen", "1"); }
-      catch { /* The guide still works when storage is unavailable. */ }
+      try { localStorage.setItem("fri-welcome-seen", "1"); }
+      catch { /* Without storage the guide shows on each visit. */ }
     }
   }, [dialog]);
   const [copied, setCopied] = useState("");
