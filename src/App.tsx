@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
+import { useDefaultLayout, usePanelRef } from "react-resizable-panels";
 import {
   CircleHelp,
   Github,
@@ -6,6 +7,10 @@ import {
   ChevronDown,
   Map as MapIcon,
   Maximize2,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
   Share2,
   SlidersHorizontal,
   Table2,
@@ -25,6 +30,8 @@ import CountySearch from "./components/counties/CountySearch";
 import CountyPanel from "./components/counties/CountyPanel";
 import Legend from "./components/map/Legend";
 import ResultsTable from "./components/ResultsTable";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./components/ui/resizable";
+import { useMediaQuery } from "./hooks/use-media-query";
 import { assetUrl, useCounties } from "./clients/api";
 import { release, areaLabel } from "./data/releases";
 import {
@@ -41,6 +48,22 @@ import {
   type ViewState,
 } from "./lib/risk";
 const RiskMap = lazy(() => import("./components/map/Map"));
+
+// Layout sizes are a per-viewer convenience; never let blocked storage break the page.
+const layoutStorage = {
+  getItem: (key: string) => { try { return localStorage.getItem(key); } catch { return null; } },
+  setItem: (key: string, value: string) => { try { localStorage.setItem(key, value); } catch { /* not saved */ } },
+};
+
+function PanelToggle({ side, open, onToggle }: { side: "left" | "right"; open: boolean; onToggle: () => void }) {
+  const label = `${open ? "Hide" : "Show"} ${side === "left" ? "map settings" : "area profile"}`;
+  const Icon = side === "left" ? (open ? PanelLeftClose : PanelLeftOpen) : (open ? PanelRightClose : PanelRightOpen);
+  return (
+    <button type="button" className="icon-button panel-toggle" aria-label={label} title={label} aria-expanded={open} onClick={onToggle}>
+      <Icon size={18} aria-hidden="true" />
+    </button>
+  );
+}
 
 export default function App() {
   const [view, setView] = useState(() => readState(window.location.search));
@@ -59,6 +82,20 @@ export default function App() {
   const [searchFocus, setSearchFocus] = useState<PlaceResult | null>(null);
   const [resetKey, setResetKey] = useState(0);
   const [expanded, setExpanded] = useState(false);
+  const desktop = useMediaQuery("(min-width: 901px)");
+  const leftPanel = usePanelRef();
+  const rightPanel = usePanelRef();
+  const [leftOpen, setLeftOpen] = useState(true);
+  const [rightOpen, setRightOpen] = useState(true);
+  const layout = useDefaultLayout({ id: "atlas-panels", storage: layoutStorage, onlySaveAfterUserInteractions: true });
+  const togglePanel = (panel: typeof leftPanel) => {
+    if (panel.current?.isCollapsed()) panel.current.expand();
+    else panel.current?.collapse();
+  };
+  const revealProfile = () => {
+    setExpanded(true);
+    if (rightPanel.current?.isCollapsed()) rightPanel.current.expand();
+  };
   const [requestedRelease] = useState(() =>
     new URLSearchParams(window.location.search).get("release"),
   );
@@ -86,12 +123,13 @@ export default function App() {
     update({ county: areaId ?? "" });
     setSearchFocus(place);
     setSection("map");
-    setExpanded(!!areaId);
+    if (areaId) revealProfile();
+    else setExpanded(false);
   };
   const selectCounty = (id: string) => {
     setSearchFocus(null);
     update({ county: id });
-    setExpanded(true);
+    revealProfile();
   };
   const share = async () => {
     try {
@@ -101,6 +139,157 @@ export default function App() {
       setCopied("Copy the address in your browser to share this view.");
     }
   };
+  const explorePanel: ReactNode = (
+    <aside
+      className="explore-panel"
+      id="explore"
+      tabIndex={-1}
+      aria-label="Exploration controls"
+    >
+      <CountySearch counties={counties ?? []} onLocate={locate} />
+      <Controls view={view} onChange={update} />
+    </aside>
+  );
+  const mapPanel: ReactNode = (
+    <section className="map-panel" aria-label="Risk exploration">
+      <div className="mobile-search">
+        <CountySearch counties={counties ?? []} onLocate={locate} />
+        <button
+          className="icon-button"
+          aria-label="Change map settings"
+          onClick={() => setDialog("settings")}
+        >
+          <SlidersHorizontal size={20} />
+        </button>
+      </div>
+      <div className="map-toolbar">
+        {desktop && <PanelToggle side="left" open={leftOpen} onToggle={() => togglePanel(leftPanel)} />}
+        <div className="map-title">
+          <h2>{hazards[view.hazard]} {metrics[view.metric].toLowerCase()}</h2>
+          <p>
+            {periodLabel(view.period)}
+            {view.period !== "base" &&
+              ` (${pathwayLabel(view.hazard, view.emissions)})`}
+            {view.hazard === "EXHT" &&
+              `, ${view.model.startsWith("L") ? "LOCA" : "NEX"} ${view.model.slice(1)}th percentile`}
+          </p>
+        </div>
+        <div className="view-switch" aria-label="Result format">
+          <button
+            aria-label="Map view"
+            aria-pressed={section === "map"}
+            onClick={() => setSection("map")}
+          >
+            <MapIcon size={17} />
+          </button>
+          <button
+            aria-label="Table view"
+            aria-pressed={section === "table"}
+            onClick={() => setSection("table")}
+          >
+            <Table2 size={17} />
+          </button>
+        </div>
+        {desktop && <PanelToggle side="right" open={rightOpen} onToggle={() => togglePanel(rightPanel)} />}
+      </div>
+      {isLoading && (
+        <div className="data-status" role="status">
+          <span className="loading-dot" />
+          Loading {areaLabel} data…
+        </div>
+      )}
+      {error && (
+        <div className="data-status" role="alert">
+          <strong>{areaLabel === "county" ? "County" : "Census tract"} data could not be loaded.</strong>
+          <p>Check your connection and try again.</p>
+          <button onClick={() => mutate()}>Retry data</button>
+        </div>
+      )}
+      {counties && view.county && !county && (
+        <div className="data-status" role="alert">
+          This {areaLabel} is not included in this dataset.
+          <button onClick={() => update({ county: "" })}>
+            Clear selection
+          </button>
+        </div>
+      )}
+      {section === "map" ? (
+        <div className="map-stage">
+          <Suspense
+            fallback={
+              <div className="map-status" role="status">
+                Preparing map…
+              </div>
+            }
+          >
+            <RiskMap
+              searchFocus={searchFocus}
+              counties={counties ?? []}
+              view={view}
+              onSelect={selectCounty}
+              onMove={(camera) =>
+                setView((previous) => ({ ...previous, camera }))
+              }
+              resetKey={resetKey}
+              onLayerChange={update}
+            />
+          </Suspense>
+          <button
+            className="extent-button"
+            onClick={() => {
+              setSearchFocus(null);
+              update({ county: "" });
+              setResetKey((n) => n + 1);
+            }}
+          >
+            <Maximize2 size={15} />
+            US extent
+          </button>
+          <Legend view={view} county={county} />
+        </div>
+      ) : (
+        <ResultsTable
+          counties={counties}
+          view={view}
+          isLoading={isLoading}
+          onSelect={selectCounty}
+        />
+      )}
+    </section>
+  );
+  const countyPanel: ReactNode = (
+    <aside
+      className={`county-panel ${county ? "has-county" : ""} ${expanded ? "expanded" : ""}`}
+      aria-label={`${areaLabel} profile`}
+    >
+      <button
+        className="sheet-toggle"
+        aria-expanded={expanded}
+        onClick={() => setExpanded(!expanded)}
+      >
+        <span>
+          {county ? areaName(county) : `Select a ${areaLabel}`}
+          {county && <small>{describeValue(metricValue(county.values, view), view.metric)}</small>}
+        </span>
+        <ChevronDown size={18} />
+      </button>
+      <div className="county-content">
+        {detailsLoading ? <div className="data-status" role="status">Loading {areaLabel} profile…</div>
+          : detailsError ? <div className="data-status" role="alert">
+            Profile details could not be loaded.
+            <button onClick={() => retryDetails()}>Retry profile</button>
+            <button onClick={() => update({county:""})}>Clear selection</button>
+          </div> : <CountyPanel
+          county={county}
+          view={view}
+          onClear={() => {
+            update({ county: "" });
+            setExpanded(false);
+          }}
+        />}
+      </div>
+    </aside>
+  );
   return (
     <div className="atlas-app">
       <a className="skip-link" href="#explore">
@@ -143,149 +332,27 @@ export default function App() {
         </nav>
       </section>
       <main className="atlas-layout">
-        <aside
-          className="explore-panel"
-          id="explore"
-          tabIndex={-1}
-          aria-label="Exploration controls"
-        >
-          <CountySearch counties={counties ?? []} onLocate={locate} />
-          <Controls view={view} onChange={update} />
-        </aside>
-        <section className="map-panel" aria-label="Risk exploration">
-          <div className="mobile-search">
-            <CountySearch counties={counties ?? []} onLocate={locate} />
-            <button
-              className="icon-button"
-              aria-label="Change map settings"
-              onClick={() => setDialog("settings")}
-            >
-              <SlidersHorizontal size={20} />
-            </button>
-          </div>
-          <div className="map-toolbar">
-            <div>
-              <h2>{hazards[view.hazard]} {metrics[view.metric].toLowerCase()}</h2>
-              <p>
-                {periodLabel(view.period)}
-                {view.period !== "base" &&
-                  ` (${pathwayLabel(view.hazard, view.emissions)})`}
-                {view.hazard === "EXHT" &&
-                  `, ${view.model.startsWith("L") ? "LOCA" : "NEX"} ${view.model.slice(1)}th percentile`}
-              </p>
-            </div>
-            <div className="view-switch" aria-label="Result format">
-              <button
-                aria-label="Map view"
-                aria-pressed={section === "map"}
-                onClick={() => setSection("map")}
-              >
-                <MapIcon size={17} />
-              </button>
-              <button
-                aria-label="Table view"
-                aria-pressed={section === "table"}
-                onClick={() => setSection("table")}
-              >
-                <Table2 size={17} />
-              </button>
-            </div>
-          </div>
-          {isLoading && (
-            <div className="data-status" role="status">
-              <span className="loading-dot" />
-              Loading {areaLabel} data…
-            </div>
-          )}
-          {error && (
-            <div className="data-status" role="alert">
-              <strong>{areaLabel === "county" ? "County" : "Census tract"} data could not be loaded.</strong>
-              <p>Check your connection and try again.</p>
-              <button onClick={() => mutate()}>Retry data</button>
-            </div>
-          )}
-          {counties && view.county && !county && (
-            <div className="data-status" role="alert">
-              This {areaLabel} is not included in this dataset.
-              <button onClick={() => update({ county: "" })}>
-                Clear selection
-              </button>
-            </div>
-          )}
-          {section === "map" ? (
-            <div className="map-stage">
-              <Suspense
-                fallback={
-                  <div className="map-status" role="status">
-                    Preparing map…
-                  </div>
-                }
-              >
-                <RiskMap
-                  searchFocus={searchFocus}
-                  counties={counties ?? []}
-                  view={view}
-                  onSelect={selectCounty}
-                  onMove={(camera) =>
-                    setView((previous) => ({ ...previous, camera }))
-                  }
-                  resetKey={resetKey}
-                  onLayerChange={update}
-                />
-              </Suspense>
-              <button
-                className="extent-button"
-                onClick={() => {
-                  setSearchFocus(null);
-                  update({ county: "" });
-                  setResetKey((n) => n + 1);
-                }}
-              >
-                <Maximize2 size={15} />
-                US extent
-              </button>
-              <Legend view={view} county={county} />
-            </div>
-          ) : (
-            <ResultsTable
-              counties={counties}
-              view={view}
-              isLoading={isLoading}
-              onSelect={selectCounty}
-            />
-          )}
-        </section>
-        <aside
-          className={`county-panel ${county ? "has-county" : ""} ${expanded ? "expanded" : ""}`}
-          aria-label={`${areaLabel} profile`}
-        >
-          <button
-            className="sheet-toggle"
-            aria-expanded={expanded}
-            onClick={() => setExpanded(!expanded)}
-          >
-            <span>
-              {county ? areaName(county) : `Select a ${areaLabel}`}
-              {county && <small>{describeValue(metricValue(county.values, view), view.metric)}</small>}
-            </span>
-            <ChevronDown size={18} />
-          </button>
-          <div className="county-content">
-            {detailsLoading ? <div className="data-status" role="status">Loading {areaLabel} profile…</div>
-              : detailsError ? <div className="data-status" role="alert">
-                Profile details could not be loaded.
-                <button onClick={() => retryDetails()}>Retry profile</button>
-                <button onClick={() => update({county:""})}>Clear selection</button>
-              </div> : <CountyPanel
-              county={county}
-              view={view}
-              onClear={() => {
-                update({ county: "" });
-                setExpanded(false);
-              }}
-            />}
-          </div>
-        </aside>
+        {desktop ? (
+          <ResizablePanelGroup id="atlas-panels" orientation="horizontal" defaultLayout={layout.defaultLayout} onLayoutChanged={layout.onLayoutChanged}>
+            <ResizablePanel id="settings-panel" panelRef={leftPanel} collapsible collapsedSize={0} defaultSize={280} minSize={220} maxSize={440}
+              onResize={(size) => setLeftOpen(size.inPixels > 0)}>
+              {explorePanel}
+            </ResizablePanel>
+            <ResizableHandle withHandle aria-label="Resize map settings" />
+            <ResizablePanel id="map-panel" minSize={360}>{mapPanel}</ResizablePanel>
+            <ResizableHandle withHandle aria-label="Resize area profile" />
+            <ResizablePanel id="profile-panel" panelRef={rightPanel} collapsible collapsedSize={0} defaultSize={340} minSize={280} maxSize={560}
+              onResize={(size) => setRightOpen(size.inPixels > 0)}>
+              {countyPanel}
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        ) : (
+          <>
+            {explorePanel}
+            {mapPanel}
+            {countyPanel}
+          </>
+        )}
       </main>
       <footer className="site-footer">
         <div className="project-credit">
