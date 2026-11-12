@@ -1535,12 +1535,16 @@ td small { display: block; margin-top: 4px; color: var(--muted-foreground); font
 .search-status { font-size: 12px; color: var(--muted-foreground); margin: 6px 0 0; }
 .search-status:empty { display: none; }
 
-.map-legend > summary {
-  padding: 0;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 24px;
+/* Keep the legend beside the map's zoom controls. */
+.map-legend {
+  top: 12px;
+  bottom: auto;
+  left: auto;
+  right: 52px;
+  width: min(440px, calc(100% - 76px));
+  z-index: 2;
 }
-.map-legend[open] > summary { margin-bottom: 8px; }
-.map-legend:not([open]) { width: fit-content; right: auto; }
+.legend-toolbar { display: flex; justify-content: flex-end; }
+.legend-toggle { display: grid; place-items: center; width: 32px; min-height: 32px; padding: 0; }
+.map-legend[data-collapsed="true"] { width: 40px; padding: 0; }
+.map-legend[data-collapsed="true"] .legend-toggle { width: 38px; min-height: 38px; }
