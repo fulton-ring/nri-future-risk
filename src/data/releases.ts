@@ -1,6 +1,4 @@
 import archive from './release.json';
-import analysis from './analysis-preview.json';
-import previous from './analysis-2026-10.json';
 import current from './current-releases.json';
 
 export type Asset = {path: string; sha256: string};
@@ -39,13 +37,13 @@ export function validatedRelease(value: unknown): Release {
 }
 
 
-export const releases: Release[] = [archive, previous, analysis, ...current.map(validatedRelease)];
+export const releases: Release[] = [archive, ...(current as unknown[]).map(validatedRelease)];
 
 export function selectRelease(mode?: string, requestedId?: string | null, available: Release[] = releases): Release {
   const requested = available.find((item) => item.id === requestedId);
   if (requested) return requested;
   if (!mode || mode === 'archive') return archive;
-  if (mode === 'analysis-preview') return [...available].reverse().find(item => item.status === 'analysis' && item.baseline === 'NRI v1.20' && item.geography === 'counties') ?? analysis;
+  if (mode === 'analysis-preview') return [...available].reverse().find(item => item.status === 'analysis' && item.geography === 'counties') ?? archive;
   throw new Error(`Unknown data release: ${mode}`);
 }
 
