@@ -208,8 +208,8 @@ export default function CountySearch({
                 rel="noreferrer"
               >
                 © OpenStreetMap
-              </a>{" "}
-              · Addresses: US Census Bureau
+              </a>.{" "}
+              Addresses: US Census Bureau
             </small>
           )}
         </div>

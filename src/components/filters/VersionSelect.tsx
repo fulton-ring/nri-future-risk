@@ -20,7 +20,7 @@ export default function VersionSelect() {
           const Icon = item.status === 'analysis' ? FlaskConical : Archive;
           const date = new Date(`${item.date}T00:00:00Z`).toLocaleDateString('en-US', {month: 'short', year: 'numeric', timeZone: 'UTC'});
           return <SelectItem key={item.id} value={item.id} className="atlas-select-item">
-            <span className="select-option-label"><Icon size={17} strokeWidth={1.6} aria-hidden="true" /><span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.geography ? item.title : `${item.status === 'analysis' ? 'Analysis' : 'FEMA archive'} · ${date}`} </span></span>
+            <span className="select-option-label"><Icon size={17} strokeWidth={1.6} aria-hidden="true" /><span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.geography ? item.title.replace(/\s*·\s*/g, ", ") : `${item.status === 'analysis' ? 'Analysis' : 'FEMA archive'} (${date})`} </span></span>
           </SelectItem>;
         })}
       </SelectContent>

@@ -27,6 +27,7 @@ import Legend from "./components/map/Legend";
 import { assetUrl, useCounties } from "./clients/api";
 import { release, areaLabel, areasLabel } from "./data/releases";
 import {
+  areaName,
   colorFor,
   describeValue,
   hazards,
@@ -101,7 +102,7 @@ export default function App() {
   };
   const filtered =
     counties?.filter((c) =>
-      `${c.name}, ${c.state} ${c.id}`
+      `${areaName(c)} ${c.id}`
         .toLowerCase()
         .includes(tableQuery.toLowerCase()),
     ) ?? [];
@@ -178,14 +179,13 @@ export default function App() {
           </div>
           <div className="map-toolbar">
             <div>
-              <span className="section-label">{hazards[view.hazard]}</span>
-              <h2>{metrics[view.metric]}</h2>
+              <h2>{hazards[view.hazard]} {metrics[view.metric].toLowerCase()}</h2>
               <p>
                 {periodLabel(view.period)}
                 {view.period !== "base" &&
-                  ` · ${pathwayLabel(view.hazard, view.emissions)}`}
+                  ` (${pathwayLabel(view.hazard, view.emissions)})`}
                 {view.hazard === "EXHT" &&
-                  ` · ${view.model.startsWith("L") ? "LOCA" : "NEX"} ${view.model.slice(1)}th`}
+                  `, ${view.model.startsWith("L") ? "LOCA" : "NEX"} ${view.model.slice(1)}th percentile`}
               </p>
             </div>
             <div className="view-switch" aria-label="Result format">
@@ -271,8 +271,7 @@ export default function App() {
                 placeholder={`${areaLabel}, state abbreviation or FIPS`}
               />
               <p className="caption" role="status">
-                {filtered.length.toLocaleString()} {areasLabel} ·{" "}
-                {metrics[view.metric]}
+                {filtered.length.toLocaleString()} {areasLabel}
               </p>
               {filtered.length > 100 && <nav aria-label="Result pages">
                 <button disabled={page === 0} onClick={() => setTablePage(page - 1)}>Previous</button>
@@ -282,8 +281,7 @@ export default function App() {
               <div className="table-scroll">
                 <table>
                   <caption className="sr-only">
-                    {hazards[view.hazard]} · {metrics[view.metric]} ·{" "}
-                    {periodLabel(view.period)} · {view.emissions} emissions
+                    {hazards[view.hazard]}, {metrics[view.metric].toLowerCase()}, {periodLabel(view.period).toLowerCase()}, {view.emissions} emissions
                   </caption>
                   <thead>
                     <tr>
@@ -299,7 +297,7 @@ export default function App() {
                         <tr key={c.id} aria-selected={c.id === view.county}>
                           <th scope="row">
                             <button onClick={() => selectCounty(c.id)}>
-                              {c.name}
+                              {c.name.replace(/\s*·\s*/g, ", ")}
                             </button>
                           </th>
                           <td>{c.state}</td>
@@ -334,8 +332,8 @@ export default function App() {
             onClick={() => setExpanded(!expanded)}
           >
             <span>
-              {county ? `${county.name}, ${county.state}` : `Select a ${areaLabel}`}
-              {county && <small>{`${hazards[view.hazard]} · ${periodLabel(view.period)} · ${describeValue(metricValue(county.values, view), view.metric)}`}</small>}
+              {county ? areaName(county) : `Select a ${areaLabel}`}
+              {county && <small>{describeValue(metricValue(county.values, view), view.metric)}</small>}
             </span>
             <ChevronDown size={18} />
           </button>

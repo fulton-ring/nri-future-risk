@@ -59,7 +59,7 @@ export function localPlaces(counties: County[], query: string): LocalPlace[] {
 function asPlace(c: County, areaId?: string): LocalPlace {
   return {
     id: c.id,
-    label: c.name,
+    label: c.name.replace(/\s*·\s*/g, ", "),
     detail: c.state,
     coordinates: [
       (c.bounds[0] + c.bounds[2]) / 2,

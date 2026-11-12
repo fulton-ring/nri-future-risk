@@ -189,7 +189,7 @@ export default function Controls({
                     <span className="select-option-label">
                       <Icon size={17} strokeWidth={1.6} aria-hidden="true" />
                       <span>
-                        {model.startsWith("L") ? "LOCA" : "NEX"} ·{" "}
+                        {model.startsWith("L") ? "LOCA" : "NEX"}{" "}
                         {model.slice(1)}th percentile
                       </span>
                     </span>
