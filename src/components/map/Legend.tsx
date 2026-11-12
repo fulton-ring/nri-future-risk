@@ -11,6 +11,13 @@ import {
   type ViewState,
   type County,
 } from "../../lib/risk";
+
+// The chart's value axis, shown as the card heading. Subtitles are optional.
+const legendTitles: Record<ViewState["metric"], { title: string; subtitle?: string }> = {
+  loss: { title: "Annual loss", subtitle: "$/year, log scale" },
+  risk: { title: "Risk index value", subtitle: "Log scale, not a dollar-loss estimate" },
+  multiplier: { title: "Change in annual loss", subtitle: "Multiple of baseline annual loss" },
+};
 export default function Legend({
   view,
   county,
@@ -20,6 +27,8 @@ export default function Legend({
 }) {
   const [expanded, setExpanded] = useState(true);
   const contentId = useId();
+  const titleId = useId();
+  const { title, subtitle } = legendTitles[view.metric];
   const values = county ? countyCalculation(county.values, view) : null;
   const value = values
     ? view.metric === "loss"
@@ -34,12 +43,19 @@ export default function Legend({
     (typeof source === "string" &&
       ratingNames.some((name) => source.startsWith(name)));
   return (
-    <div
+    <section
       className="map-legend"
       data-collapsed={!expanded}
-      aria-label={`${metrics[view.metric]} legend`}
+      aria-labelledby={titleId}
     >
       <div className="legend-toolbar">
+        <div className="legend-heading" hidden={!expanded}>
+          <h3 id={titleId}>
+            {title}
+            <span className="sr-only"> legend ({metrics[view.metric]})</span>
+          </h3>
+          {subtitle && <p>{subtitle}</p>}
+        </div>
         <button
           type="button"
           className="legend-toggle"
@@ -84,6 +100,6 @@ export default function Legend({
             : ratingNames.join(", ")}
         </span>
       </div>
-    </div>
+    </section>
   );
 }
