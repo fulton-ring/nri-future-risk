@@ -3,8 +3,12 @@ import { bytesToHeader, PMTiles } from 'pmtiles';
 import { createHash } from 'node:crypto';
 import { setTimeout } from 'node:timers/promises';
 import { readFile, stat } from 'node:fs/promises';
-const [base] = process.argv.slice(2);
-if (!base) throw new Error('Usage: node scripts/check_preview_http.mjs PREVIEW_URL');
+const args = process.argv.slice(2);
+// --before-deploy checks only remotely hosted release data, using SITE_URL as the CORS origin,
+// so a broken release blocks the deploy instead of being found after it is live.
+const beforeDeploy = args.includes('--before-deploy');
+const [base] = args.filter(arg => arg !== '--before-deploy');
+if (!base) throw new Error('Usage: node scripts/check_preview_http.mjs [--before-deploy] SITE_URL');
 const headers = {'User-Agent':'Mozilla/5.0'};
 // Pages can report a deployment URL before its assets reach the checking region.
 async function fetchReady(url, options) {
@@ -16,6 +20,7 @@ async function fetchReady(url, options) {
     await setTimeout(5000);
   }
 }
+if (!beforeDeploy) {
 const contextResponse=await fetchReady(new URL('/context/counties.json',base),{headers});
 assert.equal(contextResponse.status,200,'County context must survive preview packaging');
 const contextBytes=Buffer.from(await contextResponse.arrayBuffer());
@@ -23,7 +28,8 @@ assert.deepEqual(contextBytes,await readFile('public/context/counties.json'),'Ho
 const regionsResponse=await fetchReady(new URL('/context/planning-regions.json',base),{headers});
 assert.equal(regionsResponse.status,200,'Planning-region context must survive preview packaging');
 assert.deepEqual(Buffer.from(await regionsResponse.arrayBuffer()),await readFile('public/context/planning-regions.json'),'Hosted region descriptions must match this build');
-{
+}
+if (!beforeDeploy) {
   const release = JSON.parse(await readFile('src/data/release.json', 'utf8'));
   const path = release.assets['counties.pmtiles'].path;
   const bytes = await readFile(`public/${path}`);
@@ -105,7 +111,7 @@ for (const release of JSON.parse(await readFile('src/data/current-releases.json'
     const profile=await jsonAsset({path:release.profileAssets.template.replace('{prefix}',prefix),sha256:release.profileAssets.hashes[prefix]});
     assert.ok(profile.counties.length>0 && profile.counties.every(row=>row.id.startsWith(prefix)));
   }
-  for(const name of ['methodology','data']) {
+  if (!beforeDeploy) for(const name of ['methodology','data']) {
     const response=await fetchReady(new URL(`/versions/${release.id}/${name}.html`,base),{headers});
     assert.equal(response.status,200);
     const body=await response.text();
