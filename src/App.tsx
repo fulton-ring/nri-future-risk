@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./components/ui/dialog";
+import type { PlaceResult } from "./clients/geocoding";
 import WelcomePrimer from "./components/WelcomePrimer";
 import Controls from "./components/filters/Controls";
 import VersionSelect from "./components/filters/VersionSelect";
@@ -54,6 +55,7 @@ export default function App() {
     }
   }, [dialog]);
   const [copied, setCopied] = useState("");
+  const [searchFocus, setSearchFocus] = useState<PlaceResult | null>(null);
   const [resetKey, setResetKey] = useState(0);
   const [tableQuery, setTableQuery] = useState("");
   const [tablePage, setTablePage] = useState(0);
@@ -86,7 +88,14 @@ export default function App() {
     const timer = window.setTimeout(() => setCopied(""), 4000);
     return () => window.clearTimeout(timer);
   }, [copied]);
+  const locate = (place: PlaceResult, areaId?: string) => {
+    update({ county: areaId ?? "" });
+    setSearchFocus(place);
+    setSection("map");
+    setExpanded(!!areaId);
+  };
   const selectCounty = (id: string) => {
+    setSearchFocus(null);
     update({ county: id });
     setExpanded(true);
   };
@@ -153,12 +162,12 @@ export default function App() {
           tabIndex={-1}
           aria-label="Exploration controls"
         >
-          <CountySearch counties={counties ?? []} onSelect={selectCounty} />
+          <CountySearch counties={counties ?? []} onLocate={locate} />
           <Controls view={view} onChange={update} />
         </aside>
         <section className="map-panel" aria-label="Risk exploration">
           <div className="mobile-search">
-            <CountySearch counties={counties ?? []} onSelect={selectCounty} />
+            <CountySearch counties={counties ?? []} onLocate={locate} />
             <button
               className="icon-button"
               aria-label="Change map settings"
@@ -227,6 +236,7 @@ export default function App() {
                 }
               >
                 <RiskMap
+                  searchFocus={searchFocus}
                   counties={counties ?? []}
                   view={view}
                   onSelect={selectCounty}
@@ -240,6 +250,7 @@ export default function App() {
               <button
                 className="extent-button"
                 onClick={() => {
+                  setSearchFocus(null);
                   update({ county: "" });
                   setResetKey((n) => n + 1);
                 }}

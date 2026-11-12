@@ -1,31 +1,91 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Search } from "lucide-react";
-import { areaLabel, areasLabel } from "../../data/releases";
+import { release } from "../../data/releases";
 import type { County } from "../../lib/risk";
+import { localPlaces, type LocalPlace } from "../../lib/location-search";
+import {
+  searchPlaces,
+  resolvePlaceArea,
+  type PlaceResult,
+} from "../../clients/geocoding";
 export default function CountySearch({
   counties,
-  onSelect,
+  onLocate,
 }: {
   counties: County[];
-  onSelect: (id: string) => void;
+  onLocate: (place: PlaceResult, areaId?: string) => void;
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState(-1);
+  const [remote, setRemote] = useState<PlaceResult[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const request = useRef<AbortController | null>(null);
+  useEffect(() => () => request.current?.abort(), []);
   const id = useId();
-  const results = query.trim()
-    ? counties
-        .filter((c) =>
-          `${c.name}, ${c.state} ${c.id}`
-            .toLowerCase()
-            .includes(query.toLowerCase()),
-        )
-        .slice(0, 8)
-    : [];
-  const select = (county: County) => {
-    onSelect(county.id);
-    setQuery("");
-    setOpen(false);
+  const local = useMemo(() => localPlaces(counties, query), [counties, query]);
+  const results: (PlaceResult | LocalPlace)[] = [...local, ...remote];
+  const begin = () => {
+    request.current?.abort();
+    const controller = new AbortController();
+    request.current = controller;
+    setBusy(true);
+    setMessage("");
+    return controller;
+  };
+  const search = async () => {
+    if (!query.trim()) return;
+    const controller = begin();
+    setOpen(true);
+    setActive(-1);
+    try {
+      const places = await searchPlaces(query.trim(), controller.signal);
+      if (controller.signal.aborted) return;
+      setRemote(places);
+      if (!places.length)
+        setMessage("No places found. Try a full address with city and state.");
+    } catch {
+      if (!controller.signal.aborted)
+        setMessage(
+          "Location search is unavailable. Try a county name or select the map.",
+        );
+    } finally {
+      if (!controller.signal.aborted) setBusy(false);
+    }
+  };
+  const select = async (place: PlaceResult | LocalPlace) => {
+    const controller = begin();
+    try {
+      let areaId = "areaId" in place ? place.areaId : undefined;
+      if (place.kind === "address") {
+        const found = await resolvePlaceArea(
+          place,
+          release.baseline,
+          release.geography ?? "counties",
+          controller.signal,
+        );
+        if (controller.signal.aborted) return;
+        areaId =
+          found && counties.some((c) => c.id === found) ? found : undefined;
+      }
+      if (controller.signal.aborted) return;
+      onLocate(place, areaId);
+      setQuery(place.label);
+      setOpen(false);
+      setMessage(
+        place.kind === "address" && !areaId
+          ? "No matching risk area in this version. Choose an area on the map."
+          : "",
+      );
+    } catch {
+      if (!controller.signal.aborted)
+        setMessage(
+          "Couldn’t locate the risk area. Try again or select the map.",
+        );
+    } finally {
+      if (!controller.signal.aborted) setBusy(false);
+    }
   };
   return (
     <div
@@ -34,81 +94,113 @@ export default function CountySearch({
         if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false);
       }}
     >
-      <label className="sr-only" htmlFor={id}>
-        Search {areasLabel} by name, state abbreviation or FIPS
-      </label>
-      <Search size={18} aria-hidden="true" />
-      <input
-        id={id}
-        type="text"
-        role="combobox"
-        autoComplete="off"
-        aria-autocomplete="list"
-        aria-expanded={open && !!query}
-        aria-controls={`${id}-results`}
-        aria-activedescendant={
-          open && results[active] ? `${id}-${active}` : undefined
-        }
-        placeholder={`Find a ${areaLabel}…`}
-        value={query}
-        onFocus={() => setOpen(true)}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          setOpen(true);
-          setActive(0);
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (active >= 0 && results[active]) void select(results[active]);
+          else void search();
         }}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") setOpen(false);
-          if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-            e.preventDefault();
+      >
+        <label className="sr-only" htmlFor={id}>
+          Address, city, or county
+        </label>
+        <input
+          id={id}
+          type="search"
+          role="combobox"
+          autoComplete="off"
+          aria-autocomplete="list"
+          aria-expanded={open && !!query}
+          aria-controls={`${id}-results`}
+          aria-activedescendant={
+            open && results[active] ? `${id}-${active}` : undefined
+          }
+          placeholder="Address, city, or county"
+          value={query}
+          onFocus={() => setOpen(true)}
+          onChange={(e) => {
+            request.current?.abort();
+            setBusy(false);
+            setQuery(e.target.value);
+            setRemote([]);
+            setMessage("");
             setOpen(true);
-            setActive((n) =>
-              Math.max(
-                0,
-                Math.min(
-                  results.length - 1,
-                  n + (e.key === "ArrowDown" ? 1 : -1),
+            setActive(-1);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setOpen(false);
+            if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+              e.preventDefault();
+              setOpen(true);
+              setActive((n) =>
+                Math.max(
+                  -1,
+                  Math.min(
+                    results.length - 1,
+                    n + (e.key === "ArrowDown" ? 1 : -1),
+                  ),
                 ),
-              ),
-            );
-          }
-          if (e.key === "Enter" && open && results[active]) {
-            e.preventDefault();
-            select(results[active]);
-          }
-        }}
-      />
-      {open && query && (
-        <ul
-          className="search-results"
-          id={`${id}-results`}
-          role="listbox"
-          aria-label={`Matching ${areasLabel}`}
+              );
+            }
+          }}
+        />
+        <button
+          className="location-submit"
+          type="submit"
+          aria-label="Search location"
+          disabled={busy}
         >
-          {results.length ? (
-            results.map((county, i) => (
+          <Search size={17} aria-hidden="true" />
+        </button>
+      </form>
+      {open && query && (
+        <div className="search-results">
+          <ul id={`${id}-results`} role="listbox" aria-label="Matching places">
+            {results.map((place, i) => (
               <li
-                key={county.id}
+                key={place.id}
                 id={`${id}-${i}`}
                 role="option"
                 aria-selected={i === active}
                 onMouseDown={(e) => e.preventDefault()}
               >
-                <button tabIndex={-1} onClick={() => select(county)}>
-                  <span>{county.name}</span>
-                  <small>
-                    {county.state} · {county.id}
-                  </small>
+                <button type="button" onClick={() => void select(place)}>
+                  <span>
+                    {place.label}
+                    <small>{place.detail}</small>
+                  </span>
                 </button>
               </li>
-            ))
-          ) : (
-            <li role="option" aria-disabled="true" aria-selected="false">
-              No {areasLabel} found. Try a name or state abbreviation.
-            </li>
+            ))}
+          </ul>
+          {!busy && !remote.length && (
+            <button
+              type="button"
+              className="search-places-action"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => void search()}
+            >
+              Search addresses and places ↵
+            </button>
           )}
-        </ul>
+          {remote.length > 0 && (
+            <small className="search-attribution">
+              Places:{" "}
+              <a
+                href="https://www.openstreetmap.org/copyright"
+                target="_blank"
+                rel="noreferrer"
+              >
+                © OpenStreetMap
+              </a>{" "}
+              · Addresses: US Census Bureau
+            </small>
+          )}
+        </div>
       )}
+      <p className="search-status" role="status">
+        {busy ? "Finding location…" : message}
+      </p>
     </div>
   );
 }

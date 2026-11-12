@@ -20,7 +20,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
   if (!county)
     return (
       <div className="county-empty">
-        <h2>Select a {areaLabel}</h2>
+        <h2>Find a place to explore</h2>
       </div>
     );
   const value = metricValue(county.values, view);
