@@ -1,5 +1,6 @@
 import { release, isAnalysis, areaLabel } from "../../data/releases";
 import CalculationDetails from "./CalculationDetails";
+import { track } from "../../analytics/track";
 import CountyContext from "./CountyContext";
 import { countyCalculation, formatDollars, formatNumber } from "../../lib/calculations";
 import { Download, X } from "lucide-react";
@@ -71,6 +72,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
     ),
   );
   const download = () => {
+    track("area_data_downloaded", { area_id: county.id });
     const blob = new Blob(
       [
         JSON.stringify(
