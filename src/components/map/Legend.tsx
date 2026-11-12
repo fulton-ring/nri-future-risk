@@ -15,7 +15,8 @@ export default function Legend({ view, county }: { view: ViewState; county?: Cou
   const source=county ? metricValue(county.values,view) : null;
   const hasBin=typeof source === "number" || (typeof source === "string" && ratingNames.some(name=>source.startsWith(name)));
   return (
-    <div className="map-legend" aria-label={`${metrics[view.metric]} legend`}>
+    <details className="map-legend" open aria-label={`${metrics[view.metric]} legend`}>
+      <summary>Legend</summary>
       <RatingBins view={view} value={hasBin ? value : null} />
       <div className="legend-missing">
         {[null, "No Rating", "Not Applicable", "No Expected Annual Losses"].map(
@@ -39,6 +40,6 @@ export default function Legend({ view, county }: { view: ViewState; county?: Cou
           ? `Display thresholds: ${multiplierStops.join(", ")}. These are visualization bins, not FEMA risk ratings.`
           : ratingNames.join(", ")}
       </span>
-    </div>
+    </details>
   );
 }
