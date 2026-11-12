@@ -14,8 +14,8 @@ function Introduction() {
       <p>The interactive map requires JavaScript. You can still read the guide and version documents.</p>
       <nav aria-label="Version documentation">
         {releases.map(item => <p key={item.id}>
-          {item.title}: <a href={`${import.meta.env.BASE_URL}versions/${item.id}/methodology.html`}>Methodology</a>
-          {' · '}<a href={`${import.meta.env.BASE_URL}versions/${item.id}/data.html`}>Data</a>
+          {item.title.replace(/\s*·\s*/g, ", ")}: <a href={`${import.meta.env.BASE_URL}versions/${item.id}/methodology.html`}>Methodology</a>
+          {' and '}<a href={`${import.meta.env.BASE_URL}versions/${item.id}/data.html`}>Data</a>
         </p>)}
       </nav>
       <WelcomePrimer />

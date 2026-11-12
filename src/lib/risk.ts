@@ -210,3 +210,8 @@ export function featureAreaId(properties: Record<string, unknown>): string | nul
   const id = properties.fips ?? properties.geoid;
   return typeof id === 'string' ? id : null;
 }
+
+/** Format source names for people without changing dataset identifiers or labels. */
+export function areaName(area: Pick<County, 'name' | 'state'>): string {
+  return [area.name.replace(/\s*·\s*/g, ', '), area.state].filter(Boolean).join(', ');
+}
