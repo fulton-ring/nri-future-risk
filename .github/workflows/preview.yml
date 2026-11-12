@@ -47,6 +47,8 @@ jobs:
           with open(os.environ['GITHUB_ENV'], 'a') as handle:
               handle.write(f'PREVIEW_BRANCH=review-{branch}-{suffix}\n')
           PY
+      - name: Verify remote release data before deploying
+        run: node scripts/check_preview_http.mjs --before-deploy "https://${PREVIEW_BRANCH}.future-risk-index-preview.pages.dev"
       - name: Deploy branch preview
         if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
         id: deploy

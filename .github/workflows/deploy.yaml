@@ -41,6 +41,8 @@ jobs:
         run: npm test
       - name: Build
         run: npm run build
+      - name: Verify remote release data before deploying
+        run: node scripts/check_preview_http.mjs --before-deploy "https://fulton-ring.github.io/nri-future-risk/"
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
