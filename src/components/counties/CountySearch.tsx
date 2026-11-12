@@ -22,11 +22,21 @@ export default function CountySearch({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const request = useRef<AbortController | null>(null);
-  useEffect(() => () => request.current?.abort(), []);
+  const autocompleteTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  useEffect(
+    () => () => {
+      clearTimeout(autocompleteTimer.current);
+      request.current?.abort();
+    },
+    [],
+  );
   const id = useId();
   const local = useMemo(() => localPlaces(counties, query), [counties, query]);
   const results: (PlaceResult | LocalPlace)[] = [...local, ...remote];
   const begin = () => {
+    clearTimeout(autocompleteTimer.current);
     request.current?.abort();
     const controller = new AbortController();
     request.current = controller;
@@ -34,13 +44,13 @@ export default function CountySearch({
     setMessage("");
     return controller;
   };
-  const search = async () => {
-    if (!query.trim()) return;
+  const search = async (searchQuery = query) => {
+    if (searchQuery.trim().length < 3) return;
     const controller = begin();
     setOpen(true);
     setActive(-1);
     try {
-      const places = await searchPlaces(query.trim(), controller.signal);
+      const places = await searchPlaces(searchQuery.trim(), controller.signal);
       if (controller.signal.aborted) return;
       setRemote(places);
       if (!places.length)
@@ -91,7 +101,10 @@ export default function CountySearch({
     <div
       className="county-search"
       onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false);
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+          clearTimeout(autocompleteTimer.current);
+          setOpen(false);
+        }
       }}
     >
       <form
@@ -119,16 +132,29 @@ export default function CountySearch({
           value={query}
           onFocus={() => setOpen(true)}
           onChange={(e) => {
+            const value = e.target.value;
+            clearTimeout(autocompleteTimer.current);
             request.current?.abort();
             setBusy(false);
-            setQuery(e.target.value);
+            setQuery(value);
             setRemote([]);
             setMessage("");
             setOpen(true);
             setActive(-1);
+            if (value.trim().length >= 3) {
+              autocompleteTimer.current = setTimeout(
+                () => void search(value),
+                350,
+              );
+            }
           }}
           onKeyDown={(e) => {
-            if (e.key === "Escape") setOpen(false);
+            if (e.key === "Escape") {
+              clearTimeout(autocompleteTimer.current);
+              request.current?.abort();
+              setBusy(false);
+              setOpen(false);
+            }
             if (e.key === "ArrowDown" || e.key === "ArrowUp") {
               e.preventDefault();
               setOpen(true);
@@ -173,16 +199,6 @@ export default function CountySearch({
               </li>
             ))}
           </ul>
-          {!busy && !remote.length && (
-            <button
-              type="button"
-              className="search-places-action"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => void search()}
-            >
-              Search addresses and places ↵
-            </button>
-          )}
           {remote.length > 0 && (
             <small className="search-attribution">
               Places:{" "}
