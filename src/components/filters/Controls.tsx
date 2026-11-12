@@ -20,6 +20,7 @@ const hazardIcons = {
   HRCN: Wind,
 };
 const metricIcons = { loss: Banknote, multiplier: TrendingUp, risk: Shield };
+import { release } from "../../data/releases";
 import {
   Select,
   SelectContent,
@@ -131,7 +132,7 @@ export default function Controls({
         </div>
         <p className="field-hint">
           {view.period === "base"
-            ? "NRI v1.19 baseline."
+            ? `${release.baseline} baseline.`
             : view.hazard === "CFLD" || view.hazard === "HRCN"
               ? "Archived FEMA scenario. Projection periods vary by source."
               : view.period === "mid"
