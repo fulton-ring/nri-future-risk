@@ -1,6 +1,9 @@
 import { calculationMethodology } from './calculation_methodology.mjs';
 import { readFile, writeFile, mkdir, copyFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import { readReleases } from './releases.mjs';
+
+const { archive, current: currentReleases } = await readReleases();
 
 const output = 'public/versions';
 // Rebuild from scratch so retired releases never linger in the deployed site.
@@ -13,7 +16,7 @@ const escape = (value) => String(value).replaceAll('&','&amp;').replaceAll('<','
 const technical = 'https://eelp.law.harvard.edu/wp-content/uploads/2025/03/NRI_Future_Risk_Technical_Document.pdf';
 // The FEMA archive is the only release with local display assets.
 {
-  const release = JSON.parse(await readFile('src/data/release.json','utf8'));
+  const release = archive;
   const dir = join(output, release.id);
   await mkdir(dir, {recursive:true});
   const date = new Date(`${release.date}T00:00:00Z`).toLocaleDateString('en-US', {month:'long', year:'numeric', timeZone:'UTC'});
@@ -30,7 +33,6 @@ const technical = 'https://eelp.law.harvard.edu/wp-content/uploads/2025/03/NRI_F
 }
 
 // Recreated county/tract releases carry their own baseline, bins and source identities.
-const currentReleases = JSON.parse(await readFile('src/data/current-releases.json','utf8'));
 for (const release of currentReleases) {
   const dir=join(output,release.id);
   await mkdir(dir,{recursive:true});

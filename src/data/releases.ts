@@ -1,5 +1,4 @@
-import archive from './release.json';
-import current from './current-releases.json';
+import releaseList from './releases.json';
 
 export type Asset = {path: string; sha256: string};
 export type RatingBins = {hazards: Partial<Record<string, {annualLoss: number[]; riskValue: number[]}>>};
@@ -37,7 +36,14 @@ export function validatedRelease(value: unknown): Release {
 }
 
 
-export const releases: Release[] = [archive, ...(current as unknown[]).map(validatedRelease)];
+const list = releaseList as unknown[];
+const archive: Release = (() => {
+  const entry = list.find(item => (item as Release).status === 'archive');
+  if (!entry) throw new Error('releases.json must include the FEMA archive');
+  return entry as Release;
+})();
+// Every other entry is a recreated release and must pass validation.
+export const releases: Release[] = [archive, ...list.filter(item => item !== archive).map(validatedRelease)];
 
 export function selectRelease(mode?: string, requestedId?: string | null, available: Release[] = releases): Release {
   const requested = available.find((item) => item.id === requestedId);
