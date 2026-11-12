@@ -8,8 +8,7 @@ OUT = Path(os.environ.get('FRI_COUNTY_CONTEXT_WORKDIR', '/tmp/fri-county-context
 OUT.mkdir(parents=True, exist_ok=True)
 CACHE = OUT / "cache"
 CACHE.mkdir(exist_ok=True)
-FILES = ["public/atlas/counties.json", "public/preview/counties.json",
-         "public/preview/v20261025T140637Z/counties.json"]
+FILES = ["public/atlas/counties.json"]
 STATES = dict(zip("AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC|PR".split("|"),
 "Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New Hampshire|New Jersey|New Mexico|New York|North Carolina|North Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode Island|South Carolina|South Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West Virginia|Wisconsin|Wyoming|District of Columbia|Puerto Rico".split("|")))
 

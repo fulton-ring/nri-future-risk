@@ -2,9 +2,13 @@ import assert from 'node:assert/strict';
 import { bytesToHeader, PMTiles } from 'pmtiles';
 import { createHash } from 'node:crypto';
 import { setTimeout } from 'node:timers/promises';
-import { readFile, readdir, stat } from 'node:fs/promises';
-const [base] = process.argv.slice(2);
-if (!base) throw new Error('Usage: node scripts/check_preview_http.mjs PREVIEW_URL');
+import { readFile, stat } from 'node:fs/promises';
+const args = process.argv.slice(2);
+// --before-deploy checks only remotely hosted release data, using SITE_URL as the CORS origin,
+// so a broken release blocks the deploy instead of being found after it is live.
+const beforeDeploy = args.includes('--before-deploy');
+const [base] = args.filter(arg => arg !== '--before-deploy');
+if (!base) throw new Error('Usage: node scripts/check_preview_http.mjs [--before-deploy] SITE_URL');
 const headers = {'User-Agent':'Mozilla/5.0'};
 // Pages can report a deployment URL before its assets reach the checking region.
 async function fetchReady(url, options) {
@@ -16,7 +20,7 @@ async function fetchReady(url, options) {
     await setTimeout(5000);
   }
 }
-const releaseFiles = (await readdir('src/data')).filter(name => ['release.json', 'analysis-2026-10.json', 'analysis-preview.json'].includes(name));
+if (!beforeDeploy) {
 const contextResponse=await fetchReady(new URL('/context/counties.json',base),{headers});
 assert.equal(contextResponse.status,200,'County context must survive preview packaging');
 const contextBytes=Buffer.from(await contextResponse.arrayBuffer());
@@ -24,8 +28,9 @@ assert.deepEqual(contextBytes,await readFile('public/context/counties.json'),'Ho
 const regionsResponse=await fetchReady(new URL('/context/planning-regions.json',base),{headers});
 assert.equal(regionsResponse.status,200,'Planning-region context must survive preview packaging');
 assert.deepEqual(Buffer.from(await regionsResponse.arrayBuffer()),await readFile('public/context/planning-regions.json'),'Hosted region descriptions must match this build');
-for (const name of releaseFiles) {
-  const release = JSON.parse(await readFile(`src/data/${name}`, 'utf8'));
+}
+if (!beforeDeploy) {
+  const release = JSON.parse(await readFile('src/data/release.json', 'utf8'));
   const path = release.assets['counties.pmtiles'].path;
   const bytes = await readFile(`public/${path}`);
   assert.equal(createHash('sha256').update(bytes).digest('hex'), release.assets['counties.pmtiles'].sha256);
@@ -43,20 +48,6 @@ for (const name of releaseFiles) {
     const body=await response.text();
     assert.ok(body.includes(`<code>${release.id}</code>`));
     assert.ok(body.includes(`<h1>${page==='data'?'Data':'Methodology'}</h1>`));
-  }
-  if (release.status==='analysis') {
-    const response=await fetchReady(new URL(`/${path.replace(/counties\.pmtiles$/, 'counties.parquet')}`,base),{headers});
-    assert.equal(response.status,200);
-    assert.equal(createHash('sha256').update(Buffer.from(await response.arrayBuffer())).digest('hex'),release.sourceSha256);
-  }
-  if (release.heatCalculations) {
-    const response=await fetchReady(new URL(`/${release.heatCalculations.path}`,base),{headers});
-    assert.equal(response.status,200);
-    const bytes=Buffer.from(await response.arrayBuffer());
-    assert.equal(createHash('sha256').update(bytes).digest('hex'),release.heatCalculations.sha256);
-    const details=JSON.parse(bytes.toString());
-    assert.equal(details.snapshotSha256,release.heatCalculations.snapshotSha256);
-    assert.equal(details.verifiedCountyScenarios,24864);
   }
   console.log(`Verified hosted PMTiles bytes and available version documents/data: ${release.id}`);
 }
@@ -120,7 +111,7 @@ for (const release of JSON.parse(await readFile('src/data/current-releases.json'
     const profile=await jsonAsset({path:release.profileAssets.template.replace('{prefix}',prefix),sha256:release.profileAssets.hashes[prefix]});
     assert.ok(profile.counties.length>0 && profile.counties.every(row=>row.id.startsWith(prefix)));
   }
-  for(const name of ['methodology','data']) {
+  if (!beforeDeploy) for(const name of ['methodology','data']) {
     const response=await fetchReady(new URL(`/versions/${release.id}/${name}.html`,base),{headers});
     assert.equal(response.status,200);
     const body=await response.text();

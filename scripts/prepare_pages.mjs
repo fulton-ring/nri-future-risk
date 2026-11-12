@@ -2,7 +2,7 @@ import { readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 // Deploy the explorer's assets; legacy source geometry stays in the repository.
-const keep = new Set(['index.html', 'assets', 'atlas', 'preview', 'context', 'versions', 'NRI_Data_Dictionary.xlsx', 'NRI_Future_Risk_Master_Datasheet_12052024.xlsx']);
+const keep = new Set(['index.html', 'assets', 'atlas', 'context', 'versions', 'NRI_Data_Dictionary.xlsx', 'NRI_Future_Risk_Master_Datasheet_12052024.xlsx']);
 for (const entry of await readdir('dist')) {
   if (!keep.has(entry)) await rm(join('dist', entry), { recursive: true });
 }
@@ -15,13 +15,12 @@ async function checkSizes(directory) {
   }
 }
 await checkSizes('dist');
-await writeFile('dist/_headers', '/*\n  X-Robots-Tag: noindex, nofollow\n/preview/*\n  Cache-Control: public, max-age=0, must-revalidate\n');
+await writeFile('dist/_headers', '/*\n  X-Robots-Tag: noindex, nofollow\n');
 
 const { readFile } = await import('node:fs/promises');
 const tiles = {};
-const releaseFiles = (await readdir('src/data')).filter(name => ['release.json', 'analysis-2026-10.json', 'analysis-preview.json'].includes(name));
-for (const name of releaseFiles) {
-  const release = JSON.parse(await readFile(join('src/data', name), 'utf8'));
+{
+  const release = JSON.parse(await readFile('src/data/release.json', 'utf8'));
   const asset = release.assets['counties.pmtiles'];
   tiles[`/${asset.path}`] = {sha256: asset.sha256, size: (await stat(join('dist', asset.path))).size};
 }
