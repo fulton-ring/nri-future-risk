@@ -1,5 +1,6 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router';
 import appCss from '../index.css?url';
+import posthogSnippet from '../analytics/posthog-snippet.js?raw';
 
 const title = 'Future Climate Risk Index';
 const description = 'Explore how climate change affects county economic losses and risk. Compare FEMA hazard projections, emissions pathways and time periods.';
@@ -29,7 +30,11 @@ export const Route = createRootRoute({
 function RootDocument() {
   return (
     <html lang="en">
-      <head><HeadContent /></head>
+      <head>
+        <HeadContent />
+        {/* PEDP's PostHog project; restored from the pre-TanStack index.html. */}
+        <script dangerouslySetInnerHTML={{ __html: posthogSnippet }} />
+      </head>
       <body>
         <Outlet />
         <script defer src="https://cloud.umami.is/script.js" data-website-id="0202318a-3c45-4eb5-bc1b-c8d0ca99240b" />
