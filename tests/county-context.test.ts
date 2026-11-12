@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import { test } from 'node:test';
+import releases from '../src/data/releases.json' with { type: 'json' };
+
+// FEMA's archived GeoJSON holds the same counties and attributes as the archive's display JSON,
+// which is now served from the results bucket and pinned by hash in the release manifest.
+const archived=JSON.parse(readFileSync('public/combined_nri_counties_borders.json','utf8')).features
+  .map((f:{properties:Record<string,unknown>})=>f.properties);
+const archiveRelease=releases.find(r=>r.status==='archive')!;
 
 test('every selectable county has a concise description with revision-pinned attribution', () => {
-  const inventory=JSON.parse(readFileSync('public/atlas/counties.json','utf8')).counties;
+  const inventory=archived.map(p=>({id:p.STCOFIPS as string}));
   const context=JSON.parse(readFileSync('public/context/counties.json','utf8'));
   assert.equal(context.schemaVersion,1);
   assert.equal(context.license.url,'https://creativecommons.org/licenses/by-sa/4.0/');
@@ -36,14 +42,13 @@ test('every selectable county has a concise description with revision-pinned att
 });
 
 test('researched county context uses source-matched baseline comparisons rather than future-scenario claims', () => {
-  const bytes=readFileSync('public/atlas/counties.json');
-  const baseline=JSON.parse(bytes.toString());
+
   const context=JSON.parse(readFileSync('public/context/counties.json','utf8'));
   assert.equal(context.authoringMethod,'researched-risk-context');
-  assert.equal(context.researchBaseline.baselineSha256,createHash('sha256').update(bytes).digest('hex'));
-  for(const county of baseline.counties) {
+  assert.equal(context.researchBaseline.baselineSha256,archiveRelease.assets['counties.json'].sha256);
+  for(const values of archived) {
+    const county={id:values.STCOFIPS as string};
     const entry=context.counties[county.id];
-    const values=Object.fromEntries(baseline.columns.map((name:string,i:number)=>[name,county.values[i]]));
     assert.ok(Array.isArray(entry.researchComparisons),county.id);
     for(const comparison of entry.researchComparisons) {
       if(comparison.kind === 'riskPercentile') {

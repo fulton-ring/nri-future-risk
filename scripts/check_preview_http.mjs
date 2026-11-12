@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { bytesToHeader, PMTiles } from 'pmtiles';
 import { createHash } from 'node:crypto';
 import { setTimeout } from 'node:timers/promises';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { readReleases } from './releases.mjs';
 const { archive, current } = await readReleases();
 const args = process.argv.slice(2);
@@ -31,27 +31,33 @@ const regionsResponse=await fetchReady(new URL('/context/planning-regions.json',
 assert.equal(regionsResponse.status,200,'Planning-region context must survive preview packaging');
 assert.deepEqual(Buffer.from(await regionsResponse.arrayBuffer()),await readFile('public/context/planning-regions.json'),'Hosted region descriptions must match this build');
 }
-if (!beforeDeploy) {
+{
+  // The archive is served from the results bucket, like the recreated releases.
   const release = archive;
-  const path = release.assets['counties.pmtiles'].path;
-  const bytes = await readFile(`public/${path}`);
-  assert.equal(createHash('sha256').update(bytes).digest('hex'), release.assets['counties.pmtiles'].sha256);
-  for (const start of [0, 16384, bytes.length-127]) {
-    const end = start+126;
-    const response = await fetchReady(new URL(`/${path}`, base), {headers:{...headers,Range:`bytes=${start}-${end}`}});
-    assert.equal(response.status,206,'PMTiles requires partial responses');
-    assert.equal(response.headers.get('content-range'),`bytes ${start}-${end}/${bytes.length}`);
-    assert.deepEqual(Buffer.from(await response.arrayBuffer()),bytes.subarray(start,end+1));
+  const origin = new URL(base).origin;
+  const asset = release.assets['counties.pmtiles'];
+  const tileUrl = new URL(asset.path, base);
+  const head = await fetchReady(tileUrl, {method:'HEAD', headers:{...headers, Origin:origin}});
+  assert.equal(head.status, 200, 'Archive PMTiles must be available before exposing the version');
+  assert.ok(['*', origin].includes(head.headers.get('access-control-allow-origin')), 'Archive tiles require site-origin CORS');
+  assert.equal(head.headers.get('x-goog-meta-sha256'), asset.sha256, 'Archive tile metadata must match the manifest');
+  const size = Number(head.headers.get('content-length'));
+  for (const start of [0, 16384, size-127]) {
+    const response = await fetchReady(tileUrl, {headers:{...headers, Origin:origin, Range:`bytes=${start}-${start+126}`}});
+    assert.equal(response.status, 206, 'Archive PMTiles requires byte ranges');
+    assert.equal(response.headers.get('content-range'), `bytes ${start}-${start+126}/${size}`);
   }
-  const hasDocs = await stat(`dist/versions/${release.id}`).then(()=>true, error=>{if(error.code==='ENOENT')return false;throw error;});
-  if (hasDocs) for (const page of ['methodology','data']) {
+  const attributes = await fetchReady(new URL(release.assets['counties.json'].path, base), {headers:{...headers, Origin:origin}});
+  assert.equal(attributes.status, 200);
+  assert.equal(createHash('sha256').update(Buffer.from(await attributes.arrayBuffer())).digest('hex'), release.assets['counties.json'].sha256);
+  if (!beforeDeploy) for (const page of ['methodology','data']) {
     const response=await fetchReady(new URL(`/versions/${release.id}/${page}.html`,base),{headers});
     assert.equal(response.status,200);
     const body=await response.text();
     assert.ok(body.includes(`<code>${release.id}</code>`));
     assert.ok(body.includes(`<h1>${page==='data'?'Data':'Methodology'}</h1>`));
   }
-  console.log(`Verified hosted PMTiles bytes and available version documents/data: ${release.id}`);
+  console.log(`Verified remote archive tiles, attributes and version documents: ${release.id}`);
 }
 
 for (const release of current) {

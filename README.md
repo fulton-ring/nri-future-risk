@@ -8,8 +8,8 @@ was removed from the public by the US Government in February, 2025. It
 references the following datasets which were downloaded before the tool was
 taken down:
 
-- [NRI Future Risk Master Datasheet](https://github.com/fulton-ring/nri-future-risk/blob/main/public/NRI_Future_Risk_Master_Datasheet_12052024.xlsx)
-- [NRI Data Dictionary](https://github.com/fulton-ring/nri-future-risk/blob/main/public/NRI_Data_Dictionary.xlsx)
+- [NRI Future Risk Master Datasheet](https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20241205T000000Z/originals/NRI_Future_Risk_Master_Datasheet_12052024.xlsx)
+- [NRI Data Dictionary](https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20241205T000000Z/originals/NRI_Data_Dictionary.xlsx)
 
 [Donate To The Developers](https://buymeacoffee.com/herzo175)
 
@@ -41,26 +41,22 @@ npm run dev
 
 This will start the development server and open the tool in your default browser.
 
-## Archived display assets
+## Release data
 
-`public/atlas/counties.pmtiles` contains geometry and all five hazards’ archived
-scores, ratings and multipliers. `public/atlas/counties.json` stores the same
-attributes in columnar JSON for county profiles and the national table.
-The archive entry in `src/data/releases.json` records asset paths, SHA-256 hashes, the source hash and
-release identity. The archived source GeoJSON and workbooks remain available.
-Recreated NRI v1.20 county and tract releases use verified public PMTiles and
-sharded attributes recorded as further entries in the same file.
+All release data is served from the public results bucket
+(`gs://future-risk-index-results`), not from this repository. Each entry in
+`src/data/releases.json` records its asset URLs and SHA-256 hashes; the explorer
+verifies JSON assets against those hashes before using them.
 
-To regenerate these checked-in assets, install [tippecanoe](https://github.com/felt/tippecanoe), then run:
+- FEMA archive (December 2024): `future-risk-index/fri/counties/v20241205T000000Z/`,
+  with FEMA's values unchanged as GeoParquet, the original workbook, data dictionary
+  and GeoJSON, and the explorer's PMTiles and JSON. See
+  [`pipeline/README.md`](pipeline/README.md#fema-archive-version-one-time-backfill).
+- Recreated NRI v1.20 county and tract releases: `future-risk-index/fri/{counties,tracts}/<version>/`.
 
-```bash
-npm run assets:archive
-```
-
-This command changes display formats only; it does not recompute the science.
-New reconstructed products must be validated before replacing the release
-manifest. The original archive remains selectable alongside recreated analyses;
-each release identifies its own baseline and methodology.
+The workbook and archived GeoJSON also stay in `public/` because the pipeline's frozen
+baseline uses them. The original archive remains selectable alongside recreated
+analyses; each release identifies its own baseline and methodology.
 
 Shared URLs retain the release, county, hazard, measure, time period, emissions,
 heat model and map camera. Unrecognized releases produce a visible warning.
@@ -154,3 +150,11 @@ continue to serve static files; no application server is required.
 `VITE_BASE_PATH=/` when previewing a Cloudflare build. `npm run dev` runs Start's development
 server. This migration preserves the current version selector and datasets; it does not
 add county landing pages or change any scientific values.
+
+## County update pipeline
+
+See [pipeline/README.md](pipeline/README.md) for the independent Hamilton/Cloud Batch
+pipeline, Terraform configuration and merge-approved publication contract.
+
+The combined branch preview is available at
+https://review-feat-fut-0dc4eaf5.future-risk-index-preview.pages.dev/.
