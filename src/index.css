@@ -240,8 +240,7 @@ summary {
   font-size: 13px;
 }
 .atlas-layout {
-  display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 340px;
+  display: flex;
   flex: 1;
   min-height: 0;
 }
@@ -401,7 +400,7 @@ summary {
 .map-toolbar {
   padding: 19px 22px 17px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   gap: 10px;
   border-bottom: 1px solid var(--border);
@@ -975,9 +974,6 @@ th small {
   display: none;
 }
 @media (min-width: 1550px) {
-  .atlas-layout {
-    grid-template-columns: 310px minmax(0, 1fr) 380px;
-  }
   .explore-panel {
     padding: 30px 26px;
   }
@@ -986,9 +982,6 @@ th small {
   }
 }
 @media (max-width: 1150px) and (min-width: 901px) {
-  .atlas-layout {
-    grid-template-columns: 240px minmax(0, 1fr) 290px;
-  }
   .explore-panel {
     padding: 22px 15px;
   }
@@ -1490,7 +1483,7 @@ td small { display: block; margin-top: 4px; color: var(--muted-foreground); font
 .range-chart svg { display: block; width: 100%; overflow: visible; }
 .range-grid { stroke: var(--border); stroke-width: 0.5; }
 .range-axis { stroke: var(--muted-foreground); stroke-width: 0.7; }
-.range-tick, .range-axis-title { fill: var(--muted-foreground); font: 8px var(--font-sans); }
+.range-tick { fill: var(--muted-foreground); font: 8px var(--font-sans); }
 .range-category { fill: var(--foreground); font: 8px var(--font-sans); }
 .range-category.is-county { font-weight: 700; }
 .range-county-label { fill: var(--foreground); font: 7px var(--font-sans); }
@@ -1503,7 +1496,7 @@ td small { display: block; margin-top: 4px; color: var(--muted-foreground); font
 .range-target:focus-visible { outline: 2px solid var(--foreground); outline-offset: -2px; }
 .bin-inspection { position: absolute; bottom: calc(100% + 8px); left: 0; right: 0; padding: 10px 12px; background: var(--card); border: 1px solid var(--border); z-index: 4; display: grid; gap: 5px; font-size: 11px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .bin-inspection small { font-size: 9px; color: var(--muted-foreground); }
-.bin-explorer .bin-hint, .bin-explorer .bin-caption { font-size: 10px; line-height: 1.45; color: var(--muted-foreground); margin: 5px 0 0; }
+.bin-explorer .bin-caption { font-size: 10px; line-height: 1.45; color: var(--muted-foreground); margin: 5px 0 0; }
 @media (prefers-reduced-motion: reduce) { .range-bar { transition: none; } }
 
 .multiplier-floor { font-size: 10px; color: var(--muted-foreground); }
@@ -1537,3 +1530,20 @@ td small { display: block; margin-top: 4px; color: var(--muted-foreground); font
 .legend-toggle { display: grid; place-items: center; width: 32px; min-height: 32px; padding: 0; }
 .map-legend[data-collapsed="true"] { width: 40px; padding: 0; right: auto; }
 .map-legend[data-collapsed="true"] .legend-toggle { width: 38px; min-height: 38px; }
+
+/* Desktop side panels resize, collapse fully and reopen from the map toolbar. */
+[data-slot="resizable-panel"] { min-width: 0; overflow: hidden; }
+/* The library wraps panel children in its own scroll container. */
+.resizable-panel-content { display: flex; }
+.resizable-panel-content > .explore-panel,
+.resizable-panel-content > .county-panel,
+.resizable-panel-content > .map-panel { flex: 1; height: 100%; border: 0; }
+.resizable-handle { position: relative; width: 1px; background: var(--border); outline: none; }
+.resizable-handle::after { content: ""; position: absolute; inset: 0 -4px; }
+.resizable-handle:hover, .resizable-handle[data-separator="active"], .resizable-handle:focus-visible { background: var(--muted-foreground); }
+.resizable-grip { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 3; display: grid; place-items: center; width: 12px; height: 20px; border: 1px solid var(--border); background: var(--card); color: var(--muted-foreground); }
+.map-title { flex: 1; min-width: 0; }
+.panel-toggle { color: var(--muted-foreground); }
+.panel-toggle:hover { color: var(--foreground); }
+/* The map toolbar already names the hazard and scenario on desktop. */
+@media (min-width: 901px) { .county-panel .result-context { display: none; } }

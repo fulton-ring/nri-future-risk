@@ -16,7 +16,7 @@ function BinChart({view,value}:Props) {
   const active=hovered ?? pinned;
   const selected=active === null ? null : intervals[active];
   const {ceiling,ticks,position}=ratingChartScale(intervals,value ?? null,view.metric);
-  const left=60, top=10, plotWidth=330, plotHeight=112, bottom=top+plotHeight, column=plotWidth/5, chartWidth=400, chartHeight=bottom+43;
+  const left=60, top=10, plotWidth=330, plotHeight=112, bottom=top+plotHeight, column=plotWidth/5, chartWidth=400, chartHeight=bottom+30;
   const y=(amount:number)=>bottom-position(amount)*plotHeight;
   const tick=(amount:number)=>view.metric === 'loss' ? formatDollars(amount) : `${formatNumber(amount)}${view.metric === 'multiplier' ? '×' : ''}`;
   return <div className="bin-explorer" onKeyDown={event=>{if(event.key==='Escape'){setPinned(null);setHovered(null);}}}>
@@ -41,10 +41,9 @@ function BinChart({view,value}:Props) {
         })}
         <line x1={left} x2={left} y1={top} y2={bottom} className="range-axis" />
         <line x1={left} x2={left+plotWidth} y1={bottom} y2={bottom} className="range-axis" />
-        <text x={left+plotWidth/2} y={chartHeight-4} textAnchor="middle" className="range-axis-title">Category</text>
       </svg>
       <div className="range-chart-targets" role="group" aria-label="Inspect category ranges"
-        style={{left:`${left/chartWidth*100}%`,right:`${(chartWidth-left-plotWidth)/chartWidth*100}%`,top:`${top/chartHeight*100}%`,bottom:`${(chartHeight-bottom-29)/chartHeight*100}%`}}>
+        style={{left:`${left/chartWidth*100}%`,right:`${(chartWidth-left-plotWidth)/chartWidth*100}%`,top:`${top/chartHeight*100}%`,bottom:'0%'}}>
         {intervals.map((interval,i)=><button key={i} type="button" className="range-target"
           aria-label={`${labels[i]}: ${intervalLabel(interval,view.metric)}${i === current ? `. Selected ${areaLabel}` : ''}`}
           aria-pressed={pinned === i} title={intervalLabel(interval,view.metric)}
@@ -56,9 +55,8 @@ function BinChart({view,value}:Props) {
     {selected && <div className="bin-inspection" role="status" aria-live="polite">
       <strong>{view.metric === 'multiplier' ? 'Map interval' : selected.label}</strong>
       <span>{intervalLabel(selected,view.metric)}{view.metric === 'loss' ? ' / year' : ''}</span>
-      <small>{selected.upper === null ? 'No upper limit.' : 'Upper bound included.'}</small>
+      <small>{selected.upper === null ? 'No upper limit.' : 'Upper bound included.'} {pinned === null ? 'Click to pin.' : 'Esc to reset.'}</small>
     </div>}
-    <p className="bin-hint">{selected ? 'Click to pin. Esc to reset.' : 'Select a bar for the exact range.'}</p>
     {view.metric === 'risk' && <p className="bin-caption">Loss adjusted for vulnerability and resilience; not a dollar-loss estimate. The risk score is a separate 0–100 percentile.</p>}
   </div>;
 }

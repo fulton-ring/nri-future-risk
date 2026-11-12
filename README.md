@@ -46,10 +46,10 @@ This will start the development server and open the tool in your default browser
 `public/atlas/counties.pmtiles` contains geometry and all five hazards’ archived
 scores, ratings and multipliers. `public/atlas/counties.json` stores the same
 attributes in columnar JSON for county profiles and the national table.
-`src/data/release.json` records asset paths, SHA-256 hashes, the source hash and
+The archive entry in `src/data/releases.json` records asset paths, SHA-256 hashes, the source hash and
 release identity. The archived source GeoJSON and workbooks remain available.
 Recreated NRI v1.20 county and tract releases use verified public PMTiles and
-sharded attributes recorded in `src/data/current-releases.json`.
+sharded attributes recorded as further entries in the same file.
 
 To regenerate these checked-in assets, install [tippecanoe](https://github.com/felt/tippecanoe), then run:
 

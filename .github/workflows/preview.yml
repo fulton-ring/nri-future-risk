@@ -1,6 +1,7 @@
 name: Cloudflare preview
+# Branch pushes cover PRs too: the comment step finds open PRs for the branch.
+# A separate pull_request trigger only duplicated (and cancelled) these runs.
 on:
-  pull_request:
   push:
     branches: ['feat/**']
   workflow_dispatch:
@@ -9,11 +10,10 @@ permissions:
   deployments: write
   pull-requests: write
 concurrency:
-  group: cloudflare-preview-${{ github.head_ref || github.ref_name }}
+  group: cloudflare-preview-${{ github.ref_name }}
   cancel-in-progress: true
 jobs:
   preview:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     environment:
       name: cloudflare-preview
@@ -37,7 +37,7 @@ jobs:
           path: dist/
       - name: Assign preview branch
         env:
-          SOURCE_BRANCH: ${{ github.head_ref || github.ref_name }}
+          SOURCE_BRANCH: ${{ github.ref_name }}
         run: |
           python3 - <<'PY'
           import hashlib, os, re
@@ -69,7 +69,7 @@ jobs:
         uses: actions/github-script@v8
         env:
           PREVIEW_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
-          SOURCE_BRANCH: ${{ github.head_ref || github.ref_name }}
+          SOURCE_BRANCH: ${{ github.ref_name }}
         with:
           script: |
             const publish = require(`${process.env.GITHUB_WORKSPACE}/cloudflare/preview-comment.cjs`);

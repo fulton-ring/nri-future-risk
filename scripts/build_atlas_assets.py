@@ -44,5 +44,8 @@ with tempfile.NamedTemporaryFile(mode='w', suffix='.geojson') as handle:
     handle.flush()
     subprocess.run(['tippecanoe', '-o', str(output / 'counties.pmtiles'), '-l', 'counties', '-Z0', '-z8', '--use-attribute-for-id=county_id', '--no-feature-limit', '--no-tile-size-limit', '--detect-shared-borders', '--force', handle.name], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 manifest = dict(id='fema-2024-12-05', title='FEMA archived release', date='2024-12-05', baseline='NRI v1.19', status='archive', sourceSha256=hashlib.sha256(source.read_bytes()).hexdigest(), countyCount=len(counties), assets={name: dict(path=f'atlas/{name}', sha256=hashlib.sha256((output/name).read_bytes()).hexdigest()) for name in ['counties.json', 'counties.pmtiles']}, sourceLayer='counties')
-(ROOT / 'src/data/release.json').write_text(json.dumps(manifest, indent=2)+'\n')
+# Replace the archive entry in the single release list, keeping recreated releases.
+releases_path = ROOT / 'src/data/releases.json'
+releases = [item for item in json.loads(releases_path.read_text()) if item.get('status') != 'archive']
+releases_path.write_text(json.dumps([manifest, *releases], indent=2)+'\n')
 print(f"Built {len(counties)} counties; source SHA-256: {manifest['sourceSha256']}")
