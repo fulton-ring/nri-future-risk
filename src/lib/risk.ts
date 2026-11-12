@@ -1,4 +1,5 @@
 import { formatNumber } from './format';
+import type { ExpressionSpecification } from 'maplibre-gl';
 import { release } from "../data/releases";
 export const RELEASE = release.id;
 export const hazards = {
@@ -129,7 +130,10 @@ export function metricValue(values: Values, state: ViewState): Value {
   const key = scenarioKey(state);
   if (state.metric === "multiplier" && values[`${key}_DELTAR`] === "No Rating")
     return "No Rating";
-  return values[metricField(state)] ?? null;
+  const value = values[metricField(state)] ?? null;
+  return state.metric !== "multiplier" && value === "No Rating" &&
+    values[`${state.hazard}_EALR`] === "No Expected Annual Losses"
+    ? "No Expected Annual Losses" : value;
 }
 export function colorFor(value: Value, metric: Metric): string {
   if (value === null || value === "Insufficient Data") return "#b6b3ac";
@@ -143,8 +147,35 @@ export function colorFor(value: Value, metric: Metric): string {
   );
   return index < 0 ? "#b6b3ac" : palette[index];
 }
+/** Keep PMTiles fill status consistent with the table, tooltip and profile. */
+export function metricColorExpression(state: ViewState): ExpressionSpecification {
+  const field = metricField(state);
+  const raw = ["get", field];
+  const value = state.metric === "multiplier" ? raw : [
+    "case",
+    ["all", ["==", raw, "No Rating"], ["==", ["get", `${state.hazard}_EALR`], "No Expected Annual Losses"]],
+    "No Expected Annual Losses", raw,
+  ];
+  const expression: unknown[] = ["case"];
+  if (state.metric === "multiplier") expression.push(
+    ["==", ["get", `${scenarioKey(state)}_DELTAR`], "No Rating"], colorFor("No Rating", state.metric),
+  );
+  expression.push(["any", ["!", ["has", field]], ["==", raw, null]], colorFor(null, state.metric));
+  for (const status of ["Insufficient Data", "Not Applicable", "No Rating", "No Expected Annual Losses"])
+    expression.push(["==", value, status], colorFor(status, state.metric));
+  for (const [i, name] of ratingNames.entries())
+    expression.push(["==", ["slice", ["to-string", value], 0, name.length], name], palette[i]);
+  if (state.metric === "multiplier") {
+    for (const [i, stop] of multiplierStops.entries())
+      expression.push(["<=", ["number", value, 0], stop], palette[i]);
+    expression.push(palette[4]);
+  } else expression.push(colorFor(null, state.metric));
+  return expression as ExpressionSpecification;
+}
+
 export function describeValue(value: Value, metric: Metric): string {
   if (value === null) return "Data unavailable";
+  if (value === "No Expected Annual Losses") return "No modeled baseline losses";
   if (typeof value === "number")
     return metric === "multiplier"
       ? `${formatNumber(value)}×`

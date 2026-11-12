@@ -3,7 +3,6 @@ import * as maplibregl from "maplibre-gl";
 import type {
   Map as MapInstance,
   StyleSpecification,
-  ExpressionSpecification,
 } from "maplibre-gl";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { Protocol } from "pmtiles";
@@ -12,15 +11,10 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { assetUrl } from "../../clients/api";
 import { release, isTract, areaLabel } from "../../data/releases";
 import {
-  colorFor,
   featureAreaId,
+  metricColorExpression,
   describeValue,
-  metricField,
   metricValue,
-  multiplierStops,
-  palette,
-  ratingNames,
-  scenarioKey,
   type Values,
   type County,
   type ViewState,
@@ -334,41 +328,7 @@ export default function RiskMap({
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map) return;
-    const field = metricField(view);
-    const value: ExpressionSpecification = ["get", field];
-    const expression: unknown[] = [
-      "case",
-      ["any", ["!", ["has", field]], ["==", value, null]],
-      colorFor(null, view.metric),
-    ];
-    for (const status of [
-      "Insufficient Data",
-      "Not Applicable",
-      "No Rating",
-      "No Expected Annual Losses",
-    ])
-      expression.push(["==", value, status], colorFor(status, view.metric));
-    if (view.metric === "multiplier") {
-      expression.push(
-        ["==", ["get", `${scenarioKey(view)}_DELTAR`], "No Rating"],
-        colorFor("No Rating", view.metric),
-      );
-      for (const [i, stop] of multiplierStops.entries())
-        expression.push(["<=", ["number", value, 0], stop], palette[i]);
-      expression.push(palette[4]);
-    } else {
-      for (const [i, name] of ratingNames.entries())
-        expression.push(
-          ["==", ["slice", ["to-string", value], 0, name.length], name],
-          palette[i],
-        );
-      expression.push(colorFor(null, view.metric));
-    }
-    map.setPaintProperty(
-      "county-fill",
-      "fill-color",
-      expression as ExpressionSpecification,
-    );
+    map.setPaintProperty("county-fill", "fill-color", metricColorExpression(view));
     map.setFilter("county-selected", ["==", ["coalesce", ["get", "fips"], ["get", "geoid"]], view.county]);
   }, [ready, counties, view]);
 
