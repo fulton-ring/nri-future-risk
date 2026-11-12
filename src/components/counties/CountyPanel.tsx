@@ -4,6 +4,7 @@ import CountyContext from "./CountyContext";
 import { countyCalculation, formatDollars, formatNumber } from "../../lib/calculations";
 import { Download, X } from "lucide-react";
 import {
+  areaName,
   colorFor,
   describeValue,
   hazards,
@@ -20,7 +21,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
   if (!county)
     return (
       <div className="county-empty">
-        <h2>Find a place to explore</h2>
+        <p>Search for a place or select an area on the map.</p>
       </div>
     );
   const value = metricValue(county.values, view);
@@ -99,8 +100,7 @@ export default function CountyPanel({ county, view, onClear }: Props) {
       {isAnalysis && county.vintage === "FEMA archive" && <p className="caption">Archived multipliers; drought, wildfire and LOCA2 risk ranks are recomputed across all counties.</p>}
       <div className="county-heading">
         <div>
-          <span className="section-label">{county.state}</span>
-          <h2>{county.name}</h2>
+          <h2>{areaName(county)}</h2>
         </div>
         <button
           className="icon-button"
@@ -112,16 +112,16 @@ export default function CountyPanel({ county, view, onClear }: Props) {
       </div>
       <div className="county-body">
         <div className="result-context">
-          {hazards[view.hazard]} · {periodLabel(view.period)}
+          {hazards[view.hazard]}, {periodLabel(view.period).toLowerCase()}
           {view.period !== "base" &&
-            ` · ${pathwayLabel(view.hazard, view.emissions)}`}
+            ` (${pathwayLabel(view.hazard, view.emissions)})`}
         </div>
         {view.metric !== "multiplier" && <div className="result-value">
           <span className="result-dot" style={{background:colorFor(value,view.metric)}} />
           {describeValue(value,view.metric)}
         </div>}
         <div className="baseline-row">
-          <span>Baseline · {release.baseline}</span>
+          <span>Baseline ({release.baseline})</span>
           <strong>
             {describeValue(
               baseline,

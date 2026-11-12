@@ -246,3 +246,10 @@ test('map fill colors agree with displayed ratings without changing multiplier b
     }
   }
 });
+
+test("place headings use normal county/state order and readable tract names", async () => {
+  const { areaName } = await import('../src/lib/risk.ts');
+  assert.equal(areaName({name:'Bergen',state:'NJ'}),'Bergen, NJ');
+  assert.equal(areaName({name:'Tract 0101.00 · Cook',state:'IL'}),'Tract 0101.00, Cook, IL');
+  assert.equal(areaName({name:'Capitol Planning Region',state:'CT'}),'Capitol Planning Region, CT');
+});

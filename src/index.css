@@ -254,15 +254,7 @@ summary {
   background: var(--card);
   min-width: 0;
 }
-.section-label {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1.4px;
-  color: var(--muted-foreground);
-  line-height: 1.5;
-}
+
 .panel-intro h1 {
   font-family: var(--font-serif);
   font-weight: 500;
