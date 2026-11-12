@@ -1,8 +1,10 @@
 import { calculationMethodology } from './calculation_methodology.mjs';
-import { readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, copyFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const output = 'public/versions';
+// Rebuild from scratch so retired releases never linger in the deployed site.
+await rm(output, {recursive:true, force:true});
 await mkdir(join(output, 'fonts'), {recursive:true});
 await copyFile('pipeline/reference/rating-bins.json', join(output, 'rating-bins.json'));
 await copyFile('node_modules/@fontsource-variable/figtree/files/figtree-latin-wght-normal.woff2', join(output, 'fonts/figtree.woff2'));
