@@ -27,7 +27,7 @@ export default function Legend({ view, county }: { view: ViewState; county?: Cou
                   "Unavailable",
                   "No rating",
                   "Not applicable",
-                  "No baseline losses",
+                  "No modeled baseline losses",
                 ][i]
               }
             </span>
