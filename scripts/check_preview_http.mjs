@@ -3,6 +3,8 @@ import { bytesToHeader, PMTiles } from 'pmtiles';
 import { createHash } from 'node:crypto';
 import { setTimeout } from 'node:timers/promises';
 import { readFile, stat } from 'node:fs/promises';
+import { readReleases } from './releases.mjs';
+const { archive, current } = await readReleases();
 const args = process.argv.slice(2);
 // --before-deploy checks only remotely hosted release data, using SITE_URL as the CORS origin,
 // so a broken release blocks the deploy instead of being found after it is live.
@@ -30,7 +32,7 @@ assert.equal(regionsResponse.status,200,'Planning-region context must survive pr
 assert.deepEqual(Buffer.from(await regionsResponse.arrayBuffer()),await readFile('public/context/planning-regions.json'),'Hosted region descriptions must match this build');
 }
 if (!beforeDeploy) {
-  const release = JSON.parse(await readFile('src/data/release.json', 'utf8'));
+  const release = archive;
   const path = release.assets['counties.pmtiles'].path;
   const bytes = await readFile(`public/${path}`);
   assert.equal(createHash('sha256').update(bytes).digest('hex'), release.assets['counties.pmtiles'].sha256);
@@ -52,7 +54,7 @@ if (!beforeDeploy) {
   console.log(`Verified hosted PMTiles bytes and available version documents/data: ${release.id}`);
 }
 
-for (const release of JSON.parse(await readFile('src/data/current-releases.json','utf8'))) {
+for (const release of current) {
   const origin=new URL(base).origin;
   const asset=release.assets['counties.pmtiles'];
   const tileUrl=new URL(asset.path,base);

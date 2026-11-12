@@ -274,7 +274,10 @@ def main():
             **spec,
         }
         releases.append(release)
-    write_json(ROOT / "src/data/current-releases.json", releases)
+    # Keep the FEMA archive entry; replace every recreated release with this build.
+    releases_path = ROOT / "src/data/releases.json"
+    archive = [r for r in json.loads(releases_path.read_text()) if r.get("status") == "archive"]
+    releases_path.write_text(json.dumps([*archive, *releases], indent=2, allow_nan=False) + "\n")
     print(
         json.dumps({"releases": [r["id"] for r in releases], "allTilesVerified": True})
     )

@@ -22,6 +22,8 @@
     "@radix-ui/react-select": "^2.1.6",
     "@radix-ui/react-slot": "^1.1.2",
     "@tailwindcss/vite": "4.3.3",
+    "@tanstack/react-router": "1.170.46",
+    "@tanstack/react-start": "1.169.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.4",
@@ -30,12 +32,11 @@
     "pmtiles": "^4.5.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-resizable-panels": "4.15.0",
     "swr": "^2.3.2",
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "4.3.3",
-    "tailwindcss-animate": "^1.0.7",
-    "@tanstack/react-start": "1.169.4",
-    "@tanstack/react-router": "1.170.46"
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",

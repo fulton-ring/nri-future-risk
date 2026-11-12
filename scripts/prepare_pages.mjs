@@ -18,15 +18,16 @@ await checkSizes('dist');
 await writeFile('dist/_headers', '/*\n  X-Robots-Tag: noindex, nofollow\n');
 
 const { readFile } = await import('node:fs/promises');
+const { archive, current } = await (await import('./releases.mjs')).readReleases();
 const tiles = {};
 {
-  const release = JSON.parse(await readFile('src/data/release.json', 'utf8'));
+  const release = archive;
   const asset = release.assets['counties.pmtiles'];
   tiles[`/${asset.path}`] = {sha256: asset.sha256, size: (await stat(join('dist', asset.path))).size};
 }
 // Large current assets are hosted directly by GCS, which supports Range + CORS.
 // If a future current release uses local assets, route it through the Pages worker too.
-for (const release of JSON.parse(await readFile('src/data/current-releases.json','utf8'))) {
+for (const release of current) {
   const asset=release.assets['counties.pmtiles'];
   if (!/^https:\/\//.test(asset.path)) {
     tiles[`/${asset.path}`]={sha256:asset.sha256,size:(await stat(join('dist',asset.path))).size};

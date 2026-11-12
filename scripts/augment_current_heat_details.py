@@ -20,6 +20,8 @@ def augment(diagnostics_root, display_root, releases_path):
     releases = json.loads(releases_path.read_text())
     pending = []
     for release in releases:
+        if release.get("status") == "archive":
+            continue
         level = release["geography"]
         folder = diagnostics_root / level
         path = folder / "heat-calculations.json"
@@ -76,7 +78,7 @@ def augment(diagnostics_root, display_root, releases_path):
     for shard, payload, hashes, prefix in pending:
         write_json(shard, payload)
         hashes[prefix] = digest(shard)
-    write_json(releases_path, releases)
+    releases_path.write_text(json.dumps(releases, indent=2, allow_nan=False) + "\n")
     return {
         "releases": [r["id"] for r in releases if "id" in r],
         "profileShards": len(pending),
@@ -88,7 +90,7 @@ def main():
     parser.add_argument("--diagnostics-root", type=Path, required=True)
     parser.add_argument("--display-root", type=Path, required=True)
     parser.add_argument(
-        "--releases", type=Path, default=ROOT / "src/data/current-releases.json"
+        "--releases", type=Path, default=ROOT / "src/data/releases.json"
     )
     args = parser.parse_args()
     print(json.dumps(augment(args.diagnostics_root, args.display_root, args.releases)))

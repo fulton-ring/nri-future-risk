@@ -19,7 +19,7 @@ for (const [, value] of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
   if (value === base || value.includes('?')) continue;
   await access(resolve(directory, decodeURIComponent(value.slice(base.length))));
 }
-const release = JSON.parse(await readFile('src/data/release.json', 'utf8'));
+const { archive: release } = await (await import('./releases.mjs')).readReleases();
 for (const page of ['methodology', 'data']) {
   assert.ok(html.includes(`${base}versions/${release.id}/${page}.html`), 'Version documents must be discoverable without JavaScript');
   const document = await readFile(resolve(directory, `versions/${release.id}/${page}.html`), 'utf8');
