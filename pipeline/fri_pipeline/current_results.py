@@ -169,7 +169,7 @@ def write_catalog(root: Path, version: str, records: dict):
             "Derived results credit FEMA, Public Environmental Data Partners and Fulton Ring.\n"
         )
         navigation.append({"rel": "license", "href": "LICENSE.md", "type": "text/markdown"})
-        producer = (
+        producer = record.get("producer") or (
             {"name": "FEMA", "url": "https://www.fema.gov"}
             if dataset == "nri"
             else {"name": "US Census Bureau", "url": "https://www.census.gov"}
@@ -185,10 +185,10 @@ def write_catalog(root: Path, version: str, records: dict):
             "type": "Collection",
             "id": f"future-risk-index/{dataset}/{file}/{version}",
             "title": record["title"],
-            "description": "NRI v1.20 review results. " + description,
+            "description": record.get("summary", "NRI v1.20 review results.") + " " + description,
             "license": "other",
             "version": version,
-            "fri:publication_status": "analysis",
+            "fri:publication_status": record.get("status", "analysis"),
             "extent": {
                 "spatial": {"bbox": [record["bbox"]]},
                 "temporal": {"interval": [[None, None]]},

@@ -274,6 +274,28 @@ The publisher must retain all county hazard properties, numeric `county_id` feat
 existing `fri_pipeline.publication` verification checks before a separate map activation.
 No custom request/receipt service is required by the staging workflow.
 
+## FEMA archive version (one-time backfill)
+
+FEMA's December 2024 archive is published as
+`future-risk-index/fri/counties/v20241205T000000Z/`, using the same layout as the
+recomputed versions: `geoparquet/` (FEMA's values unchanged, with `geoid` and
+`area_id`), `originals/` (master datasheet, data dictionary, archived GeoJSON),
+`preview/` (explorer PMTiles and JSON) and `metadata/`. Its collection is marked
+`fri:publication_status: archive` with FEMA as producer.
+
+The archive never changes, so the recurring workflows do not publish it. Someone with
+write access to the results bucket runs it once:
+
+```bash
+cd pipeline
+uv run --extra results python -m fri_pipeline.fema_archive build --output /tmp/fema
+uv run --extra results python -m fri_pipeline.fema_archive upload --output /tmp/fema \
+  --results-uri gs://future-risk-index-results
+```
+
+Upload only creates missing files (a re-run verifies them) and merges catalogs, so
+existing versions stay listed and the newest recomputed version stays `latest-version`.
+
 ## Public review of results
 
 Terraform grants `allUsers` the read-only `roles/storage.objectViewer` role on
