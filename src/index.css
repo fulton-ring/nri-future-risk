@@ -1532,6 +1532,5 @@ td small { display: block; margin-top: 4px; color: var(--muted-foreground); font
 .search-results ul { list-style: none; margin: 0; padding: 0; }
 .search-results small { display: block; white-space: normal; margin-top: 3px; }
 .search-results .search-attribution { padding: 8px; font-size: 10px; }
-.search-results .search-places-action { font-size: 12px; border-top: 1px solid var(--border); }
 .search-status { font-size: 12px; color: var(--muted-foreground); margin: 6px 0 0; }
 .search-status:empty { display: none; }
