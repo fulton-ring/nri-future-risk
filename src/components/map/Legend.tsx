@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { List, X } from "lucide-react";
 import { countyCalculation } from "../../lib/calculations";
 import RatingBins from "../counties/RatingBins";
+import { track } from "../../analytics/track";
 import {
   colorFor,
   metrics,
@@ -63,7 +64,10 @@ export default function Legend({
           title={expanded ? "Hide legend" : "Show legend"}
           aria-expanded={expanded}
           aria-controls={contentId}
-          onClick={() => setExpanded((value) => !value)}
+          onClick={() => {
+            track("legend_toggled", { open: !expanded });
+            setExpanded(!expanded);
+          }}
         >
           {expanded ? (
             <X size={18} aria-hidden="true" />
