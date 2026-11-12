@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { assetUrl } from '../../clients/api';
 import { release, isTract, areaLabel, areasLabel } from '../../data/releases';
 import { countyCalculation, formatDollars, formatNumber, formatExactNumber, nriCountyUrl, ratingIntervals, binIndex } from '../../lib/calculations';
-import { scenarioKey, metricValue, ratingNames, type County, type ViewState, type HeatDetails } from '../../lib/risk';
+import { areaName, scenarioKey, metricValue, ratingNames, type County, type ViewState, type HeatDetails } from '../../lib/risk';
 
 type HeatAsset = {path:string; sha256:string; snapshotSha256:string};
 type Explanation = {schemaVersion:number; snapshotSha256:string; counties:Record<string,Record<string,HeatDetails>>};
@@ -35,13 +35,13 @@ export default function CalculationDetails({county,view,children}: {county:Count
   return <section className="county-calculations" aria-label={`${areaLabel} values and calculations`}>
     <dl className="county-numbers">
       <div><dt>Annual loss</dt><dd title={values.annualLoss === null ? undefined : `$${formatExactNumber(values.annualLoss)}/year`}>{formatDollars(values.annualLoss)}<small>per year</small></dd></div>
-      <div><dt>Risk score</dt><dd title={formatExactNumber(values.riskScore)}>{formatNumber(values.riskScore)}<small>{future && release.rankingPopulation === 'CONUS' ? 'CONUS percentile' : 'national percentile'} · 0–100</small></dd></div>
+      <div><dt>Risk score</dt><dd title={formatExactNumber(values.riskScore)}>{formatNumber(values.riskScore)}<small>{future && release.rankingPopulation === 'CONUS' ? 'CONUS percentile' : 'national percentile'} (0–100)</small></dd></div>
       {future && <div><dt>{rebuilt ? 'Applied multiplier' : 'Published multiplier'}</dt><dd title={`${formatExactNumber(values.multiplier)}×`}>{formatNumber(values.multiplier)}{values.multiplier !== null && '×'}{heat && heat.rawMultiplier < 1 && heat.appliedMultiplier === 1 && <span className="multiplier-floor"> (floored to 1 from {formatNumber(heat.rawMultiplier)})</span>}</dd></div>}
     </dl>
     {children}
     <details className="data-details calculation-details">
       <summary>How this {areaLabel} is calculated</summary>
-      <p>Shown to three significant digits; source downloads retain exact values.</p>
+      <p>Downloads include unrounded values.</p>
       {future ? <>
         {values.annualLoss !== null && values.multiplier !== null ? <p className="calculation-equation">Annual loss ≈ {formatDollars(values.baselineLoss)} × {formatNumber(values.multiplier)} ≈ <strong>{formatDollars(values.annualLoss)}/year</strong>.</p> : <p>{release.baseline === 'NRI v1.20' ? values.multiplier === null ? 'Climate coverage is unavailable for this area and hazard. Future values are withheld; baseline values remain available.' : 'The NRI baseline has no annual-loss estimate for this area and hazard.' : 'This record has no usable multiplier for deriving annual loss. Its published rating and score remain available; an unavailable multiplier is not zero losses.'}</p>}
         {values.riskValue !== null && <p>Risk value ≈ {formatNumber(values.baselineRiskValue)} × {formatNumber(values.multiplier)} ≈ <strong>{formatNumber(values.riskValue)}</strong>. Its percentile rank is the risk score; its value determines the risk category.</p>}
@@ -68,7 +68,7 @@ export default function CalculationDetails({county,view,children}: {county:Count
       <a href={assetUrl(`versions/${release.id}/methodology.html`)}>Methodology for this version</a>
       <a href={assetUrl(`versions/${release.id}/data.html`)}>Data and provenance for this version</a>
     </details>
-    <a className="nri-county-link" href={nriCountyUrl(county.id)} target="_blank" rel="noreferrer">View {county.name} in FEMA NRI / RAPT</a>
+    <a className="nri-county-link" href={nriCountyUrl(county.id)} target="_blank" rel="noreferrer">View {areaName(county)} in FEMA NRI / RAPT</a>
     <p className="caption nri-baseline-note">FEMA’s current report may use a newer baseline.</p>
   </section>;
 }

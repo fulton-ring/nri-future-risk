@@ -55,10 +55,10 @@ export default function CountyContext({ county }: { county: County }) {
       )
     : [];
 
-  const name = context.name ?? (tract ? county.name.split(" · ").slice(1).join(" · ") || contextId : county.name);
+  const name = context.name ?? (tract ? county.name.split(" · ").slice(1).join(", ") || contextId : county.name);
   return (
     <section className="county-context" aria-label={`${name} context`}>
-      {tract && <h3>{contextId?.startsWith("091") ? "Planning region" : "County"} context · {name}</h3>}
+      {tract && <h3>About {name}</h3>}
       {release.baseline === 'NRI v1.20' && context.baseline !== 'NRI v1.20' && context.languageStyle !== 'plain-place-context' && <p className="caption">County context compares archived NRI v1.19 values.</p>}
       <p>{context.description}</p>
       {sources.length > 0 && (

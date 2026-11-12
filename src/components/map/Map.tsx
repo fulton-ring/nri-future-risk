@@ -12,6 +12,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { assetUrl } from "../../clients/api";
 import { release, isTract, areaLabel } from "../../data/releases";
 import {
+  areaName,
   featureAreaId,
   metricColorExpression,
   describeValue,
@@ -99,7 +100,7 @@ export default function RiskMap({
     map.addControl(
       new maplibregl.AttributionControl({
         compact: true,
-        customAttribution: `${areaLabel === "county" ? "County" : "Census tract"} data: FEMA · Boundaries: US Census Bureau`,
+        customAttribution: `${areaLabel === "county" ? "County" : "Census tract"} data: FEMA; boundaries: US Census Bureau`,
       }),
       "bottom-right",
     );
@@ -284,7 +285,7 @@ export default function RiskMap({
       const properties = feature?.properties;
       if (!properties) return;
       map.getCanvas().style.cursor = "pointer";
-      const label = `${properties.name}, ${properties.state} · ${describeValue(metricValue(properties as Values, latest.current.view), latest.current.view.metric)}`;
+      const label = `${areaName({name:String(properties.name ?? ""),state:String(properties.state ?? "")})}: ${describeValue(metricValue(properties as Values, latest.current.view), latest.current.view.metric)}`;
       setHover(label);
       popup.setLngLat(event.lngLat).setText(label).addTo(map);
     });
@@ -386,7 +387,7 @@ export default function RiskMap({
           Map layers
         </summary>
         <div className="map-layers-content">
-          <p>Bright · OpenFreeMap</p>
+          <p>OpenFreeMap Bright</p>
           <label htmlFor={opacityId}>
             {areaLabel === "county" ? "County" : "Census tract"} fill <output>{Math.round(view.opacity * 100)}%</output>
           </label>
