@@ -187,3 +187,62 @@ test('area selection accepts legacy FIPS and current GEOID tile properties', asy
   assert.equal(featureAreaId({}),null);
   assert.equal(featureAreaId({geoid:9110535200}),null);
 });
+
+test('zero baseline losses have a distinct display status for baseline risk and future ratings', () => {
+  const zero = 'No Expected Annual Losses';
+  for (const hazard of ['WFIR', 'DRGT', 'EXHT'] as const) {
+    for (const period of ['base', 'mid', 'late'] as const) {
+      for (const metric of ['loss', 'risk'] as const) {
+        const state = {...readState(''), hazard, period, metric};
+        const field = period === 'base' ? `${hazard}_${metric === 'loss' ? 'EALR' : 'RISKR'}` :
+          `${hazard}${hazard === 'EXHT' ? '_L95' : ''}_${period.toUpperCase()}_LOWER_${metric === 'loss' ? 'PALR' : 'PRISKR'}`;
+        const values = {[field]: 'No Rating', [`${hazard}_EALR`]: zero};
+        assert.equal(metricValue(values, state), zero);
+        assert.equal(describeValue(metricValue(values, state), metric), 'No modeled baseline losses');
+        assert.notEqual(colorFor(zero, metric), colorFor('No Rating', metric));
+        if (field === `${hazard}_EALR`) continue;
+        for (const status of [null, 'Not Applicable', 'Insufficient Data', 'Very Low'])
+          assert.equal(metricValue({...values, [field]: status}, state), status);
+        assert.equal(metricValue({[field]: 'No Rating'}, state), 'No Rating');
+        assert.equal(metricValue({[field]: 'No Rating', [`${hazard}_EALT`]: 0}, state), 'No Rating');
+        assert.equal(metricValue({[`${hazard}_EALR`]: zero}, state), null);
+      }
+    }
+  }
+  assert.equal(describeValue(null, 'loss'), 'Data unavailable');
+});
+
+test('zero baseline loss status does not replace multipliers or their no-rating sentinel', () => {
+  const state = readState('?metric=multiplier');
+  const values = {WFIR_EALR: 'No Expected Annual Losses', WFIR_MID_LOWER_HM: 2};
+  assert.equal(metricValue(values, state), 2);
+  assert.equal(metricValue({...values, WFIR_MID_LOWER_DELTAR: 'No Rating'}, state), 'No Rating');
+  assert.equal(metricValue({WFIR_EALR: values.WFIR_EALR}, state), null);
+});
+
+test('map fill colors agree with displayed ratings without changing multiplier bins', async () => {
+  const {metricColorExpression, metricField} = await import('../src/lib/risk.ts');
+  const {createExpression} = await import('@maplibre/maplibre-gl-style-spec');
+  for (const metric of ['loss', 'risk', 'multiplier'] as const) {
+    for (const period of ['base', 'mid', 'late'] as const) {
+      if (metric === 'multiplier' && period === 'base') continue;
+      const state = {...readState(''), metric, period};
+      const expression = createExpression(metricColorExpression(state), "layers[0].paint.fill-color");
+      assert.equal(expression.result, 'success');
+      if (expression.result !== 'success') continue;
+      for (const baseline of ['No Expected Annual Losses', 'No Rating', null]) {
+        for (const value of [null, 'No Rating', 'Not Applicable', 'Insufficient Data', 'Very High (>49.5M)', ...(metric === 'multiplier' ? [0, 1, 2, 5] : [])]) {
+          const properties = {WFIR_EALR: baseline, [metricField(state)]: value};
+          assert.equal(expression.value.evaluate({zoom: 0}, {type: 3, properties}), colorFor(metricValue(properties, state), metric));
+        }
+        const properties = {WFIR_EALR: baseline};
+        const expected = colorFor(metricValue(properties, state), metric);
+        assert.equal(expression.value.evaluate({zoom: 0}, {type: 3, properties}), expected);
+      }
+      if (metric === 'multiplier') {
+        const properties = {WFIR_EALR: 'No Expected Annual Losses', [metricField(state)]: 2, WFIR_MID_LOWER_DELTAR: 'No Rating', WFIR_LATE_LOWER_DELTAR: 'No Rating'};
+        assert.equal(expression.value.evaluate({zoom: 0}, {type: 3, properties}), colorFor('No Rating', metric));
+      }
+    }
+  }
+});

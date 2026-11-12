@@ -21,10 +21,17 @@ export function useCounties(view: ViewState) {
     if (!fieldAsset) throw new Error('This release does not include the selected metric.');
     return decodeField(await fetchAsset(fieldAsset),index.data!.length);
   },options);
+  const baselineField = `${view.hazard}_EALR`;
+  const needsBaseline = !!release.fieldAssets && view.metric !== 'multiplier' && field !== baselineField;
+  const baseline = useSWR(index.data && needsBaseline ? [release.id,baselineField] : null, async () => {
+    const asset = release.fieldAssets?.[baselineField];
+    if (!asset) throw new Error('Baseline loss status is unavailable for this hazard.');
+    return decodeField(await fetchAsset(asset),index.data!.length);
+  },options);
   const data = useMemo(() => {
-    if (!index.data || (release.fieldAssets && !column.data)) return undefined;
-    return column.data ? index.data.map((row,i) => ({...row,values:{...row.values,[field]:column.data![i]}})) : index.data;
-  },[index.data,column.data,field]);
+    if (!index.data || (release.fieldAssets && !column.data) || (needsBaseline && !baseline.data)) return undefined;
+    return column.data ? index.data.map((row,i) => ({...row,values:{...row.values,[field]:column.data![i],...(baseline.data ? {[baselineField]:baseline.data[i]} : {})}})) : index.data;
+  },[index.data,column.data,field,baseline.data,baselineField,needsBaseline]);
   const selected = data?.find(row => row.id === view.county);
   const profileAssets = release.profileAssets;
   const prefix = view.county.slice(0,profileAssets?.prefixLength ?? 5);
@@ -38,9 +45,9 @@ export function useCounties(view: ViewState) {
     catch (error) { detailsError = error; }
   }
   return {
-    data, selectedCounty, error:index.error ?? column.error,
-    isLoading:index.isLoading || column.isLoading,
-    mutate:async () => {await Promise.all([index.mutate(),column.mutate()]);},
+    data, selectedCounty, error:index.error ?? column.error ?? baseline.error,
+    isLoading:index.isLoading || column.isLoading || baseline.isLoading,
+    mutate:async () => {await Promise.all([index.mutate(),column.mutate(),...(needsBaseline ? [baseline.mutate()] : [])]);},
     detailsLoading:!!selected && !!profileAssets && !profile.data && !detailsError,
     detailsError,
     retryDetails:() => profile.mutate(),
