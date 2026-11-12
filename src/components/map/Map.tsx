@@ -1,3 +1,4 @@
+import type { PlaceResult } from "../../clients/geocoding";
 import { useEffect, useRef, useState, useId } from "react";
 import * as maplibregl from "maplibre-gl";
 import type {
@@ -25,6 +26,7 @@ const protocol = new Protocol();
 maplibregl.addProtocol("pmtiles", protocol.tile);
 
 type Props = {
+  searchFocus: PlaceResult | null;
   counties: County[];
   view: ViewState;
   onSelect: (id: string) => void;
@@ -33,6 +35,7 @@ type Props = {
   onLayerChange: (change: Partial<ViewState>) => void;
 };
 export default function RiskMap({
+  searchFocus,
   counties,
   view,
   onSelect,
@@ -347,6 +350,17 @@ export default function RiskMap({
     }
     if (!view.county) fittedCounty.current = "";
   }, [ready, counties, view.county]);
+
+  useEffect(() => {
+    const map=mapRef.current;
+    if (!ready || !map || !searchFocus) return;
+    const duration=window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 550;
+    if(searchFocus.kind==='place' && searchFocus.bounds) map.fitBounds(searchFocus.bounds,{padding:65,maxZoom:11,duration});
+    else map.flyTo({center:searchFocus.coordinates,zoom:searchFocus.kind==='address'?12:9,duration});
+    if(searchFocus.kind!=='address') return;
+    const marker=new maplibregl.Marker({color:'#252d27'}).setLngLat(searchFocus.coordinates).addTo(map);
+    return ()=>{marker.remove();};
+  }, [ready, searchFocus]);
 
   useEffect(() => {
     if (resetKey)
