@@ -1497,7 +1497,7 @@ td small { display: block; margin-top: 4px; color: var(--muted-foreground); font
 .range-bar { transition: all 150ms ease; }
 .range-bar-cap { stroke: var(--muted-foreground); stroke-width: 0.8; }
 .range-county-marker { fill: var(--foreground); stroke: var(--card); stroke-width: 1; }
-.range-chart-targets { position: absolute; left: 15%; right: 2.5%; top: 10.4%; bottom: 8%; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); }
+.range-chart-targets { position: absolute; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); }
 .range-target { min-width: 0; border: 0; background: transparent; cursor: pointer; }
 .range-target:hover:not(:disabled) { background: transparent; }
 .range-target:focus-visible { outline: 2px solid var(--foreground); outline-offset: -2px; }
@@ -1528,7 +1528,12 @@ td small { display: block; margin-top: 4px; color: var(--muted-foreground); font
 .search-status:empty { display: none; }
 
 .map-legend { z-index: 2; }
-.legend-toolbar { display: flex; justify-content: flex-end; }
+.legend-toolbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.legend-heading { min-width: 0; }
+.legend-heading h3 { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.25; color: var(--foreground); }
+.legend-heading p { margin: 2px 0 0; font-size: 11px; line-height: 1.35; color: var(--muted-foreground); }
+.legend-toggle { flex-shrink: 0; }
+.map-legend[data-collapsed="true"] .legend-toolbar { margin-bottom: 0; }
 .legend-toggle { display: grid; place-items: center; width: 32px; min-height: 32px; padding: 0; }
 .map-legend[data-collapsed="true"] { width: 40px; padding: 0; right: auto; }
 .map-legend[data-collapsed="true"] .legend-toggle { width: 38px; min-height: 38px; }

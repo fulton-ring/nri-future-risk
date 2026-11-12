@@ -16,13 +16,12 @@ function BinChart({view,value}:Props) {
   const active=hovered ?? pinned;
   const selected=active === null ? null : intervals[active];
   const {ceiling,ticks,position}=ratingChartScale(intervals,value ?? null,view.metric);
-  const left=60, top=18, plotWidth=330, plotHeight=112, bottom=top+plotHeight, column=plotWidth/5;
+  const left=60, top=10, plotWidth=330, plotHeight=112, bottom=top+plotHeight, column=plotWidth/5, chartWidth=400, chartHeight=bottom+43;
   const y=(amount:number)=>bottom-position(amount)*plotHeight;
   const tick=(amount:number)=>view.metric === 'loss' ? formatDollars(amount) : `${formatNumber(amount)}${view.metric === 'multiplier' ? '×' : ''}`;
   return <div className="bin-explorer" onKeyDown={event=>{if(event.key==='Escape'){setPinned(null);setHovered(null);}}}>
     <div className="range-chart">
-      <svg viewBox="0 0 400 173" role="img" aria-label={`${view.metric === 'loss' ? 'Annual loss in dollars per year' : view.metric === 'risk' ? 'Risk index value, not a dollar-loss estimate' : 'Multiplier'} on the left axis${view.metric === 'multiplier' ? '' : ', logarithmic scale including zero'}; five categories on the bottom. Bars show each category’s range. The highest range has no upper limit.`}>
-        <text x={left} y={10} className="range-axis-title">{view.metric === 'loss' ? 'Annual loss ($/year, log scale)' : view.metric === 'risk' ? 'Risk index value (log scale)' : 'Multiplier'}</text>
+      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} role="img" aria-label={`${view.metric === 'loss' ? 'Annual loss in dollars per year' : view.metric === 'risk' ? 'Risk index value, not a dollar-loss estimate' : 'Multiplier'} on the left axis${view.metric === 'multiplier' ? '' : ', logarithmic scale including zero'}; five categories on the bottom. Bars show each category’s range. The highest range has no upper limit.`}>
         {ticks.map(amount=><g key={amount}>
           <line x1={left} x2={left+plotWidth} y1={y(amount)} y2={y(amount)} className="range-grid" />
           <text x={left-7} y={y(amount)+3} textAnchor="end" className="range-tick">{tick(amount)}</text>
@@ -42,9 +41,10 @@ function BinChart({view,value}:Props) {
         })}
         <line x1={left} x2={left} y1={top} y2={bottom} className="range-axis" />
         <line x1={left} x2={left+plotWidth} y1={bottom} y2={bottom} className="range-axis" />
-        <text x={left+plotWidth/2} y={169} textAnchor="middle" className="range-axis-title">Category</text>
+        <text x={left+plotWidth/2} y={chartHeight-4} textAnchor="middle" className="range-axis-title">Category</text>
       </svg>
-      <div className="range-chart-targets" role="group" aria-label="Inspect category ranges">
+      <div className="range-chart-targets" role="group" aria-label="Inspect category ranges"
+        style={{left:`${left/chartWidth*100}%`,right:`${(chartWidth-left-plotWidth)/chartWidth*100}%`,top:`${top/chartHeight*100}%`,bottom:`${(chartHeight-bottom-29)/chartHeight*100}%`}}>
         {intervals.map((interval,i)=><button key={i} type="button" className="range-target"
           aria-label={`${labels[i]}: ${intervalLabel(interval,view.metric)}${i === current ? `. Selected ${areaLabel}` : ''}`}
           aria-pressed={pinned === i} title={intervalLabel(interval,view.metric)}
