@@ -1524,3 +1524,14 @@ td small { display: block; margin-top: 4px; color: var(--muted-foreground); font
   color: var(--muted-foreground);
   font-size: 13px;
 }
+
+.county-search form { position: relative; }
+.county-search input { padding-left: 12px; padding-right: 40px; }
+.location-submit { position: absolute; right: 3px; top: 3px; height: 34px; width: 34px; display: grid; place-items: center; }
+.search-results { max-height: 360px; overflow-y: auto; }
+.search-results ul { list-style: none; margin: 0; padding: 0; }
+.search-results small { display: block; white-space: normal; margin-top: 3px; }
+.search-results .search-attribution { padding: 8px; font-size: 10px; }
+.search-results .search-places-action { font-size: 12px; border-top: 1px solid var(--border); }
+.search-status { font-size: 12px; color: var(--muted-foreground); margin: 6px 0 0; }
+.search-status:empty { display: none; }
