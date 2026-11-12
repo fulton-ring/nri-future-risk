@@ -17,6 +17,7 @@ import argparse
 import hashlib
 import json
 import shutil
+import subprocess
 from pathlib import Path, PurePosixPath
 
 from .candidate import write_json
@@ -42,10 +43,27 @@ ORIGINALS = [
         "application/geo+json",
     ),
 ]
+# The explorer's archive files left the repository once published; read them from this commit.
+PREVIEW_REVISION = "640d0bc15342fe3dc5cd2acfbb93d578542485bb"
 PREVIEW = [
     ("atlas/counties.pmtiles", "Score-bearing PMTiles for the explorer", "application/vnd.pmtiles"),
     ("atlas/counties.json", "Columnar attributes for the explorer", "application/json"),
 ]
+
+
+def preview_bytes(name: str) -> bytes:
+    """Return a published explorer file from git history, verified against the release manifest."""
+    manifest = json.loads((ROOT / "src/data/releases.json").read_text())
+    archive = next(item for item in manifest if item["status"] == "archive")
+    expected = archive["assets"][PurePosixPath(name).name]["sha256"]
+    data = subprocess.run(
+        ["git", "-C", str(ROOT), "show", f"{PREVIEW_REVISION}:public/{name}"],
+        check=True,
+        capture_output=True,
+    ).stdout
+    if hashlib.sha256(data).hexdigest() != expected:
+        raise ValueError(f"{name} differs from the archive manifest")
+    return data
 
 
 def version_folder(output: Path) -> Path:
@@ -73,12 +91,15 @@ def build(output: Path) -> dict:
         ("preview", PREVIEW, "visual"),
     ):
         for name, title, media in items:
-            source = public / name
             target = folder / directory / PurePosixPath(name).name
             target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(source, target)
+            if directory == "preview":
+                target.write_bytes(preview_bytes(name))
+            else:
+                shutil.copyfile(public / name, target)
             assets[target.name] = asset(target, folder, title, media, (role,))
-            sources.append({"path": f"public/{name}", "sha256": sha256(source)})
+            # Recorded as the repository path at publication (see PREVIEW_REVISION).
+            sources.append({"path": f"public/{name}", "sha256": sha256(target)})
 
     # GeoParquet from FEMA's archived GeoJSON, values unchanged, plus the usual ID columns.
     features = json.loads((public / "combined_nri_counties_borders.json").read_text())["features"]
@@ -95,6 +116,18 @@ def build(output: Path) -> dict:
     )
     if not frame["geoid"].is_unique:
         raise ValueError("Archived GeoJSON repeats county identifiers")
+    # The explorer's columnar JSON must carry FEMA's attributes unchanged.
+    display = json.loads((folder / "preview/counties.json").read_text())
+    by_id = {row["id"]: row["values"] for row in display["counties"]}
+    if len(by_id) != len(features):
+        raise ValueError("Explorer attributes and archived GeoJSON cover different counties")
+    for feature in features:
+        values = by_id[feature["properties"]["STCOFIPS"]]
+        for column, value in zip(display["columns"], values, strict=True):
+            if value != feature["properties"][column]:
+                raise ValueError(
+                    f"Explorer {column} differs for {feature['properties']['STCOFIPS']}"
+                )
     parquet = folder / "geoparquet" / "counties.parquet"
     parquet.parent.mkdir(parents=True)
     frame.to_parquet(parquet, index=False)

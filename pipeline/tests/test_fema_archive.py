@@ -1,4 +1,5 @@
 import json
+import subprocess
 
 import pytest
 
@@ -59,6 +60,10 @@ class FakeClient:
 
 @pytest.fixture(scope="module")
 def built(tmp_path_factory):
+    try:
+        fema_archive.preview_bytes("atlas/counties.json")
+    except subprocess.CalledProcessError:
+        pytest.skip("Shallow clone: the archive's explorer files are only in git history")
     output = tmp_path_factory.mktemp("archive") / "build"
     return output, fema_archive.build(output)
 

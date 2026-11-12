@@ -283,8 +283,11 @@ recomputed versions: `geoparquet/` (FEMA's values unchanged, with `geoid` and
 `preview/` (explorer PMTiles and JSON) and `metadata/`. Its collection is marked
 `fri:publication_status: archive` with FEMA as producer.
 
-The archive never changes, so the recurring workflows do not publish it. Someone with
-write access to the results bucket runs it once:
+The archive never changes, so the recurring workflows do not publish it. It was
+uploaded once on 2026-11-12; the explorer's PMTiles and JSON then left the repository,
+so `build` reads them from git history (`PREVIEW_REVISION`) and checks them against
+the release manifest. A rebuild reproduces the published files exactly. To repeat or
+verify it, someone with write access to the results bucket runs:
 
 ```bash
 cd pipeline

@@ -9,19 +9,27 @@
     "countyCount": 3218,
     "assets": {
       "counties.json": {
-        "path": "atlas/counties.json",
+        "path": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20241205T000000Z/preview/counties.json",
         "sha256": "09442ae7683f4a188887b1054d0ddb9d8e27faf45a43311f94e79d711cb97b20"
       },
       "counties.pmtiles": {
-        "path": "atlas/counties.pmtiles",
+        "path": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20241205T000000Z/preview/counties.pmtiles",
         "sha256": "ec6aef4c8cc9bf8a9f1ceb86174f781ae311fec0f8a449d9855ad47c71206117"
       }
     },
-    "sourceLayer": "counties"
+    "sourceLayer": "counties",
+    "resultsVersion": "v20241205T000000Z",
+    "sourceData": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20241205T000000Z/geoparquet/counties.parquet",
+    "sourceCatalog": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20241205T000000Z/collection.json",
+    "originals": {
+      "workbook": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20241205T000000Z/originals/NRI_Future_Risk_Master_Datasheet_12052024.xlsx",
+      "dictionary": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20241205T000000Z/originals/NRI_Data_Dictionary.xlsx",
+      "geojson": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20241205T000000Z/originals/combined_nri_counties_borders.json"
+    }
   },
   {
     "id": "fri-v120-20261111211638-counties",
-    "title": "NRI v1.20 · counties",
+    "title": "NRI v1.20 \u00b7 counties",
     "date": "2026-11-11",
     "baseline": "NRI v1.20",
     "status": "analysis",
@@ -364,7 +372,7 @@
   },
   {
     "id": "fri-v120-20261111211638-tracts",
-    "title": "NRI v1.20 · census tracts",
+    "title": "NRI v1.20 \u00b7 census tracts",
     "date": "2026-11-11",
     "baseline": "NRI v1.20",
     "status": "analysis",
