@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import { Archive, FlaskConical } from 'lucide-react';
 import { release, releases, selectionForRelease } from '../../data/releases';
+import { track } from '../../analytics/track';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 export default function VersionSelect() {
@@ -12,6 +13,7 @@ export default function VersionSelect() {
       url.searchParams.set('release', value);
       const selected = releases.find(item => item.id === value);
       if (selected && !selectionForRelease(url.searchParams.get('county') ?? '', release, selected)) url.searchParams.delete('county');
+      track('data_version_changed', {from: release.id, to: value}, {beforeNavigation: true});
       window.location.assign(url);
     }}>
       <SelectTrigger id={id} className="atlas-select-trigger"><SelectValue /></SelectTrigger>

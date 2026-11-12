@@ -32,6 +32,7 @@ import Legend from "./components/map/Legend";
 import ResultsTable from "./components/ResultsTable";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./components/ui/resizable";
 import { useMediaQuery } from "./hooks/use-media-query";
+import { track } from "./analytics/track";
 import { assetUrl, useCounties } from "./clients/api";
 import { release, areaLabel } from "./data/releases";
 import {
@@ -74,6 +75,11 @@ export default function App() {
     catch { return "primer"; }
   });
   useEffect(() => {
+    // Only the initial state counts as a first visit; the help button tracks itself.
+    if (dialog === "primer") track("welcome_guide_opened", { trigger: "first_visit" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
     if (dialog === "primer") {
       try { localStorage.setItem("fri-welcome-seen", "1"); }
       catch { /* Without storage the guide shows on each visit. */ }
@@ -90,7 +96,9 @@ export default function App() {
   const [rightOpen, setRightOpen] = useState(true);
   const layout = useDefaultLayout({ id: "atlas-panels", storage: layoutStorage, onlySaveAfterUserInteractions: true });
   const togglePanel = (panel: typeof leftPanel) => {
-    if (panel.current?.isCollapsed()) panel.current.expand();
+    const opening = !!panel.current?.isCollapsed();
+    track("panel_toggled", { panel: panel === leftPanel ? "map_settings" : "area_profile", open: opening });
+    if (opening) panel.current?.expand();
     else panel.current?.collapse();
   };
   const revealProfile = () => {
@@ -120,14 +128,30 @@ export default function App() {
     const timer = window.setTimeout(() => setCopied(""), 4000);
     return () => window.clearTimeout(timer);
   }, [copied]);
+  const changeSettings = (change: Partial<ViewState>) => {
+    for (const [setting, value] of Object.entries(change)) track("map_setting_changed", { setting, value });
+    update(change);
+  };
+  const changeLayers = (change: Partial<ViewState>) => {
+    // The opacity slider fires continuously; only discrete layer choices are worth an event.
+    if ("terrain" in change) track("map_layer_changed", { setting: "terrain", value: change.terrain });
+    update(change);
+  };
+  const switchSection = (next: "map" | "table") => {
+    if (next !== section) track("result_view_changed", { view: next });
+    setSection(next);
+  };
   const locate = (place: PlaceResult, areaId?: string) => {
+    track("location_searched", { result_kind: place.kind, result_source: place.source, matched_area: !!areaId });
+    if (areaId) track("area_selected", { area_id: areaId, source: "search" });
     update({ county: areaId ?? "" });
     setSearchFocus(place);
     setSection("map");
     if (areaId) revealProfile();
     else setExpanded(false);
   };
-  const selectCounty = (id: string) => {
+  const selectCounty = (id: string, source: "map" | "table") => {
+    track("area_selected", { area_id: id, source });
     setSearchFocus(null);
     update({ county: id });
     revealProfile();
@@ -135,8 +159,10 @@ export default function App() {
   const share = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
+      track("share_link_copied", { success: true });
       setCopied("Link copied");
     } catch {
+      track("share_link_copied", { success: false });
       setCopied("Copy the address in your browser to share this view.");
     }
   };
@@ -148,7 +174,7 @@ export default function App() {
       aria-label="Exploration controls"
     >
       <CountySearch counties={counties ?? []} onLocate={locate} />
-      <Controls view={view} onChange={update} />
+      <Controls view={view} onChange={changeSettings} />
     </aside>
   );
   const mapPanel: ReactNode = (
@@ -179,14 +205,14 @@ export default function App() {
           <button
             aria-label="Map view"
             aria-pressed={section === "map"}
-            onClick={() => setSection("map")}
+            onClick={() => switchSection("map")}
           >
             <MapIcon size={17} />
           </button>
           <button
             aria-label="Table view"
             aria-pressed={section === "table"}
-            onClick={() => setSection("table")}
+            onClick={() => switchSection("table")}
           >
             <Table2 size={17} />
           </button>
@@ -227,17 +253,18 @@ export default function App() {
               searchFocus={searchFocus}
               counties={counties ?? []}
               view={view}
-              onSelect={selectCounty}
+              onSelect={(id) => selectCounty(id, "map")}
               onMove={(camera) =>
                 setView((previous) => ({ ...previous, camera }))
               }
               resetKey={resetKey}
-              onLayerChange={update}
+              onLayerChange={changeLayers}
             />
           </Suspense>
           <button
             className="extent-button"
             onClick={() => {
+              track("map_reset");
               setSearchFocus(null);
               update({ county: "" });
               setResetKey((n) => n + 1);
@@ -253,7 +280,7 @@ export default function App() {
           counties={counties}
           view={view}
           isLoading={isLoading}
-          onSelect={selectCounty}
+          onSelect={(id) => selectCounty(id, "table")}
         />
       )}
     </section>
@@ -303,7 +330,7 @@ export default function App() {
           </span>
         </a>
         <nav aria-label="Main navigation">
-          <button className="icon-button" onClick={() => setDialog("primer")} aria-label="How to use the map" title="How to use the map"><CircleHelp size={18} /></button>
+          <button className="icon-button" onClick={() => { track("welcome_guide_opened", { trigger: "help_button" }); setDialog("primer"); }} aria-label="How to use the map" title="How to use the map"><CircleHelp size={18} /></button>
           <a className="github-link" href="https://github.com/fulton-ring/nri-future-risk" target="_blank" rel="noopener noreferrer"><Github size={17} aria-hidden="true" /> GitHub</a>
           <button
             className="share-button"
@@ -387,7 +414,7 @@ export default function App() {
           </DialogHeader>
           {dialog === "settings" ? (
             <>
-              <Controls view={view} onChange={update} />
+              <Controls view={view} onChange={changeSettings} />
               <button
                 className="primary-button"
                 onClick={() => setDialog(null)}

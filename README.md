@@ -69,6 +69,27 @@ with Mapzen/USGS terrain shading. Map layers controls adjust county opacity and
 terrain visibility, which are retained in shared URLs; the county overlay
 and data table remain independent of that provider.
 
+## Analytics
+
+Umami and PEDP's PostHog project both run on the site. PostHog autocaptures
+pageviews and clicks; `src/analytics/track.ts` adds these named events, each
+with the selected `release`:
+
+| Event | Properties |
+| --- | --- |
+| `map_setting_changed` | `setting` (hazard, metric, period, emissions, model), `value` |
+| `map_layer_changed` | `setting` (terrain), `value` |
+| `data_version_changed` | `from`, `to` |
+| `area_selected` | `area_id` (FIPS/GEOID), `source` (map, table, search) |
+| `location_searched` | `result_kind`, `result_source`, `matched_area` — never the search text |
+| `result_view_changed` | `view` (map, table) |
+| `share_link_copied` | `success` |
+| `area_data_downloaded` | `area_id` |
+| `welcome_guide_opened` | `trigger` (first_visit, help_button) |
+| `panel_toggled` | `panel` (map_settings, area_profile), `open` |
+| `legend_toggled` | `open` |
+| `map_reset` | — |
+
 ## Verification
 
 ```bash
