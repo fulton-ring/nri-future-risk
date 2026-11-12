@@ -24,11 +24,11 @@ import VersionSelect from "./components/filters/VersionSelect";
 import CountySearch from "./components/counties/CountySearch";
 import CountyPanel from "./components/counties/CountyPanel";
 import Legend from "./components/map/Legend";
+import ResultsTable from "./components/ResultsTable";
 import { assetUrl, useCounties } from "./clients/api";
-import { release, areaLabel, areasLabel } from "./data/releases";
+import { release, areaLabel } from "./data/releases";
 import {
   areaName,
-  colorFor,
   describeValue,
   hazards,
   metrics,
@@ -58,8 +58,6 @@ export default function App() {
   const [copied, setCopied] = useState("");
   const [searchFocus, setSearchFocus] = useState<PlaceResult | null>(null);
   const [resetKey, setResetKey] = useState(0);
-  const [tableQuery, setTableQuery] = useState("");
-  const [tablePage, setTablePage] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const [requestedRelease] = useState(() =>
     new URLSearchParams(window.location.search).get("release"),
@@ -80,11 +78,6 @@ export default function App() {
     );
   }, [view]);
   useEffect(() => {
-    const restore = () => setView(readState(window.location.search));
-    window.addEventListener("popstate", restore);
-    return () => window.removeEventListener("popstate", restore);
-  }, []);
-  useEffect(() => {
     if (!copied) return;
     const timer = window.setTimeout(() => setCopied(""), 4000);
     return () => window.clearTimeout(timer);
@@ -100,13 +93,6 @@ export default function App() {
     update({ county: id });
     setExpanded(true);
   };
-  const filtered =
-    counties?.filter((c) =>
-      `${areaName(c)} ${c.id}`
-        .toLowerCase()
-        .includes(tableQuery.toLowerCase()),
-    ) ?? [];
-  const page = Math.min(tablePage, Math.max(0, Math.ceil(filtered.length / 100) - 1));
   const share = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -261,65 +247,12 @@ export default function App() {
               <Legend view={view} county={county} />
             </div>
           ) : (
-            <div className="results-table">
-              <label htmlFor="table-search">Filter {areasLabel}</label>
-              <input
-                id="table-search"
-                type="search"
-                value={tableQuery}
-                onChange={(e) => { setTableQuery(e.target.value); setTablePage(0); }}
-                placeholder={`${areaLabel}, state abbreviation or FIPS`}
-              />
-              <p className="caption" role="status">
-                {filtered.length.toLocaleString()} {areasLabel}
-              </p>
-              {filtered.length > 100 && <nav aria-label="Result pages">
-                <button disabled={page === 0} onClick={() => setTablePage(page - 1)}>Previous</button>
-                <span> Page {page + 1} of {Math.ceil(filtered.length / 100).toLocaleString()} </span>
-                <button disabled={(page + 1) * 100 >= filtered.length} onClick={() => setTablePage(page + 1)}>Next</button>
-              </nav>}
-              <div className="table-scroll">
-                <table>
-                  <caption className="sr-only">
-                    {hazards[view.hazard]}, {metrics[view.metric].toLowerCase()}, {periodLabel(view.period).toLowerCase()}, {view.emissions} emissions
-                  </caption>
-                  <thead>
-                    <tr>
-                      <th scope="col">{areaLabel === "county" ? "County" : "Census tract"}</th>
-                      <th scope="col">State</th>
-                      <th scope="col">{metrics[view.metric]}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.slice(page * 100, (page + 1) * 100).map((c) => {
-                      const value = metricValue(c.values, view);
-                      return (
-                        <tr key={c.id} aria-selected={c.id === view.county}>
-                          <th scope="row">
-                            <button onClick={() => selectCounty(c.id)}>
-                              {c.name.replace(/\s*·\s*/g, ", ")}
-                            </button>
-                          </th>
-                          <td>{c.state}</td>
-                          <td>
-                            <span
-                              className="table-dot"
-                              style={{
-                                background: colorFor(value, view.metric),
-                              }}
-                            />
-                            {describeValue(value, view.metric)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                {!filtered.length && !isLoading && (
-                  <p>No matching {areasLabel}.</p>
-                )}
-              </div>
-            </div>
+            <ResultsTable
+              counties={counties}
+              view={view}
+              isLoading={isLoading}
+              onSelect={selectCounty}
+            />
           )}
         </section>
         <aside

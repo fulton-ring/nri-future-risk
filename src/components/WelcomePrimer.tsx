@@ -30,7 +30,7 @@ export default function WelcomePrimer() {
       <p>
         <strong>Annual loss rating</strong> shows a {areaLabel}’s projected average
         yearly economic losses as a dollar range and a comparative rating.
-        Why the unusual ranges? FEMA used a clustering algorithm to group
+        Why the unusual ranges? FEMA used a clustering algorithm to group{" "}
         {areasLabel} into risk tiers in the National Risk Index. The Future Risk
         Index uses those same bins so you can compare baseline and future losses.
         The ranges are category thresholds, not uncertainty intervals.
@@ -39,7 +39,7 @@ export default function WelcomePrimer() {
         <strong>Risk rating</strong> also includes social vulnerability and
         community resilience, which adjust projected economic losses up or down.
         It is presented as a comparative rating rather than a dollar amount
-        because future social conditions are unpredictable. A rating compares
+        because future social conditions are unpredictable. A rating compares{" "}
         {areasLabel}; it is not the probability of an event.
       </p>
       <p>

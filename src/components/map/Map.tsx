@@ -100,7 +100,7 @@ export default function RiskMap({
     map.addControl(
       new maplibregl.AttributionControl({
         compact: true,
-        customAttribution: `${areaLabel === "county" ? "County" : "Census tract"} data: FEMA; boundaries: US Census Bureau`,
+        customAttribution: `${areaLabel === "county" ? "County" : "Census tract"} data: ${release.status === "analysis" ? `recomputed from FEMA ${release.baseline}` : "FEMA"}; boundaries: US Census Bureau`,
       }),
       "bottom-right",
     );
