@@ -91,6 +91,22 @@ ratios against every published supported heat multiplier: 24,872 county and
 same result GeoParquet, weights, IDs and climate snapshot. The preview exposes
 these details without changing scientific output values.
 
+## Florida Keys heat coverage
+
+The 20 unsupported heat tracts lie in Monroe County's Middle/Lower Keys and an
+offshore tract. Upper Keys tracts near Key Largo and mainland Monroe have valid
+inputs and computed heat projections. Every unsupported tract has zero valid
+weighted support in the prepared LOCA2 snapshot across all periods/scenarios.
+
+Read-only checks of the archived original historical NetCDF confirm its declared
+`missing_value = 1e30` at sample grid cells near Marathon and Key West, while
+cells near Key Largo and mainland Monroe contain valid temperatures. The Keys
+are inside the file's latitude/longitude extent; the bounding box alone does not
+imply valid island data. These samples corroborate the full-snapshot coverage
+checks and do not claim that all LOCA2 products/models have the same mask.
+See `evidence/2026-11-11-heat-tract-coverage.json` for coordinates, source hash,
+sampled dates and exact values. No mainland values have been substituted.
+
 ## Reproduction and review
 
 `python -m fri_pipeline.current_cloud` renders/submits a bounded Cloud Batch job.
