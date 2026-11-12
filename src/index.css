@@ -1547,3 +1547,7 @@ td small { display: block; margin-top: 4px; color: var(--muted-foreground); font
 .panel-toggle:hover { color: var(--foreground); }
 /* The map toolbar already names the hazard and scenario on desktop. */
 @media (min-width: 901px) { .county-panel .result-context { display: none; } }
+
+.primer-example { margin: 20px 0 28px; }
+.primer-example img { display: block; width: 100%; height: auto; border: 1px solid var(--border); }
+.primer-example figcaption { margin-top: 6px; font-size: 11px; color: var(--muted-foreground); }
