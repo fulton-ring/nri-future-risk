@@ -35,6 +35,7 @@ and [run verification](evidence/2026-11-09-mme50-results.json).
 
 The October available-year MME75/P95 analysis remains available as a historical, non-publishable
 version. Its 19 missing-year exception cannot be used with the v2 full-year MME50 contract.
+NASA now lists those 19 files, so the exception records the October catalog, not current gaps.
 Public results do not automatically stage or activate a production release.
 
 ## Verify locally

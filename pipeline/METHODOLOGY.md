@@ -111,7 +111,9 @@ county means normalize over supported area rather than filling missing cells wit
 The merged supported multipliers must all be finite and at least one.
 
 The separate October 2026 analysis explicitly omits the 19 annual wildfire files absent from
-NASA's catalog, as pinned in [available-fwi-years.json](reference/available-fwi-years.json).
+NASA's catalog on October 25, 2026, as pinned in
+[available-fwi-years.json](reference/available-fwi-years.json). NASA has since published them:
+on November 12, 2026 the catalog listed all 150 required MME50 and MME75 files.
 It equally weights the available years in each original period, without interpolation or
 substitution. Historical FWI uses 26 years; SSP2-4.5 uses 25 per future period; SSP5-8.5 uses
 28 mid-century and 27 late-century years. Unequal coverage can introduce sampling bias that
