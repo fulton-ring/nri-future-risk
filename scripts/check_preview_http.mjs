@@ -110,6 +110,10 @@ for (const release of JSON.parse(await readFile('src/data/current-releases.json'
   if(release.geography==='counties') assert.deepEqual(ct.map(row=>row.id).sort(),['09110','09120','09130','09140','09150','09160','09170','09180','09190']);
   else {
     assert.equal(ct.length,879);
+    for(const hazard of ['DRGT','WFIR','EXHT']) {
+      const baseline=await jsonAsset(release.fieldAssets[`${hazard}_EALR`]);
+      assert.equal(baseline.length,index.counties.length,'Baseline loss statuses must align with the tract index');
+    }
     const column=await jsonAsset(release.fieldAssets.DRGT_MID_LOWER_PALR);
     assert.equal(column.length,index.counties.length);
     const prefix='09110';
