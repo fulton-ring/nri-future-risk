@@ -1030,12 +1030,6 @@ th small {
     margin: 0;
     padding: 9px 12px;
   }
-  .site-header .github-link {
-    padding: 10px;
-  }
-  .site-header .github-link span {
-    display: none;
-  }
   .release-strip {
     padding: 5px 16px;
     font-size: 10px;
@@ -1430,6 +1424,33 @@ th small {
   padding: 10px 13px;
   font-size: 13px;
   text-decoration: none;
+}
+.header-menu {
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  min-width: 220px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--card);
+  color: var(--foreground);
+}
+.header-menu a,
+.header-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  background: transparent;
+}
+.header-menu a:hover,
+.header-menu button:hover {
+  background: var(--muted);
 }
 .site-header .github-link:hover { text-decoration: underline; text-underline-offset: 4px; }
 .release-banner { flex-wrap: wrap; }
