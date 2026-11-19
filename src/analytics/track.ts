@@ -9,6 +9,7 @@ export type AnalyticsEvent =
   | 'location_searched'
   | 'result_view_changed'
   | 'share_link_copied'
+  | 'risk_report_link_clicked'
   | 'area_data_downloaded'
   | 'welcome_guide_opened'
   | 'panel_toggled'
