@@ -7,6 +7,7 @@ import {
   ChevronDown,
   Map as MapIcon,
   Maximize2,
+  Menu,
   PanelLeftClose,
   PanelLeftOpen,
   PanelRightClose,
@@ -15,7 +16,9 @@ import {
   Share2,
   SlidersHorizontal,
   Table2,
+  X,
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "./components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +53,7 @@ import {
   type ViewState,
 } from "./lib/risk";
 const RiskMap = lazy(() => import("./components/map/Map"));
+const GITHUB_URL = "https://github.com/fulton-ring/nri-future-risk";
 const RISK_REPORT_URL = import.meta.env.VITE_RISK_REPORT_URL || "https://fulton-ring-risk-report.jeremy-herzog.workers.dev/";
 
 // Layout sizes are a per-viewer convenience; never let blocked storage break the page.
@@ -88,6 +92,7 @@ export default function App() {
     }
   }, [dialog]);
   const [copied, setCopied] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
   const [searchFocus, setSearchFocus] = useState<PlaceResult | null>(null);
   const [resetKey, setResetKey] = useState(0);
   const [expanded, setExpanded] = useState(false);
@@ -157,6 +162,10 @@ export default function App() {
     setSearchFocus(null);
     update({ county: id });
     revealProfile();
+  };
+  const openGuide = () => {
+    track("welcome_guide_opened", { trigger: "help_button" });
+    setDialog("primer");
   };
   const share = async () => {
     try {
@@ -332,11 +341,31 @@ export default function App() {
           </span>
         </a>
         <nav aria-label="Main navigation">
-          <button className="icon-button" onClick={() => { track("welcome_guide_opened", { trigger: "help_button" }); setDialog("primer"); }} aria-label="How to use the map" title="How to use the map"><CircleHelp size={18} /></button>
-          <a className="github-link" href="https://github.com/fulton-ring/nri-future-risk" target="_blank" rel="noopener noreferrer"><Github size={17} aria-hidden="true" /> <span>GitHub</span></a>
-          <button className="icon-button" onClick={share} aria-label="Share view" title="Share view">
-            {copied === "Link copied" ? <Check size={18} /> : <Share2 size={18} />}
-          </button>
+          {desktop ? (
+            <>
+              <button className="icon-button" onClick={openGuide} aria-label="How to use the map" title="How to use the map"><CircleHelp size={18} /></button>
+              <a className="github-link" href={GITHUB_URL} target="_blank" rel="noopener noreferrer"><Github size={17} aria-hidden="true" /> GitHub</a>
+              <button className="icon-button" onClick={share} aria-label="Share view" title="Share view">
+                {copied === "Link copied" ? <Check size={18} /> : <Share2 size={18} />}
+              </button>
+            </>
+          ) : (
+            <Popover open={menuOpen} onOpenChange={setMenuOpen}>
+              <PopoverTrigger asChild>
+                <button className="icon-button" aria-label="Menu" title="Menu">
+                  {menuOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="header-menu">
+                <button onClick={() => { setMenuOpen(false); openGuide(); }}><CircleHelp size={17} aria-hidden="true" /> How to use the map</button>
+                <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer"><Github size={17} aria-hidden="true" /> View source on GitHub</a>
+                <button onClick={share}>
+                  {copied === "Link copied" ? <Check size={17} aria-hidden="true" /> : <Share2 size={17} aria-hidden="true" />}
+                  {copied === "Link copied" ? "Link copied" : "Share this view"}
+                </button>
+              </PopoverContent>
+            </Popover>
+          )}
           <a
             className="report-link"
             href={RISK_REPORT_URL}
