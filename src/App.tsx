@@ -167,6 +167,7 @@ export default function App() {
     track("welcome_guide_opened", { trigger: "help_button" });
     setDialog("primer");
   };
+  const trackReportClick = () => track("risk_report_link_clicked", {}, { beforeNavigation: true });
   const share = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -348,6 +349,10 @@ export default function App() {
               <button className="icon-button" onClick={share} aria-label="Share view" title="Share view">
                 {copied === "Link copied" ? <Check size={18} /> : <Share2 size={18} />}
               </button>
+              <a className="report-link" href={RISK_REPORT_URL} onClick={trackReportClick}>
+                <FileText size={16} aria-hidden="true" />
+                <span>Get my risk report</span>
+              </a>
             </>
           ) : (
             <Popover open={menuOpen} onOpenChange={setMenuOpen}>
@@ -363,17 +368,12 @@ export default function App() {
                   {copied === "Link copied" ? <Check size={17} aria-hidden="true" /> : <Share2 size={17} aria-hidden="true" />}
                   {copied === "Link copied" ? "Link copied" : "Share this view"}
                 </button>
+                <a className="header-menu-report" href={RISK_REPORT_URL} onClick={trackReportClick}>
+                  <FileText size={17} aria-hidden="true" /> Get my risk report
+                </a>
               </PopoverContent>
             </Popover>
           )}
-          <a
-            className="report-link"
-            href={RISK_REPORT_URL}
-            onClick={() => track("risk_report_link_clicked", {}, { beforeNavigation: true })}
-          >
-            <FileText size={16} aria-hidden="true" />
-            <span>Get my risk report</span>
-          </a>
         </nav>
       </header>
       {requestedRelease && requestedRelease !== RELEASE && (
