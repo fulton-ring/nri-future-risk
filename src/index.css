@@ -1452,6 +1452,15 @@ th small {
 .header-menu button:hover {
   background: var(--muted);
 }
+.header-menu .header-menu-report {
+  margin-top: 6px;
+  background: var(--foreground);
+  color: var(--card);
+  font-weight: 600;
+}
+.header-menu .header-menu-report:hover {
+  background: #292925;
+}
 .site-header .github-link:hover { text-decoration: underline; text-underline-offset: 4px; }
 .release-banner { flex-wrap: wrap; }
 .version-links { display: flex; flex: none; gap: 16px; margin-left: auto; }
