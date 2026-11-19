@@ -11,6 +11,7 @@ import {
   PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
+  FileText,
   Share2,
   SlidersHorizontal,
   Table2,
@@ -49,6 +50,7 @@ import {
   type ViewState,
 } from "./lib/risk";
 const RiskMap = lazy(() => import("./components/map/Map"));
+const RISK_REPORT_URL = import.meta.env.VITE_RISK_REPORT_URL || "https://fulton-ring-risk-report.jeremy-herzog.workers.dev/";
 
 // Layout sizes are a per-viewer convenience; never let blocked storage break the page.
 const layoutStorage = {
@@ -331,19 +333,18 @@ export default function App() {
         </a>
         <nav aria-label="Main navigation">
           <button className="icon-button" onClick={() => { track("welcome_guide_opened", { trigger: "help_button" }); setDialog("primer"); }} aria-label="How to use the map" title="How to use the map"><CircleHelp size={18} /></button>
-          <a className="github-link" href="https://github.com/fulton-ring/nri-future-risk" target="_blank" rel="noopener noreferrer"><Github size={17} aria-hidden="true" /> GitHub</a>
-          <button
-            className="share-button"
-            aria-label="Share view"
-            onClick={share}
-          >
-            {copied === "Link copied" ? (
-              <Check size={16} />
-            ) : (
-              <Share2 size={16} />
-            )}
-            <span>Share view</span>
+          <a className="github-link" href="https://github.com/fulton-ring/nri-future-risk" target="_blank" rel="noopener noreferrer"><Github size={17} aria-hidden="true" /> <span>GitHub</span></a>
+          <button className="icon-button" onClick={share} aria-label="Share view" title="Share view">
+            {copied === "Link copied" ? <Check size={18} /> : <Share2 size={18} />}
           </button>
+          <a
+            className="report-link"
+            href={RISK_REPORT_URL}
+            onClick={() => track("risk_report_link_clicked", {}, { beforeNavigation: true })}
+          >
+            <FileText size={16} aria-hidden="true" />
+            <span>Get my risk report</span>
+          </a>
         </nav>
       </header>
       {requestedRelease && requestedRelease !== RELEASE && (

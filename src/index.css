@@ -192,16 +192,20 @@ summary {
   text-decoration: underline;
   text-underline-offset: 7px;
 }
-.site-header .share-button {
+.site-header .report-link {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
   background: var(--foreground);
   color: var(--card);
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
   padding: 10px 16px;
   margin-left: 14px;
 }
-.site-header .share-button:hover {
+.site-header .report-link:hover {
   background: #292925;
 }
 .release-strip {
@@ -1022,11 +1026,14 @@ th small {
   .site-header .release-nav {
     display: none;
   }
-  .site-header .share-button {
+  .site-header .report-link {
     margin: 0;
-    padding: 9px;
+    padding: 9px 12px;
   }
-  .site-header .share-button span {
+  .site-header .github-link {
+    padding: 10px;
+  }
+  .site-header .github-link span {
     display: none;
   }
   .release-strip {
@@ -1357,8 +1364,8 @@ th small {
   .site-header nav button {
     padding: 8px;
   }
-  .site-header .share-button {
-    padding: 9px;
+  .site-header .report-link {
+    padding: 9px 12px;
   }
 }
 
