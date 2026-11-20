@@ -90,6 +90,41 @@ label {
   display: block;
   margin-bottom: 9px;
 }
+.field-label-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 9px;
+}
+.field-label-row > label {
+  margin: 0;
+}
+.field-help {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  color: var(--muted-foreground);
+}
+.field-help:hover,
+.field-help[data-state="open"] {
+  color: var(--foreground);
+}
+.field-help-content {
+  display: grid;
+  gap: 8px;
+  width: min(300px, calc(100vw - 32px));
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+}
 select,
 input {
   width: 100%;
