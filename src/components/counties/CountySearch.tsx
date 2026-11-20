@@ -89,10 +89,11 @@ export default function CountySearch({
           : "",
       );
     } catch {
-      if (!controller.signal.aborted)
-        setMessage(
-          "Couldn’t locate the risk area. Try again or select the map.",
-        );
+      if (controller.signal.aborted) return;
+      // Census lookup failed (often a weak connection): go to the address; the map picks the area under it.
+      onLocate(place);
+      setQuery(place.label);
+      setOpen(false);
     } finally {
       if (!controller.signal.aborted) setBusy(false);
     }
@@ -137,7 +138,7 @@ export default function CountySearch({
             request.current?.abort();
             setBusy(false);
             setQuery(value);
-            setRemote([]);
+            if (value.trim().length < 3) setRemote([]);
             setMessage("");
             setOpen(true);
             setActive(-1);
