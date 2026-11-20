@@ -226,7 +226,7 @@ def upload(output: Path, results_uri: str, client=None) -> dict:
     from google.cloud import storage
 
     from .current_publish import merge_catalog
-    from .storage import split_prefix
+    from .storage import split_prefix, upload_gzip_json
 
     output = Path(output).resolve()
     folder = version_folder(output)
@@ -250,7 +250,10 @@ def upload(output: Path, results_uri: str, client=None) -> dict:
             continue
         blob = bucket.blob(key)
         blob.metadata = {"sha256": digest}
-        blob.upload_from_filename(str(path), if_generation_match=0)
+        if path.suffix == ".json":
+            upload_gzip_json(blob, path.read_bytes(), if_generation_match=0)
+        else:
+            blob.upload_from_filename(str(path), if_generation_match=0)
         created += 1
     # Merge catalogs deepest first, only after every version file is present.
     for path in sorted((p for p in files if p.name == "catalog.json"), key=lambda p: -len(p.parts)):

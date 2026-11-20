@@ -1,5 +1,6 @@
 """Bounded GCS transfers. Outputs are create-only; compute cannot promote releases."""
 
+import gzip
 import json
 import re
 from pathlib import Path
@@ -31,6 +32,14 @@ def download(uri: str, target: Path, expected_sha: str | None = None) -> None:
     blob.download_to_filename(str(target), if_generation_match=blob.generation, timeout=600)
     if expected_sha and sha256(target) != expected_sha:
         raise ValueError(f"Downloaded object hash mismatch: {uri}")
+
+
+def upload_gzip_json(blob, data: bytes, **kwargs) -> None:
+    """Store JSON gzip-encoded; browsers decode it back to the same bytes."""
+    blob.content_encoding = "gzip"
+    blob.upload_from_string(
+        gzip.compress(data, compresslevel=9, mtime=0), content_type="application/json", **kwargs
+    )
 
 
 def upload(path: Path, uri: str) -> None:

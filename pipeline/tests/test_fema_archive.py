@@ -1,3 +1,4 @@
+import gzip
 import json
 import subprocess
 
@@ -10,7 +11,7 @@ from fri_pipeline import fema_archive  # noqa: E402
 
 class FakeBlob:
     def __init__(self, store, key):
-        self.store, self.key, self.metadata = store, key, None
+        self.store, self.key, self.metadata, self.content_encoding = store, key, None, None
 
     @property
     def generation(self):
@@ -21,13 +22,18 @@ class FakeBlob:
         if (current["generation"] if current else 0) != if_generation_match:
             raise AssertionError(f"precondition failed for {self.key}")
         generation = (current["generation"] if current else 0) + 1
-        self.store[self.key] = {"data": data, "metadata": self.metadata, "generation": generation}
+        self.store[self.key] = {
+            "data": data,
+            "metadata": self.metadata,
+            "encoding": self.content_encoding,
+            "generation": generation,
+        }
 
     def upload_from_filename(self, path, if_generation_match):
         self._write(open(path, "rb").read(), if_generation_match)
 
     def upload_from_string(self, body, content_type, if_generation_match):
-        self._write(body.encode(), if_generation_match)
+        self._write(body if isinstance(body, bytes) else body.encode(), if_generation_match)
 
     def download_as_bytes(self, if_generation_match):
         assert self.generation == if_generation_match
@@ -137,3 +143,7 @@ def test_upload_is_create_only_and_rerunnable(built):
     catalog = json.loads(client.bucket_.store[key]["data"])
     hrefs = {link["href"] for link in catalog["links"] if link["rel"] == "child"}
     assert "v20261111T211638Z/collection.json" in hrefs
+    index = next(k for k in client.bucket_.store if k.endswith("/preview/counties.json"))
+    stored = client.bucket_.store[index]
+    assert stored["encoding"] == "gzip"
+    assert gzip.decompress(stored["data"]) == (output / index).read_bytes()
