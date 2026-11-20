@@ -5,6 +5,7 @@ import {
   parseCensusAddresses,
   parseCensusArea,
   parsePhotonResults,
+  searchPlaces,
 } from "../src/clients/geocoding";
 
 const feature = (
@@ -312,4 +313,19 @@ test("address fallback failure preserves useful Photon results and JSONP request
       Object.defineProperty(globalThis, "document", previousDocument);
     else Reflect.deleteProperty(globalThis, "document");
   }
+});
+
+test("place search retries one dropped request and answers repeat queries from cache", async (t) => {
+  let calls = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    calls += 1;
+    if (calls === 1) throw new TypeError("network dropped");
+    return new Response(JSON.stringify({ features: [feature({ name: "Retry City" })] }));
+  });
+  const first = await searchPlaces("Retry City");
+  assert.equal(calls, 2);
+  assert.deepEqual(first.map((place) => place.label), ["Retry City"]);
+  const again = await searchPlaces("  retry city ");
+  assert.equal(calls, 2);
+  assert.deepEqual(again, first);
 });

@@ -270,6 +270,11 @@ export default function App() {
               counties={counties ?? []}
               view={view}
               onSelect={(id) => selectCounty(id, "map")}
+              onSearchArea={(id) => {
+                track("area_selected", { area_id: id, source: "search_map" });
+                update({ county: id });
+                revealProfile();
+              }}
               onMove={(camera) =>
                 setView((previous) => ({ ...previous, camera }))
               }

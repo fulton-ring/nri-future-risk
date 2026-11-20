@@ -240,6 +240,26 @@ function censusRequest(
   });
 }
 
+async function photonRequest(query: string, signal?: AbortSignal): Promise<PlaceResult[]> {
+  const controller = new AbortController();
+  const onAbort = () => controller.abort();
+  signal?.addEventListener("abort", onAbort, { once: true });
+  const timer = setTimeout(() => controller.abort(), 10000);
+  try {
+    const url = new URL("https://photon.komoot.io/api/");
+    url.search = new URLSearchParams({ q: query, limit: "8", lang: "en" }).toString();
+    const response = await fetch(url, { signal: controller.signal, referrerPolicy: "no-referrer" });
+    if (!response.ok) throw new Error("Location service unavailable");
+    return parsePhotonResults(await response.json());
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", onAbort);
+  }
+}
+
+// Repeat queries (backspacing, retyping) are answered without the network.
+const searchCache = new Map<string, PlaceResult[]>();
+
 export async function searchPlaces(
   query: string,
   signal?: AbortSignal,
@@ -247,31 +267,21 @@ export async function searchPlaces(
   checkAbort(signal);
   const trimmed = query.trim();
   if (trimmed.length < 3) return [];
-  const controller = new AbortController();
-  const onAbort = () => controller.abort();
-  signal?.addEventListener("abort", onAbort, { once: true });
-  const timer = setTimeout(() => controller.abort(), 10000);
+  const key = trimmed.toLowerCase();
+  const cached = searchCache.get(key);
+  if (cached) return cached;
   let results: PlaceResult[] = [],
     photonFailed = false;
-  try {
-    const url = new URL("https://photon.komoot.io/api/");
-    url.search = new URLSearchParams({
-      q: trimmed,
-      limit: "8",
-      lang: "en",
-    }).toString();
-    const response = await fetch(url, {
-      signal: controller.signal,
-      referrerPolicy: "no-referrer",
-    });
-    if (!response.ok) throw new Error("Location service unavailable");
-    results = parsePhotonResults(await response.json());
-  } catch {
-    checkAbort(signal);
-    photonFailed = true;
-  } finally {
-    clearTimeout(timer);
-    signal?.removeEventListener("abort", onAbort);
+  // One retry: on a weak connection the first request often drops.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      results = await photonRequest(trimmed, signal);
+      photonFailed = false;
+      break;
+    } catch {
+      checkAbort(signal);
+      photonFailed = true;
+    }
   }
   checkAbort(signal);
   // Ask Census only for a street-number query missing a precise Photon address.
@@ -301,6 +311,7 @@ export async function searchPlaces(
   checkAbort(signal);
   if (photonFailed && !results.length)
     throw new Error("Location search is unavailable. Please try again.");
+  if (!photonFailed) searchCache.set(key, results);
   // A city search should put cities ahead of similarly named businesses.
   if (!houseNumber)
     results.sort(

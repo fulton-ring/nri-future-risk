@@ -31,6 +31,7 @@ type Props = {
   counties: County[];
   view: ViewState;
   onSelect: (id: string) => void;
+  onSearchArea: (id: string) => void;
   onMove: (camera: NonNullable<ViewState["camera"]>) => void;
   resetKey: number;
   onLayerChange: (change: Partial<ViewState>) => void;
@@ -40,6 +41,7 @@ export default function RiskMap({
   counties,
   view,
   onSelect,
+  onSearchArea,
   onMove,
   resetKey,
   onLayerChange,
@@ -47,8 +49,8 @@ export default function RiskMap({
   const opacityId = useId();
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapInstance | null>(null);
-  const latest = useRef({ counties, view, onSelect, onMove });
-  latest.current = { counties, view, onSelect, onMove };
+  const latest = useRef({ counties, view, onSelect, onSearchArea, onMove });
+  latest.current = { counties, view, onSelect, onSearchArea, onMove };
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
@@ -360,7 +362,15 @@ export default function RiskMap({
     else map.flyTo({center:searchFocus.coordinates,zoom:searchFocus.kind==='address'?12:9,duration});
     if(searchFocus.kind!=='address') return;
     const marker=new maplibregl.Marker({color:'#252d27'}).setLngLat(searchFocus.coordinates).addTo(map);
-    return ()=>{marker.remove();};
+    // Without a Census match (offline, timed out), select the area drawn under the address.
+    const pickArea=()=>{
+      if (latest.current.view.county) return;
+      const feature=map.queryRenderedFeatures(map.project(searchFocus.coordinates),{layers:['county-fill']})[0];
+      const id=feature ? featureAreaId(feature.properties) : null;
+      if (id) latest.current.onSearchArea(id);
+    };
+    map.once('idle',pickArea);
+    return ()=>{marker.remove();map.off('idle',pickArea);};
   }, [ready, searchFocus]);
 
   useEffect(() => {
