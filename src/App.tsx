@@ -1,7 +1,9 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { useDefaultLayout, usePanelRef } from "react-resizable-panels";
 import {
+  BookOpen,
   CircleHelp,
+  Database,
   Github,
   Check,
   ChevronDown,
@@ -167,6 +169,8 @@ export default function App() {
     track("welcome_guide_opened", { trigger: "help_button" });
     setDialog("primer");
   };
+  const methodologyUrl = assetUrl(`versions/${release.id}/methodology.html`);
+  const dataUrl = assetUrl(`versions/${release.id}/data.html`);
   const trackReportClick = () => track("risk_report_link_clicked", {}, { beforeNavigation: true });
   const share = async () => {
     try {
@@ -363,6 +367,8 @@ export default function App() {
               </PopoverTrigger>
               <PopoverContent align="end" className="header-menu">
                 <button onClick={() => { setMenuOpen(false); openGuide(); }}><CircleHelp size={17} aria-hidden="true" /> How to use the map</button>
+                <a href={methodologyUrl}><BookOpen size={17} aria-hidden="true" /> Methodology</a>
+                <a href={dataUrl}><Database size={17} aria-hidden="true" /> Data</a>
                 <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer"><Github size={17} aria-hidden="true" /> View source on GitHub</a>
                 <button onClick={share}>
                   {copied === "Link copied" ? <Check size={17} aria-hidden="true" /> : <Share2 size={17} aria-hidden="true" />}
@@ -382,13 +388,15 @@ export default function App() {
           {release.title}.
         </div>
       )}
-      <section className="release-banner" aria-label="Data version">
-        <VersionSelect />
-        <nav className="version-links" aria-label="Selected version information">
-          <a href={assetUrl(`versions/${release.id}/methodology.html`)}>Methodology</a>
-          <a href={assetUrl(`versions/${release.id}/data.html`)}>Data</a>
-        </nav>
-      </section>
+      {desktop && (
+        <section className="release-banner" aria-label="Data version">
+          <VersionSelect />
+          <nav className="version-links" aria-label="Selected version information">
+            <a href={methodologyUrl}>Methodology</a>
+            <a href={dataUrl}>Data</a>
+          </nav>
+        </section>
+      )}
       <main className="atlas-layout">
         {desktop ? (
           <ResizablePanelGroup id="atlas-panels" orientation="horizontal" defaultLayout={layout.defaultLayout} onLayoutChanged={layout.onLayoutChanged}>
@@ -439,11 +447,12 @@ export default function App() {
               {dialog === "settings" ? "Map settings" : "Welcome to the Future Risk Index"}
             </DialogTitle>
             <DialogDescription>
-              {dialog === "settings" ? "Choose a hazard, measure and future." : "What the tool represents and how to interpret it."}
+              {dialog === "settings" ? "Choose a data version, hazard, measure and future." : "What the tool represents and how to interpret it."}
             </DialogDescription>
           </DialogHeader>
           {dialog === "settings" ? (
             <>
+              <VersionSelect />
               <Controls view={view} onChange={changeSettings} />
               <button
                 className="primary-button"
