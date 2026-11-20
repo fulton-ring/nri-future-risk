@@ -2,12 +2,19 @@ import { useId } from 'react';
 import { Archive, FlaskConical } from 'lucide-react';
 import { release, releases, selectionForRelease } from '../../data/releases';
 import { track } from '../../analytics/track';
+import FieldHelp from './FieldHelp';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 export default function VersionSelect() {
   const id = useId();
   return <div className="control-field version-field">
-    <label htmlFor={id}>Data version</label>
+    <div className="field-label-row">
+      <label htmlFor={id}>Data version</label>
+      <FieldHelp label="Data version">
+        <p><strong>FEMA archive (Dec 2024):</strong> FEMA’s original Future Risk Index, by county, before it was taken offline.</p>
+        <p><strong>NRI v1.20:</strong> our recalculation on FEMA’s newer National Risk Index baseline, for counties or census tracts. It updates wildfire, drought and extreme heat.</p>
+      </FieldHelp>
+    </div>
     <Select value={release.id} onValueChange={(value) => {
       const url = new URL(window.location.href);
       url.searchParams.set('release', value);

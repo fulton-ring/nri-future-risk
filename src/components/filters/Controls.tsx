@@ -21,6 +21,7 @@ const hazardIcons = {
 };
 const metricIcons = { loss: Banknote, multiplier: TrendingUp, risk: Shield };
 import { release } from "../../data/releases";
+import FieldHelp from "./FieldHelp";
 import {
   Select,
   SelectContent,
@@ -51,7 +52,14 @@ export default function Controls({
   return (
     <div className="controls">
       <div className="control-field">
-        <label htmlFor={`${id}-hazard`}>Hazard</label>
+        <div className="field-label-row">
+          <label htmlFor={`${id}-hazard`}>Hazard</label>
+          <FieldHelp label="Hazard">
+            The natural hazard to map. Each hazard is estimated separately from its own climate data,
+            and the map shows one at a time. NRI v1.20 releases recalculate wildfire, drought and
+            extreme heat only.
+          </FieldHelp>
+        </div>
         <Select
           value={view.hazard}
           onValueChange={(hazard) => onChange({ hazard: hazard as Hazard })}
@@ -76,7 +84,14 @@ export default function Controls({
         </Select>
       </div>
       <div className="control-field">
-        <label htmlFor={`${id}-metric`}>Map measure</label>
+        <div className="field-label-row">
+          <label htmlFor={`${id}-metric`}>Map measure</label>
+          <FieldHelp label="Map measure">
+            <p><strong>Annual loss rating:</strong> projected average yearly economic loss, grouped into FEMA’s five categories.</p>
+            <p><strong>Change in annual loss:</strong> future loss divided by today’s. 4× means four times the baseline; a large change on a small loss can still be a small dollar amount.</p>
+            <p><strong>Risk rating:</strong> loss adjusted for social vulnerability and community resilience. It compares places; it is not the chance of an event.</p>
+          </FieldHelp>
+        </div>
         <Select
           value={view.metric}
           onValueChange={(metric) => onChange({ metric: metric as Metric })}
@@ -111,7 +126,14 @@ export default function Controls({
         </p>
       </div>
       <fieldset>
-        <legend>Time period</legend>
+        <legend className="field-label-row">
+          Time period
+          <FieldHelp label="Time period">
+            Baseline is today’s estimate. Mid-century averages 2036–2065 and late-century
+            2070–2099. Population, buildings and adaptation are held at today’s levels, so the
+            change comes from climate alone.
+          </FieldHelp>
+        </legend>
         <div className="segmented">
           {(
             [
@@ -141,8 +163,13 @@ export default function Controls({
         </p>
       </fieldset>
       <fieldset disabled={view.period === "base"}>
-        <legend>
+        <legend className="field-label-row">
           {view.hazard === "CFLD" ? "Sea-level scenario" : "Emissions pathway"}
+          <FieldHelp label={view.hazard === "CFLD" ? "Sea-level scenario" : "Emissions pathway"}>
+            {view.hazard === "CFLD"
+              ? "Coastal flooding uses NOAA sea-level rise scenarios: intermediate or high sea-level rise."
+              : "How much greenhouse gas the world emits. Lower emissions (SSP2-4.5) assumes moderate cuts; higher emissions (SSP5-8.5) assumes emissions keep rising. Hurricanes use the older RCP 4.5 and 8.5 scenarios."}
+          </FieldHelp>
         </legend>
         <div className="segmented">
           <button
@@ -168,9 +195,14 @@ export default function Controls({
       {view.hazard === "EXHT" && (
         <details className="model-options">
           <summary>Heat model & threshold</summary>
-          <label htmlFor={`${id}-model`}>
-            Source and historical percentile
-          </label>
+          <div className="field-label-row">
+            <label htmlFor={`${id}-model`}>Source and historical percentile</label>
+            <FieldHelp label="Heat model and threshold">
+              Extreme heat counts days whose overnight low beats the hottest 5% (95th percentile)
+              or 1% (99th) of nights in the historical period. LOCA and NEX are two downscaled climate datasets.
+              The 99th percentile tracks rarer, more extreme heat.
+            </FieldHelp>
+          </div>
           <Select
             value={view.model}
             onValueChange={(model) => onChange({ model: model as Model })}
