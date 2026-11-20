@@ -1,0 +1,20 @@
+{
+  "job": "fri-explain-20261110203329",
+  "outputUri": "gs://future-risk-index-experiments/real/explanations/fri-explain-20261110203329/calculations.json",
+  "image": "us-central1-docker.pkg.dev/hifld-next/fri/preparation@sha256:55755f4ff451c9125686419821284b815e11b01ebc8c69425a8772a522ba9671",
+  "codeRevision": "6bae9aacb8de005d0784bcdbe64a3389b0a897cd",
+  "status": "SUCCEEDED",
+  "outputSha256": "b1b591c5ab9e54a9c240d876cd9be92463f07eb832df3be4a267d49fb5c2e019",
+  "snapshotSha256": "bf66f32383d48870d26646c47a68f6f4e9440ccdd96ec31ad4ed6a5935a94553",
+  "verifiedCountyScenarios": 24864,
+  "publishedScoresChanged": false,
+  "publishedMultipliersSha256": "88ad7920daf3dbf91a52253072c192498759eee4dd98ee4284890faecee4a3bf",
+  "nriCountyLink": {
+    "appUrl": "https://experience.arcgis.com/experience/b702d290fee84bdf93cc398172b37058",
+    "dataSourceId": "dataSource_12-a8b034164184436dbadb4c6d1b423d5b",
+    "selectionField": "NRI_ID",
+    "verifiedCounty": "C51683",
+    "observedSelectedFeatures": 1,
+    "retiredReportRedirect": "https://www.fema.gov/emergency-managers/practitioners/resilience-analysis-and-planning-tool"
+  }
+}

@@ -1,0 +1,655 @@
+{
+  "status": "verified-analysis",
+  "verifiedAt": "2026-10-25T16:21:02.290523+00:00",
+  "project": "hifld-next",
+  "region": "us-central1",
+  "job": "fri-analysis-20261025140637",
+  "jobUid": "fri-analysis-20261-48b88c92-4756-44a50",
+  "jobState": "SUCCEEDED",
+  "runDuration": "7662.194203615s",
+  "workerImage": "us-central1-docker.pkg.dev/hifld-next/fri/preparation@sha256:14c884711f4d7ead4dc8177550cdf57ca2aec79af9ae07a6e92d6f05b8744a4b",
+  "codeRevision": "f93e4a9a135f200b5d0c036e6fb08cdc2dbab555",
+  "resumeCheckpoint": "gs://hifld-next-fri-inputs/real/acquisitions/fri-analysis-20261025135329/checkpoint-wildfire.json",
+  "resumeSha256": "3750b5bf87c472a605943fecf02f0460671ceacc987620737bb3acb4b846aa41",
+  "result": {
+    "runId": "fri-analysis-20261025140637",
+    "snapshotUri": "gs://hifld-next-fri-inputs/real/snapshots/fri-analysis-20261025140637/snapshot.json",
+    "snapshotSha256": "6e083b1795215e66a0ba5c709b2b02d41523800ecefcfc3c8413901ea82eddf4",
+    "sourceCount": 618,
+    "methodology": "fema-2024-county-area-weighted-v1",
+    "analysisUri": "gs://hifld-next-fri-inputs/real/analyses/fri-analysis-20261025140637",
+    "analysisSha256": "19040e4f1c8a0f19c0d9fe112bac1e19744864ed471cac31f10405a287fc5be9",
+    "publishable": false
+  },
+  "updatedCounties": 3108,
+  "scoringPopulation": 3231,
+  "scoredColumns": 168,
+  "publishable": false,
+  "publicationPerformed": false,
+  "wildfireYearCoverage": [
+    {
+      "scenario": "historical",
+      "period": "historical",
+      "usedYears": 26,
+      "expectedYears": 30,
+      "years": [
+        1976,
+        1977,
+        1978,
+        1979,
+        1980,
+        1981,
+        1984,
+        1985,
+        1987,
+        1988,
+        1989,
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2003,
+        2004,
+        2005
+      ],
+      "omittedYears": [
+        1982,
+        1983,
+        1986,
+        2002
+      ]
+    },
+    {
+      "scenario": "ssp245",
+      "period": "MID",
+      "usedYears": 25,
+      "expectedYears": 30,
+      "years": [
+        2036,
+        2037,
+        2038,
+        2039,
+        2040,
+        2041,
+        2042,
+        2043,
+        2044,
+        2046,
+        2047,
+        2048,
+        2049,
+        2050,
+        2052,
+        2054,
+        2055,
+        2056,
+        2058,
+        2059,
+        2061,
+        2062,
+        2063,
+        2064,
+        2065
+      ],
+      "omittedYears": [
+        2045,
+        2051,
+        2053,
+        2057,
+        2060
+      ]
+    },
+    {
+      "scenario": "ssp245",
+      "period": "LATE",
+      "usedYears": 25,
+      "expectedYears": 30,
+      "years": [
+        2071,
+        2072,
+        2073,
+        2074,
+        2076,
+        2077,
+        2078,
+        2079,
+        2080,
+        2081,
+        2083,
+        2084,
+        2085,
+        2086,
+        2087,
+        2088,
+        2089,
+        2090,
+        2091,
+        2092,
+        2093,
+        2094,
+        2095,
+        2097,
+        2099
+      ],
+      "omittedYears": [
+        2070,
+        2075,
+        2082,
+        2096,
+        2098
+      ]
+    },
+    {
+      "scenario": "ssp585",
+      "period": "MID",
+      "usedYears": 28,
+      "expectedYears": 30,
+      "years": [
+        2036,
+        2037,
+        2038,
+        2039,
+        2040,
+        2041,
+        2042,
+        2043,
+        2044,
+        2045,
+        2046,
+        2047,
+        2048,
+        2049,
+        2051,
+        2052,
+        2053,
+        2054,
+        2055,
+        2056,
+        2057,
+        2058,
+        2059,
+        2061,
+        2062,
+        2063,
+        2064,
+        2065
+      ],
+      "omittedYears": [
+        2050,
+        2060
+      ]
+    },
+    {
+      "scenario": "ssp585",
+      "period": "LATE",
+      "usedYears": 27,
+      "expectedYears": 30,
+      "years": [
+        2071,
+        2072,
+        2073,
+        2074,
+        2075,
+        2076,
+        2077,
+        2078,
+        2079,
+        2080,
+        2082,
+        2083,
+        2084,
+        2085,
+        2086,
+        2087,
+        2088,
+        2089,
+        2090,
+        2091,
+        2092,
+        2093,
+        2094,
+        2095,
+        2096,
+        2097,
+        2099
+      ],
+      "omittedYears": [
+        2070,
+        2081,
+        2098
+      ]
+    }
+  ],
+  "wildfireElasticity": 1.5180275773076561,
+  "validation": {
+    "archiveComparisons": 310176,
+    "archiveMismatches": 0,
+    "releaseFloorViolations": 0,
+    "coverageDiagnostics": {
+      "nex-monthly": {
+        "weightedCells": 13737,
+        "structuralNoDataCells": 17,
+        "counties": 3108,
+        "minimumCountyCoverage": 0.9929580753583955,
+        "medianCountyCoverage": 1.0,
+        "countiesWithPartialCoverage": 15
+      },
+      "nex-fwi": {
+        "weightedCells": 13737,
+        "structuralNoDataCells": 17,
+        "counties": 3108,
+        "minimumCountyCoverage": 0.9929580753583955,
+        "medianCountyCoverage": 1.0,
+        "countiesWithPartialCoverage": 15
+      },
+      "loca2": {
+        "weightedCells": 220047,
+        "structuralNoDataCells": 4568,
+        "counties": 3108,
+        "minimumCountyCoverage": 0.5129791821749781,
+        "medianCountyCoverage": 1.0,
+        "countiesWithPartialCoverage": 287
+      }
+    },
+    "independentLocalChecks": {
+      "drought": {
+        "valuesCompared": 12432,
+        "maximumAbsoluteDifference": 3.552713678800501e-15
+      },
+      "wildfire": {
+        "valuesCompared": 12432,
+        "maximumAbsoluteDifference": 1.5987211554602254e-14
+      }
+    },
+    "artifactHashesVerified": true,
+    "noRemainingAnalysisVmsObserved": true
+  },
+  "multiplierSummary": [
+    {
+      "column": "DRGT_MID_LOWER_HM",
+      "minimum": 1.0,
+      "median": 1.5808046295551899,
+      "maximum": 5.808207412142025,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 2530,
+      "medianChangeFromArchive": 0.0,
+      "maximumAbsoluteChangeFromArchive": 0.3644017210348549
+    },
+    {
+      "column": "DRGT_LATE_LOWER_HM",
+      "minimum": 1.0,
+      "median": 2.044149697531129,
+      "maximum": 9.13581725290659,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 2866,
+      "medianChangeFromArchive": 0.0,
+      "maximumAbsoluteChangeFromArchive": 0.44522702493874355
+    },
+    {
+      "column": "DRGT_MID_HIGHER_HM",
+      "minimum": 1.0,
+      "median": 1.711144577935611,
+      "maximum": 7.41171935164078,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 2966,
+      "medianChangeFromArchive": 0.0,
+      "maximumAbsoluteChangeFromArchive": 0.4134155651028628
+    },
+    {
+      "column": "DRGT_LATE_HIGHER_HM",
+      "minimum": 1.5024265358446915,
+      "median": 5.143893926364204,
+      "maximum": 16.151398546112713,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 3104,
+      "medianChangeFromArchive": -0.007651652745427562,
+      "maximumAbsoluteChangeFromArchive": 0.8145613642411842
+    },
+    {
+      "column": "WFIR_MID_LOWER_HM",
+      "minimum": 1.0309251368332897,
+      "median": 1.4818215116348403,
+      "maximum": 2.270176277253858,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 3108,
+      "medianChangeFromArchive": 0.012655971375382546,
+      "maximumAbsoluteChangeFromArchive": 0.6720238280218183
+    },
+    {
+      "column": "WFIR_LATE_LOWER_HM",
+      "minimum": 1.0405053176511863,
+      "median": 1.738793490885838,
+      "maximum": 2.8027105851679064,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 3108,
+      "medianChangeFromArchive": 0.03785412945249711,
+      "maximumAbsoluteChangeFromArchive": 0.7537985218225307
+    },
+    {
+      "column": "WFIR_MID_HIGHER_HM",
+      "minimum": 1.0341373359572088,
+      "median": 1.6631247291292293,
+      "maximum": 2.7642326272722793,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 3108,
+      "medianChangeFromArchive": 0.035253597903353806,
+      "maximumAbsoluteChangeFromArchive": 0.8593590915300686
+    },
+    {
+      "column": "WFIR_LATE_HIGHER_HM",
+      "minimum": 1.075233222383888,
+      "median": 2.4567991751990137,
+      "maximum": 6.101422694240014,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 3108,
+      "medianChangeFromArchive": -0.09831522236710466,
+      "maximumAbsoluteChangeFromArchive": 2.4118305942400142
+    },
+    {
+      "column": "EXHT_L95_MID_LOWER_HM",
+      "minimum": 1.0,
+      "median": 1.0,
+      "maximum": 4.735958091339631,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 1081,
+      "medianChangeFromArchive": 0.0,
+      "maximumAbsoluteChangeFromArchive": 0.4772621255548688
+    },
+    {
+      "column": "EXHT_L95_LATE_LOWER_HM",
+      "minimum": 1.0,
+      "median": 1.0,
+      "maximum": 5.883489381812609,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 1357,
+      "medianChangeFromArchive": 0.0,
+      "maximumAbsoluteChangeFromArchive": 1.13180813191489
+    },
+    {
+      "column": "EXHT_L95_MID_HIGHER_HM",
+      "minimum": 1.0,
+      "median": 1.0,
+      "maximum": 5.623180817595839,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 1267,
+      "medianChangeFromArchive": 0.0,
+      "maximumAbsoluteChangeFromArchive": 1.008648050608099
+    },
+    {
+      "column": "EXHT_L95_LATE_HIGHER_HM",
+      "minimum": 1.0,
+      "median": 2.450311471927755,
+      "maximum": 8.49915744886264,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 2399,
+      "medianChangeFromArchive": 0.0,
+      "maximumAbsoluteChangeFromArchive": 3.5998825210263474
+    },
+    {
+      "column": "EXHT_L99_MID_LOWER_HM",
+      "minimum": 1.0,
+      "median": 2.690474792374051,
+      "maximum": 12.73115641463485,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 2230,
+      "medianChangeFromArchive": 0.0,
+      "maximumAbsoluteChangeFromArchive": 4.326988073280212
+    },
+    {
+      "column": "EXHT_L99_LATE_LOWER_HM",
+      "minimum": 1.0,
+      "median": 3.487492891048258,
+      "maximum": 19.142116597106302,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 2442,
+      "medianChangeFromArchive": 0.0,
+      "maximumAbsoluteChangeFromArchive": 7.163248238701893
+    },
+    {
+      "column": "EXHT_L99_MID_HIGHER_HM",
+      "minimum": 1.0,
+      "median": 3.4043544028122885,
+      "maximum": 18.62342079045873,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 2328,
+      "medianChangeFromArchive": 0.0,
+      "maximumAbsoluteChangeFromArchive": 6.603974400362466
+    },
+    {
+      "column": "EXHT_L99_LATE_HIGHER_HM",
+      "minimum": 1.0,
+      "median": 11.646056453379922,
+      "maximum": 35.99255398633763,
+      "belowReleaseFloor": 0,
+      "changedMultipliers": 2830,
+      "medianChangeFromArchive": -0.0012249022796890774,
+      "maximumAbsoluteChangeFromArchive": 19.707430974983506
+    }
+  ],
+  "changes": [
+    {
+      "variant": "DRGT",
+      "scenario": "MID_LOWER",
+      "changedMultipliers": 2530,
+      "changedLossRatings": 24,
+      "changedRiskRatings": 18,
+      "maxAbsoluteMultiplierChange": 0.3644017210348549,
+      "medianMultiplierChange": 0.0
+    },
+    {
+      "variant": "DRGT",
+      "scenario": "MID_HIGHER",
+      "changedMultipliers": 2966,
+      "changedLossRatings": 17,
+      "changedRiskRatings": 21,
+      "maxAbsoluteMultiplierChange": 0.4134155651028628,
+      "medianMultiplierChange": 0.0
+    },
+    {
+      "variant": "DRGT",
+      "scenario": "LATE_LOWER",
+      "changedMultipliers": 2866,
+      "changedLossRatings": 18,
+      "changedRiskRatings": 17,
+      "maxAbsoluteMultiplierChange": 0.44522702493874355,
+      "medianMultiplierChange": 0.0
+    },
+    {
+      "variant": "DRGT",
+      "scenario": "LATE_HIGHER",
+      "changedMultipliers": 3104,
+      "changedLossRatings": 9,
+      "changedRiskRatings": 19,
+      "maxAbsoluteMultiplierChange": 0.8145613642411842,
+      "medianMultiplierChange": -0.0020097979396682675
+    },
+    {
+      "variant": "WFIR",
+      "scenario": "MID_LOWER",
+      "changedMultipliers": 3108,
+      "changedLossRatings": 56,
+      "changedRiskRatings": 36,
+      "maxAbsoluteMultiplierChange": 0.6720238280218183,
+      "medianMultiplierChange": 0.00815088830616939
+    },
+    {
+      "variant": "WFIR",
+      "scenario": "MID_HIGHER",
+      "changedMultipliers": 3108,
+      "changedLossRatings": 72,
+      "changedRiskRatings": 50,
+      "maxAbsoluteMultiplierChange": 0.8593590915300686,
+      "medianMultiplierChange": 0.028479308552531224
+    },
+    {
+      "variant": "WFIR",
+      "scenario": "LATE_LOWER",
+      "changedMultipliers": 3108,
+      "changedLossRatings": 68,
+      "changedRiskRatings": 51,
+      "maxAbsoluteMultiplierChange": 0.7537985218225307,
+      "medianMultiplierChange": 0.031802020013984134
+    },
+    {
+      "variant": "WFIR",
+      "scenario": "LATE_HIGHER",
+      "changedMultipliers": 3108,
+      "changedLossRatings": 105,
+      "changedRiskRatings": 110,
+      "maxAbsoluteMultiplierChange": 2.4118305942400142,
+      "medianMultiplierChange": -0.08711274056011531
+    },
+    {
+      "variant": "EXHT_L95",
+      "scenario": "MID_LOWER",
+      "changedMultipliers": 1081,
+      "changedLossRatings": 6,
+      "changedRiskRatings": 3,
+      "maxAbsoluteMultiplierChange": 0.4772621255548688,
+      "medianMultiplierChange": 0.0
+    },
+    {
+      "variant": "EXHT_L95",
+      "scenario": "MID_HIGHER",
+      "changedMultipliers": 1267,
+      "changedLossRatings": 10,
+      "changedRiskRatings": 6,
+      "maxAbsoluteMultiplierChange": 1.008648050608099,
+      "medianMultiplierChange": 0.0
+    },
+    {
+      "variant": "EXHT_L95",
+      "scenario": "LATE_LOWER",
+      "changedMultipliers": 1357,
+      "changedLossRatings": 15,
+      "changedRiskRatings": 8,
+      "maxAbsoluteMultiplierChange": 1.13180813191489,
+      "medianMultiplierChange": 0.0
+    },
+    {
+      "variant": "EXHT_L95",
+      "scenario": "LATE_HIGHER",
+      "changedMultipliers": 2399,
+      "changedLossRatings": 14,
+      "changedRiskRatings": 14,
+      "maxAbsoluteMultiplierChange": 3.5998825210263474,
+      "medianMultiplierChange": 0.0
+    },
+    {
+      "variant": "EXHT_L99",
+      "scenario": "MID_LOWER",
+      "changedMultipliers": 2230,
+      "changedLossRatings": 13,
+      "changedRiskRatings": 18,
+      "maxAbsoluteMultiplierChange": 4.326988073280212,
+      "medianMultiplierChange": 0.0
+    },
+    {
+      "variant": "EXHT_L99",
+      "scenario": "MID_HIGHER",
+      "changedMultipliers": 2328,
+      "changedLossRatings": 15,
+      "changedRiskRatings": 13,
+      "maxAbsoluteMultiplierChange": 6.603974400362466,
+      "medianMultiplierChange": 0.0
+    },
+    {
+      "variant": "EXHT_L99",
+      "scenario": "LATE_LOWER",
+      "changedMultipliers": 2442,
+      "changedLossRatings": 16,
+      "changedRiskRatings": 15,
+      "maxAbsoluteMultiplierChange": 7.163248238701893,
+      "medianMultiplierChange": 0.0
+    },
+    {
+      "variant": "EXHT_L99",
+      "scenario": "LATE_HIGHER",
+      "changedMultipliers": 2830,
+      "changedLossRatings": 24,
+      "changedRiskRatings": 17,
+      "maxAbsoluteMultiplierChange": 19.707430974983506,
+      "medianMultiplierChange": 0.0
+    }
+  ],
+  "artifacts": {
+    "changes.json": {
+      "sha256": "897643ffcf0e79c7207c931fc048e01a718a71313b2cea861e8927fcf6ffc25e",
+      "bytes": 3232
+    },
+    "multipliers.csv": {
+      "sha256": "e87cec1094331a545def6bea4d7e727bc2e8a9d3a44f86e3adac399109f478dd",
+      "bytes": 789370
+    },
+    "provenance.json": {
+      "sha256": "88f262a3ae0f659ae66327e93038f2b99882ca05bfe40f88ae6a2f66adf2c193",
+      "bytes": 1036258
+    },
+    "report.md": {
+      "sha256": "d0219211870899e073d1919c48f24c493ef63418d8d76f155496f66a5cec85ac",
+      "bytes": 1898
+    },
+    "scores.csv": {
+      "sha256": "9152228e3b986783969d2a355695587523e44abb06c460ad88bbbdcc0231db09",
+      "bytes": 8336946
+    },
+    "validation.json": {
+      "sha256": "28567cef05a76160b5d16f99eb7aa8ee49bca5e032d625b71e0f7b44ea924ad8",
+      "bytes": 7202
+    }
+  },
+  "limitations": [
+    "Wildfire annual means use unequal available-year coverage; omission bias has not been quantified.",
+    "Baseline, non-CONUS multipliers and unsupported variants retain the frozen archive; scenario ranks use all 3231 baseline counties.",
+    "LOCA2 uses the reviewed 0.25-degree weighting boxes around 1/16-degree source centers. Structural masks are normalized over valid support; minimum valid LOCA2 weighting support is 51.3%.",
+    "Differences are relative to the December 2024 FEMA archive and reflect reconstruction with these inputs and year coverage."
+  ],
+  "analysisPolicy": {
+    "id": "available-fwi-years-v1",
+    "omittedYears": {
+      "historical": [
+        1982,
+        1983,
+        1986,
+        2002
+      ],
+      "ssp245": [
+        2045,
+        2051,
+        2053,
+        2057,
+        2060,
+        2070,
+        2075,
+        2082,
+        2096,
+        2098
+      ],
+      "ssp585": [
+        2050,
+        2060,
+        2070,
+        2081,
+        2098
+      ]
+    },
+    "catalog": {
+      "url": "https://data.nas.nasa.gov/gddpimpact/FWI/Yearly/MME/",
+      "retrievedAt": "2026-10-25T13:43:38.220699+00:00",
+      "sha256": "5a9b08e38dcd38c03c7d96a3dbf9404090ac01f4b490fd3cfb1ceeba47c105e2",
+      "bytes": 264106,
+      "listedMME75FilesForRequiredScenarios": 205,
+      "requiredFilesAbsent": 19,
+      "interpretation": "All 19 failed source URLs are absent from the published catalog. HTTP 500 is the observed response for those unpublished paths; rate limiting or an intermittent outage is not established."
+    },
+    "interpretation": "Exploratory analysis using equally weighted available annual MME75/FWI_P95 observations in each original period. No interpolation. Unequal period coverage; not approved for publication."
+  }
+}

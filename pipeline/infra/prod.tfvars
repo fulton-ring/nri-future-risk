@@ -1,0 +1,7 @@
+project                  = "hifld-next"
+region                   = "us-central1"
+github_repository        = "fulton-ring/nri-future-risk"
+github_repository_id     = "931148990"
+network                  = "projects/hifld-next/global/networks/hifld-prod-vpc"
+subnetwork               = "projects/hifld-next/regions/us-central1/subnetworks/hifld-prod-subnet"
+publisher_staging_bucket = "hifld-next-staging-prod"

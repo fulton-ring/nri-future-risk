@@ -1,0 +1,52 @@
+{
+  "id": "nri-v120-county-tract-area-weighted-v1",
+  "baseline": "NRI v1.20",
+  "baselineDate": "December 2025",
+  "boundaryVintage": 2024,
+  "weightingBoxWidthDegrees": 0.25,
+  "climateSnapshot": {
+    "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261109T201655Z/prepared/snapshot.json",
+    "sha256": "bf66f32383d48870d26646c47a68f6f4e9440ccdd96ec31ad4ed6a5935a94553"
+  },
+  "countyTable": {
+    "url": "https://www.fema.gov/about/reports-and-data/openfema/nri/v120/NRI_Table_Counties.zip",
+    "sha256": "b99dae90a317b16630d7f9b1faa4a2784d5ca458761c1d3ab9646f046df9d072"
+  },
+  "tractTable": {
+    "url": "https://www.fema.gov/about/reports-and-data/openfema/nri/v120/NRI_Table_CensusTracts.zip",
+    "sha256": "a08d51731a33eaea9700a477d4b2bc7594feb64f6ce80edee63a869477efe4d2"
+  },
+  "countyGeometry": {
+    "url": "https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_us_county_500k.zip",
+    "sha256": "da4051717caec55c75e3748c3608c2a3dbde8d1ff401bbaf4f952e3c3fb63ef1"
+  },
+  "tractGeometryTemplate": "https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_{state}_tract_500k.zip",
+  "landfireTiles": [
+    {
+      "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/landfire/landfire/v20261109T201655Z/geotiff/raw_-2362395.0_220905.0.tiff",
+      "sha256": "b78cb0e89efe0eeb23522c0db1886f7095af95621857723372cf4d68a5b87809"
+    },
+    {
+      "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/landfire/landfire/v20261109T201655Z/geotiff/raw_-17395.0_220905.0.tiff",
+      "sha256": "71ae38c41e0261a74f1036b349b5b26da85aef1a5924a5bbd7d01526a112afef"
+    },
+    {
+      "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/landfire/landfire/v20261109T201655Z/geotiff/raw_-2362395.0_1744405.0.tiff",
+      "sha256": "c27a42b8daa6a7474cb5f6f6c19b6e6f9699f1f15eb9380ba65f431931323574"
+    },
+    {
+      "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/landfire/landfire/v20261109T201655Z/geotiff/raw_-17395.0_1744405.0.tiff",
+      "sha256": "ed95bb7d4b86f551933fdc86ccfb798ab5afe83cb9ea9e399eecef58fdcdcae2"
+    }
+  ],
+  "coverage": "CONUS multipliers only; other areas receive no future projections",
+  "wildfireCalibration": "county-only NRI v1.20 expected annual losses, historic MME50 FWI, LF2022 fuel shares, burnable-share weights",
+  "approval": "Review artifacts only. No staging publication or live map activation.",
+  "tractGeometryOverrides": {
+    "12": {
+      "url": "https://www2.census.gov/geo/tiger/TIGER2024/TRACT/tl_2024_12_tract.zip",
+      "sha256": "dd178ccb9c5324492c22ef82c78bfbfe95ebf5248463eeb85d54b00983d85b3c"
+    }
+  },
+  "portolanSchemaSha256": "8aabde871a72dcee711dc57d439e0f47dc29b30883513571128125c666723a7a"
+}

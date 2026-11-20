@@ -1,0 +1,15 @@
+{
+  "verifiedAt": "2026-10-25T23:36:07.000438+00:00",
+  "authorization": "User explicitly approved removing the old sources/ duplicate files.",
+  "resultsBucket": "future-risk-index-results",
+  "cacheBucket": "future-risk-index-experiments",
+  "obsoletePrefix": "future-risk-index/sources/",
+  "verifiedGenerations": 619,
+  "verifiedBytes": 195553737700,
+  "completedAt": "2026-10-25T23:36:18.293182+00:00",
+  "deletedGenerations": 619,
+  "remainingOldGenerations": 0,
+  "retainedCopiesVerified": true,
+  "inventoryUri": "gs://future-risk-index-experiments/_migrations/2026-10-25-source-dataset-layout/verified-duplicates.json",
+  "inventorySha256": "fff47121595c389526f8e860733bc334e6d041f24b3853e812b1bf8097f307c2"
+}

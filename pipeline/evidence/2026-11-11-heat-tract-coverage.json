@@ -1,0 +1,132 @@
+{
+  "source": {
+    "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/loca2/loca2/v20261109T201655Z/netcdf/historical_1950-2014.nc",
+    "sha256": "ed0d0e499cc2a3eaaf1ebce60154c447bf1b5a600f0b1714fc8469de0d6e5410",
+    "bytes": 23118837851
+  },
+  "inspection": "Read-only HTTP Range metadata and point inspection; no score recalculation.",
+  "samples": [
+    {
+      "place": "Key West",
+      "date": "1976-01-01",
+      "latitude": 24.53125,
+      "longitude": -81.78125,
+      "rawTasmin": 1.0000000150474662e+30,
+      "valid": false
+    },
+    {
+      "place": "Marathon",
+      "date": "1976-01-01",
+      "latitude": 24.71875,
+      "longitude": -81.09375,
+      "rawTasmin": 1.0000000150474662e+30,
+      "valid": false
+    },
+    {
+      "place": "Key Largo",
+      "date": "1976-01-01",
+      "latitude": 25.09375,
+      "longitude": -80.46875,
+      "rawTasmin": 284.9182434082031,
+      "valid": true
+    },
+    {
+      "place": "Monroe mainland",
+      "date": "1976-01-01",
+      "latitude": 25.59375,
+      "longitude": -80.90625,
+      "rawTasmin": 281.4878234863281,
+      "valid": true
+    },
+    {
+      "place": "Key West",
+      "date": "2005-01-01",
+      "latitude": 24.53125,
+      "longitude": -81.78125,
+      "rawTasmin": 1.0000000150474662e+30,
+      "valid": false
+    },
+    {
+      "place": "Marathon",
+      "date": "2005-01-01",
+      "latitude": 24.71875,
+      "longitude": -81.09375,
+      "rawTasmin": 1.0000000150474662e+30,
+      "valid": false
+    },
+    {
+      "place": "Key Largo",
+      "date": "2005-01-01",
+      "latitude": 25.09375,
+      "longitude": -80.46875,
+      "rawTasmin": 286.69091796875,
+      "valid": true
+    },
+    {
+      "place": "Monroe mainland",
+      "date": "2005-01-01",
+      "latitude": 25.59375,
+      "longitude": -80.90625,
+      "rawTasmin": 282.78057861328125,
+      "valid": true
+    }
+  ],
+  "grid": {
+    "shape": [
+      23741,
+      474,
+      944
+    ],
+    "chunks": [
+      1,
+      474,
+      944
+    ],
+    "latitudeRange": [
+      23.90625,
+      53.46875
+    ],
+    "longitudeRange": [
+      -125.46875,
+      -66.53125
+    ]
+  },
+  "variableAttributes": {
+    "units": "b'K'",
+    "missing_value": "[1.e+30]",
+    "long_name": "b'tasmin'"
+  },
+  "resultVersion": "v20261111T211638Z",
+  "tractCoverage": {
+    "weightedCells": 220047,
+    "structuralNoDataCells": 4568,
+    "areas": 83481,
+    "minimumAreaCoverage": 0.0,
+    "medianAreaCoverage": 1.0,
+    "areasWithPartialCoverage": 7991,
+    "unsupportedAreaIds": [
+      "12087971001",
+      "12087971002",
+      "12087971100",
+      "12087971200",
+      "12087971300",
+      "12087971401",
+      "12087971402",
+      "12087971501",
+      "12087971502",
+      "12087971600",
+      "12087971700",
+      "12087971800",
+      "12087971900",
+      "12087972000",
+      "12087972100",
+      "12087972200",
+      "12087972400",
+      "12087972500",
+      "12087972800",
+      "12087980100"
+    ],
+    "unsupportedAreaCount": 20
+  },
+  "interpretation": "The prepared snapshot has zero valid LOCA2 support for these 20 Monroe County tracts. Point inspection of the original historical NetCDF confirms declared missing_value sentinels near Marathon and Key West, but valid cells near Key Largo and mainland Monroe. This is a spatial no-data gap in the chosen input files; it is not a missing-year exception or a zero-NRI-loss status. Point samples corroborate, but do not replace, the complete multi-period coverage validation."
+}

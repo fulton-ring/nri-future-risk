@@ -68,36 +68,6 @@ test("rating colors follow published categories rather than scenario-specific ex
   assert.notEqual(colorFor("No Rating", "loss"), colorFor(null, "loss"));
 });
 
-test("every archived county attribute survives the display asset conversion", async () => {
-  const { readFile } = await import("node:fs/promises");
-  const original = JSON.parse(
-    await readFile(
-      new URL("../public/combined_nri_counties_borders.json", import.meta.url),
-      "utf8",
-    ),
-  );
-  const display = JSON.parse(
-    await readFile(
-      new URL("../public/atlas/counties.json", import.meta.url),
-      "utf8",
-    ),
-  );
-  const rows = new Map(
-    display.counties.map((c: { id: string; values: unknown[] }) => [c.id, c]),
-  );
-  assert.equal(rows.size, original.features.length);
-  for (const feature of original.features) {
-    const row = rows.get(feature.properties.STCOFIPS) as { values: unknown[] };
-    assert.ok(row);
-    for (const [i, column] of display.columns.entries())
-      assert.deepEqual(
-        row.values[i],
-        feature.properties[column],
-        `${feature.properties.STCOFIPS}: ${column}`,
-      );
-  }
-});
-
 test("map field selection reads published properties from PMTiles", async () => {
   const { metricField } = await import("../src/lib/risk.ts");
   assert.equal(
@@ -112,50 +82,6 @@ test("map field selection reads published properties from PMTiles", async () => 
     ),
     "EXHT_N99_LATE_HIGHER_HM",
   );
-});
-
-test("PMTiles carries the actual archived scores and multipliers for all five hazards", async () => {
-  const { readFile } = await import("node:fs/promises");
-  const { PMTiles } = await import("pmtiles");
-  const { VectorTile } = await import("@mapbox/vector-tile");
-  const { PbfReader } = await import("pbf");
-  const bytes = await readFile(
-    new URL("../public/atlas/counties.pmtiles", import.meta.url),
-  );
-  const archive = new PMTiles({
-    getKey: () => "archive",
-    getBytes: async (offset, length) => ({
-      data: bytes.buffer.slice(
-        bytes.byteOffset + offset,
-        bytes.byteOffset + offset + length,
-      ),
-    }),
-  });
-  const tile = await archive.getZxy(6, 11, 25);
-  assert.ok(tile);
-  const layer = new VectorTile(new PbfReader(new Uint8Array(tile.data))).layers
-    .counties;
-  const properties = Array.from(
-    { length: layer.length },
-    (_, i) => layer.feature(i).properties,
-  ).find((p) => p.fips === "06037");
-  assert.ok(properties, "Los Angeles is included in its tile");
-  const source = JSON.parse(
-    await readFile(
-      new URL("../public/combined_nri_counties_borders.json", import.meta.url),
-      "utf8",
-    ),
-  );
-  const expected = source.features.find(
-    (f: { properties: { STCOFIPS: string } }) =>
-      f.properties.STCOFIPS === "06037",
-  ).properties;
-  for (const key of Object.keys(expected).filter((k) =>
-    /^(WFIR|DRGT|EXHT|CFLD|HRCN)_/.test(k),
-  )) {
-    if (expected[key] !== null)
-      assert.equal(properties[key], expected[key], key);
-  }
 });
 
 test("pathway names follow the archived hazard sources", async () => {

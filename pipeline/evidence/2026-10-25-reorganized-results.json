@@ -1,0 +1,374 @@
+{
+  "verifiedAt": "2026-10-25T23:31:15.248359+00:00",
+  "job": "future-risk-results-20261025-datasets",
+  "jobState": "SUCCEEDED",
+  "image": "us-central1-docker.pkg.dev/hifld-next/fri/preparation@sha256:58265be4a1a33c6237add1d40670ebdbd31250d93e5323d541aa519a1937b2dd",
+  "codeRevision": "5347edafb8e279255ed202d7ccef2c1f0b91cf28",
+  "version": "v20261025T140637Z",
+  "collection": "future-risk-index",
+  "publishable": false,
+  "sourceArchiveUri": "gs://future-risk-index-experiments/source-archives",
+  "sourceCount": 618,
+  "originalSourcesByDataset": {
+    "nex-gddp-cmip6": 474,
+    "loca2": 7,
+    "nex-gddp-fwi": 131,
+    "landfire": 4,
+    "fri": 1,
+    "census-boundaries": 1
+  },
+  "zarrStoreCount": 14,
+  "zarrShapes": {
+    "future-risk-index/loca2/loca2/v20261025T140637Z/zarr/loca2_historical_historical.zarr": [
+      503,
+      220047
+    ],
+    "future-risk-index/loca2/loca2/v20261025T140637Z/zarr/loca2_ssp245_LATE.zarr": [
+      503,
+      220047
+    ],
+    "future-risk-index/loca2/loca2/v20261025T140637Z/zarr/loca2_ssp245_MID.zarr": [
+      503,
+      220047
+    ],
+    "future-risk-index/loca2/loca2/v20261025T140637Z/zarr/loca2_ssp585_LATE.zarr": [
+      503,
+      220047
+    ],
+    "future-risk-index/loca2/loca2/v20261025T140637Z/zarr/loca2_ssp585_MID.zarr": [
+      503,
+      220047
+    ],
+    "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z/zarr/monthly_pr_ssp245.zarr": [
+      1812,
+      13737
+    ],
+    "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z/zarr/monthly_pr_ssp585.zarr": [
+      1812,
+      13737
+    ],
+    "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z/zarr/monthly_tas_ssp245.zarr": [
+      1812,
+      13737
+    ],
+    "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z/zarr/monthly_tas_ssp585.zarr": [
+      1812,
+      13737
+    ],
+    "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z/zarr/fwi_historical_historical.zarr": [
+      26,
+      13737
+    ],
+    "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z/zarr/fwi_ssp245_LATE.zarr": [
+      25,
+      13737
+    ],
+    "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z/zarr/fwi_ssp245_MID.zarr": [
+      25,
+      13737
+    ],
+    "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z/zarr/fwi_ssp585_LATE.zarr": [
+      27,
+      13737
+    ],
+    "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z/zarr/fwi_ssp585_MID.zarr": [
+      28,
+      13737
+    ]
+  },
+  "countyCount": 3218,
+  "countyColumns": 223,
+  "verifiedObjectCount": 3550,
+  "verifiedBytes": 196894643844,
+  "verification": "All inventoried GCS sizes and SHA-256 metadata verified; downloaded county GeoParquet and all consolidated Zarr metadata matched their SHA-256 hashes. GeoParquet county identities and geometries checked. Worker performed exact array round trips and original copy CRC32C verification.",
+  "manifestUri": "gs://future-risk-index-results/_releases/v20261025T140637Z.json",
+  "manifestSha256": "fe41c5ede33035f18081ed8044f449e7b3d4db1ecdbeb336083865bc51945faf",
+  "portolanValidation": {
+    "passed": true,
+    "files_checked": 20,
+    "error_count": 0,
+    "warning_count": 26,
+    "info_count": 0,
+    "summary": {
+      "by_severity": {
+        "error": 0,
+        "warning": 26,
+        "info": 0
+      },
+      "by_rule": [
+        {
+          "rule_id": "PTL-AST-003",
+          "severity": "warning",
+          "count": 14,
+          "file_count": 3,
+          "description": "every asset should carry file:size and file:checksum"
+        },
+        {
+          "rule_id": "PTL-COL-003",
+          "severity": "warning",
+          "count": 6,
+          "file_count": 6,
+          "description": "collection IDs should be lowercase [a-z0-9_-], start with a letter, and be unique"
+        },
+        {
+          "rule_id": "PTL-FIL-005",
+          "severity": "warning",
+          "count": 6,
+          "file_count": 6,
+          "description": "a collection's README.md should mention its license and data provenance"
+        }
+      ]
+    },
+    "findings": [
+      {
+        "rule_id": "PTL-COL-003",
+        "severity": "warning",
+        "message": "collection id 'future-risk-index/census-boundaries/counties/v20261025T140637Z' does not follow the naming convention (lowercase letters, numbers, hyphens, underscores; starts with a letter)",
+        "path": "future-risk-index/census-boundaries/counties/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/census-boundaries/counties/v20261025T140637Z",
+        "json_pointer": "/id",
+        "fix_hint": "rename the id to lowercase, replacing spaces and other characters with hyphens, e.g. 'road-centerlines-2024'",
+        "actual": "future-risk-index/census-boundaries/counties/v20261025T140637Z"
+      },
+      {
+        "rule_id": "PTL-FIL-005",
+        "severity": "warning",
+        "message": "README.md does not appear to mention the license",
+        "path": "future-risk-index/census-boundaries/counties/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/census-boundaries/counties/v20261025T140637Z",
+        "fix_hint": "state the license, e.g. 'License: CC-BY-4.0'"
+      },
+      {
+        "rule_id": "PTL-COL-003",
+        "severity": "warning",
+        "message": "collection id 'future-risk-index/fri/counties/v20261025T140637Z' does not follow the naming convention (lowercase letters, numbers, hyphens, underscores; starts with a letter)",
+        "path": "future-risk-index/fri/counties/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/fri/counties/v20261025T140637Z",
+        "json_pointer": "/id",
+        "fix_hint": "rename the id to lowercase, replacing spaces and other characters with hyphens, e.g. 'road-centerlines-2024'",
+        "actual": "future-risk-index/fri/counties/v20261025T140637Z"
+      },
+      {
+        "rule_id": "PTL-FIL-005",
+        "severity": "warning",
+        "message": "README.md does not appear to mention the license",
+        "path": "future-risk-index/fri/counties/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/fri/counties/v20261025T140637Z",
+        "fix_hint": "state the license, e.g. 'License: CC-BY-4.0'"
+      },
+      {
+        "rule_id": "PTL-COL-003",
+        "severity": "warning",
+        "message": "collection id 'future-risk-index/landfire/landfire/v20261025T140637Z' does not follow the naming convention (lowercase letters, numbers, hyphens, underscores; starts with a letter)",
+        "path": "future-risk-index/landfire/landfire/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/landfire/landfire/v20261025T140637Z",
+        "json_pointer": "/id",
+        "fix_hint": "rename the id to lowercase, replacing spaces and other characters with hyphens, e.g. 'road-centerlines-2024'",
+        "actual": "future-risk-index/landfire/landfire/v20261025T140637Z"
+      },
+      {
+        "rule_id": "PTL-FIL-005",
+        "severity": "warning",
+        "message": "README.md does not appear to mention the license",
+        "path": "future-risk-index/landfire/landfire/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/landfire/landfire/v20261025T140637Z",
+        "fix_hint": "state the license, e.g. 'License: CC-BY-4.0'"
+      },
+      {
+        "rule_id": "PTL-AST-003",
+        "severity": "warning",
+        "message": "asset 'zarr-loca2_historical_historical' has no file:checksum",
+        "path": "future-risk-index/loca2/loca2/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/loca2/loca2/v20261025T140637Z",
+        "json_pointer": "/assets/zarr-loca2_historical_historical/file:checksum",
+        "fix_hint": "add file:checksum, the multihash of the asset bytes: '1220' followed by the sha256 hex digest"
+      },
+      {
+        "rule_id": "PTL-AST-003",
+        "severity": "warning",
+        "message": "asset 'zarr-loca2_ssp245_LATE' has no file:checksum",
+        "path": "future-risk-index/loca2/loca2/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/loca2/loca2/v20261025T140637Z",
+        "json_pointer": "/assets/zarr-loca2_ssp245_LATE/file:checksum",
+        "fix_hint": "add file:checksum, the multihash of the asset bytes: '1220' followed by the sha256 hex digest"
+      },
+      {
+        "rule_id": "PTL-AST-003",
+        "severity": "warning",
+        "message": "asset 'zarr-loca2_ssp245_MID' has no file:checksum",
+        "path": "future-risk-index/loca2/loca2/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/loca2/loca2/v20261025T140637Z",
+        "json_pointer": "/assets/zarr-loca2_ssp245_MID/file:checksum",
+        "fix_hint": "add file:checksum, the multihash of the asset bytes: '1220' followed by the sha256 hex digest"
+      },
+      {
+        "rule_id": "PTL-AST-003",
+        "severity": "warning",
+        "message": "asset 'zarr-loca2_ssp585_LATE' has no file:checksum",
+        "path": "future-risk-index/loca2/loca2/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/loca2/loca2/v20261025T140637Z",
+        "json_pointer": "/assets/zarr-loca2_ssp585_LATE/file:checksum",
+        "fix_hint": "add file:checksum, the multihash of the asset bytes: '1220' followed by the sha256 hex digest"
+      },
+      {
+        "rule_id": "PTL-AST-003",
+        "severity": "warning",
+        "message": "asset 'zarr-loca2_ssp585_MID' has no file:checksum",
+        "path": "future-risk-index/loca2/loca2/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/loca2/loca2/v20261025T140637Z",
+        "json_pointer": "/assets/zarr-loca2_ssp585_MID/file:checksum",
+        "fix_hint": "add file:checksum, the multihash of the asset bytes: '1220' followed by the sha256 hex digest"
+      },
+      {
+        "rule_id": "PTL-COL-003",
+        "severity": "warning",
+        "message": "collection id 'future-risk-index/loca2/loca2/v20261025T140637Z' does not follow the naming convention (lowercase letters, numbers, hyphens, underscores; starts with a letter)",
+        "path": "future-risk-index/loca2/loca2/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/loca2/loca2/v20261025T140637Z",
+        "json_pointer": "/id",
+        "fix_hint": "rename the id to lowercase, replacing spaces and other characters with hyphens, e.g. 'road-centerlines-2024'",
+        "actual": "future-risk-index/loca2/loca2/v20261025T140637Z"
+      },
+      {
+        "rule_id": "PTL-FIL-005",
+        "severity": "warning",
+        "message": "README.md does not appear to mention the license",
+        "path": "future-risk-index/loca2/loca2/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/loca2/loca2/v20261025T140637Z",
+        "fix_hint": "state the license, e.g. 'License: CC-BY-4.0'"
+      },
+      {
+        "rule_id": "PTL-AST-003",
+        "severity": "warning",
+        "message": "asset 'zarr-monthly_pr_ssp245' has no file:checksum",
+        "path": "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z",
+        "json_pointer": "/assets/zarr-monthly_pr_ssp245/file:checksum",
+        "fix_hint": "add file:checksum, the multihash of the asset bytes: '1220' followed by the sha256 hex digest"
+      },
+      {
+        "rule_id": "PTL-AST-003",
+        "severity": "warning",
+        "message": "asset 'zarr-monthly_pr_ssp585' has no file:checksum",
+        "path": "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z",
+        "json_pointer": "/assets/zarr-monthly_pr_ssp585/file:checksum",
+        "fix_hint": "add file:checksum, the multihash of the asset bytes: '1220' followed by the sha256 hex digest"
+      },
+      {
+        "rule_id": "PTL-AST-003",
+        "severity": "warning",
+        "message": "asset 'zarr-monthly_tas_ssp245' has no file:checksum",
+        "path": "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z",
+        "json_pointer": "/assets/zarr-monthly_tas_ssp245/file:checksum",
+        "fix_hint": "add file:checksum, the multihash of the asset bytes: '1220' followed by the sha256 hex digest"
+      },
+      {
+        "rule_id": "PTL-AST-003",
+        "severity": "warning",
+        "message": "asset 'zarr-monthly_tas_ssp585' has no file:checksum",
+        "path": "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z",
+        "json_pointer": "/assets/zarr-monthly_tas_ssp585/file:checksum",
+        "fix_hint": "add file:checksum, the multihash of the asset bytes: '1220' followed by the sha256 hex digest"
+      },
+      {
+        "rule_id": "PTL-COL-003",
+        "severity": "warning",
+        "message": "collection id 'future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z' does not follow the naming convention (lowercase letters, numbers, hyphens, underscores; starts with a letter)",
+        "path": "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z",
+        "json_pointer": "/id",
+        "fix_hint": "rename the id to lowercase, replacing spaces and other characters with hyphens, e.g. 'road-centerlines-2024'",
+        "actual": "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z"
+      },
+      {
+        "rule_id": "PTL-FIL-005",
+        "severity": "warning",
+        "message": "README.md does not appear to mention the license",
+        "path": "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/nex-gddp-cmip6/nex-gddp-cmip6/v20261025T140637Z",
+        "fix_hint": "state the license, e.g. 'License: CC-BY-4.0'"
+      },
+      {
+        "rule_id": "PTL-AST-003",
+        "severity": "warning",
+        "message": "asset 'zarr-fwi_historical_historical' has no file:checksum",
+        "path": "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z",
+        "json_pointer": "/assets/zarr-fwi_historical_historical/file:checksum",
+        "fix_hint": "add file:checksum, the multihash of the asset bytes: '1220' followed by the sha256 hex digest"
+      },
+      {
+        "rule_id": "PTL-AST-003",
+        "severity": "warning",
+        "message": "asset 'zarr-fwi_ssp245_LATE' has no file:checksum",
+        "path": "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z",
+        "json_pointer": "/assets/zarr-fwi_ssp245_LATE/file:checksum",
+        "fix_hint": "add file:checksum, the multihash of the asset bytes: '1220' followed by the sha256 hex digest"
+      },
+      {
+        "rule_id": "PTL-AST-003",
+        "severity": "warning",
+        "message": "asset 'zarr-fwi_ssp245_MID' has no file:checksum",
+        "path": "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z",
+        "json_pointer": "/assets/zarr-fwi_ssp245_MID/file:checksum",
+        "fix_hint": "add file:checksum, the multihash of the asset bytes: '1220' followed by the sha256 hex digest"
+      },
+      {
+        "rule_id": "PTL-AST-003",
+        "severity": "warning",
+        "message": "asset 'zarr-fwi_ssp585_LATE' has no file:checksum",
+        "path": "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z",
+        "json_pointer": "/assets/zarr-fwi_ssp585_LATE/file:checksum",
+        "fix_hint": "add file:checksum, the multihash of the asset bytes: '1220' followed by the sha256 hex digest"
+      },
+      {
+        "rule_id": "PTL-AST-003",
+        "severity": "warning",
+        "message": "asset 'zarr-fwi_ssp585_MID' has no file:checksum",
+        "path": "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z",
+        "json_pointer": "/assets/zarr-fwi_ssp585_MID/file:checksum",
+        "fix_hint": "add file:checksum, the multihash of the asset bytes: '1220' followed by the sha256 hex digest"
+      },
+      {
+        "rule_id": "PTL-COL-003",
+        "severity": "warning",
+        "message": "collection id 'future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z' does not follow the naming convention (lowercase letters, numbers, hyphens, underscores; starts with a letter)",
+        "path": "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z",
+        "json_pointer": "/id",
+        "fix_hint": "rename the id to lowercase, replacing spaces and other characters with hyphens, e.g. 'road-centerlines-2024'",
+        "actual": "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z"
+      },
+      {
+        "rule_id": "PTL-FIL-005",
+        "severity": "warning",
+        "message": "README.md does not appear to mention the license",
+        "path": "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z/collection.json",
+        "object_id": "future-risk-index/nex-gddp-fwi/nex-gddp-fwi/v20261025T140637Z",
+        "fix_hint": "state the license, e.g. 'License: CC-BY-4.0'"
+      }
+    ]
+  },
+  "legacySourceObjectsRetained": 619,
+  "sourceArchiveJob": {
+    "id": "future-risk-archive-20261025174607",
+    "state": "SUCCEEDED",
+    "originalBytes": 195553470248,
+    "originalNetCdfFiles": 612
+  },
+  "legacySourceLayout": "Retained pending explicit cleanup approval after automatic approval review rejected removal. New dataset/version copies and experiments cache are verified.",
+  "legacySourceCleanup": {
+    "completedAt": "2026-10-25T23:36:18.293182+00:00",
+    "deletedGenerations": 619,
+    "remainingOldGenerations": 0,
+    "retainedCopiesVerified": true,
+    "evidence": "2026-10-25-source-layout-cleanup.json"
+  }
+}

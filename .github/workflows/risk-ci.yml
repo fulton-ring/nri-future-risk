@@ -1,0 +1,29 @@
+name: Verify risk releases
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.4"
+          enable-cache: true
+          cache-dependency-glob: pipeline/uv.lock
+      - run: uv run --directory pipeline --frozen --extra results pytest -q
+      - run: uv run --directory pipeline --frozen ruff check .
+      - run: uv run --directory pipeline --frozen ruff format --check .
+      - name: Check preparation image and native geospatial imports
+        run: docker build --file pipeline/Preparation.Dockerfile --tag fri-preparation-ci .
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.13.4"
+      - run: terraform fmt -check pipeline/infra
+      - run: terraform -chdir=pipeline/infra init -backend=false
+      - run: terraform -chdir=pipeline/infra validate
+      - run: terraform -chdir=pipeline/infra test -var-file=prod.tfvars

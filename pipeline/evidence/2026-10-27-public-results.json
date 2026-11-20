@@ -1,0 +1,58 @@
+{
+  "verifiedAt": "2026-10-27T18:21:28.624810+00:00",
+  "configurationCommit": "eb4eac101c93b2ea352fb8a68c11e8480aa9e632",
+  "terraformApply": {
+    "added": 1,
+    "changed": 1,
+    "destroyed": 0
+  },
+  "anonymousRole": "roles/storage.objectViewer",
+  "resultsCatalogUrl": "https://storage.googleapis.com/future-risk-index-results/catalog.json",
+  "countyGeoParquetSha256": "a571eea0e9a737a89254c5422c5350ee82f3f161c6d6d00ebad94e8b6b9b328a",
+  "checks": [
+    {
+      "url": "https://storage.googleapis.com/future-risk-index-results/catalog.json",
+      "status": 200,
+      "bytes": 805,
+      "allowOrigin": "*",
+      "contentRange": null
+    },
+    {
+      "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261025T140637Z/collection.json",
+      "status": 200,
+      "bytes": 30899,
+      "allowOrigin": "*",
+      "contentRange": null
+    },
+    {
+      "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261025T140637Z/geoparquet/counties.parquet",
+      "status": 200,
+      "bytes": 4020037,
+      "allowOrigin": "*",
+      "contentRange": null
+    },
+    {
+      "url": "https://storage.googleapis.com/future-risk-index-results/future-risk-index/fri/counties/v20261025T140637Z/geoparquet/counties.parquet",
+      "status": 206,
+      "bytes": 64,
+      "allowOrigin": "*",
+      "contentRange": "bytes 0-63/4020037"
+    },
+    {
+      "url": "https://storage.googleapis.com/storage/v1/b/future-risk-index-results/o?maxResults=1&fields=items(name)",
+      "status": 200,
+      "bytes": 59,
+      "allowOrigin": null,
+      "contentRange": null
+    },
+    {
+      "url": "https://storage.googleapis.com/storage/v1/b/future-risk-index-experiments/o?maxResults=1&fields=items(name)",
+      "status": 401
+    },
+    {
+      "url": "https://storage.googleapis.com/storage/v1/b/hifld-next-iac-prod-49775666365/o?maxResults=1&fields=items(name)",
+      "status": 401
+    }
+  ],
+  "postApplyPlan": "No changes. Your infrastructure matches the configuration."
+}

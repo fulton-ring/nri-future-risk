@@ -9,3 +9,8 @@ for (const file of await readdir('dist')) {
 }
 for (const file of files) await rename(join(client, file), join('dist', file));
 await rm(client, { recursive: true });
+// Ship only what the explorer uses; source files and release data are served from the results bucket.
+const keep = new Set(['index.html', 'assets', 'context', 'guide', 'versions']);
+for (const file of await readdir('dist')) {
+  if (!keep.has(file)) await rm(join('dist', file), { recursive: true });
+}
